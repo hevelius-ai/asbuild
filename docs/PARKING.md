@@ -20,3 +20,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - A Vitest or Jest preset beside pytest (9 Nov 2026 check: TypeScript is the largest share of Claude Code's pull requests; the first item to look at if a stranger asks)
 - A control write-up on AI-written changes offered to FINOS's SDLC Controls Framework, with AsBuild as the worked example (9 Nov 2026 check: writing, not building, and only after "done"; not checked whether one is already proposed there)
 - A test outside `tests/acceptance` that already fails on main is counted as "something that worked before broke": the full suite runs only on the pull request, as in step 0. Graded PARKED in S1 review round 3 (2026-11-10).
+- The story-time example check counts a negated assertion (`assert "words: 3" not in ...`) as checking the example (ported F4 behaviour). Graded PARKED in S2 review round 1 (2026-11-10).
+- A timeout on the story-time checks' run of the tests on the base branch. Graded PARKED in S2 review round 1 (2026-11-10).

@@ -39,6 +39,7 @@ ASSERTION = ("assert", "AssertionError", "Failed:")  # pytest's messages for ass
 MAX_CHECKS, MAX_EXAMPLES = 5, 3
 MAX_COMBOS = 50
 FUNCS = (ast.FunctionDef, ast.AsyncFunctionDef)
+END_OF_REQUEST = ("## Criteria", "## Plain checklist", "## Not in this story")  # the template's next headings
 CONVERSIONS: dict[int, Callable[[object], str]] = {115: str, 114: repr, 97: ascii}  # !s !r !a in an f-string
 
 
@@ -79,11 +80,11 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
     checks: list[dict] = []
     section = ""
     for line in text.splitlines():
-        if line.startswith("#"):
+        if section == "request" and not line.startswith(END_OF_REQUEST):
+            request.append(line)  # the owner's words may hold lines that start with "#"
+        elif line.startswith("#"):
             heading = line.lower()
             section = "request" if "request" in heading else "plain" if "plain" in heading else ""
-        elif section == "request":
-            request.append(line)
         elif section == "plain":
             row = cells(line)
             if len(row) >= 2 and CHECK_ID.fullmatch(row[0]):
@@ -125,22 +126,28 @@ def matches(test_name: str, check: str) -> bool:
 
 
 def find_tests(folder: Path) -> tuple[dict[str, tuple[Path, str]], list[str]]:
-    """{test name: (file, qualified name)} for test functions and Test* class methods, and unreadable files."""
+    """{test name: (file, qualified name)} for test functions and Test* class methods, and the problems found."""
     found: dict[str, tuple[Path, str]] = {}
     bad = []
+
+    def add(name: str, path: Path, qual: str) -> None:
+        if name in found:  # a second test of the same name would be locked but never examined
+            bad.append(f"{name} is defined more than once: give each test its own name")
+        found[name] = (path, qual)
+
     for path in sorted(folder.rglob("*.py")):
         try:
             module = ast.parse(path.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError, ValueError):
-            bad.append(path.name)
+            bad.append(f"tests/acceptance/{folder.name}/{path.name} cannot be read as Python")
             continue
         for node in module.body:
             if isinstance(node, FUNCS) and node.name.startswith("test"):
-                found[node.name] = (path, node.name)
+                add(node.name, path, node.name)
             elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
                 for m in node.body:
                     if isinstance(m, FUNCS) and m.name.startswith("test"):
-                        found[m.name] = (path, f"{node.name}.{m.name}")
+                        add(m.name, path, f"{node.name}.{m.name}")
     return found, bad
 
 
@@ -181,7 +188,6 @@ def run_on_base(repo: Path, base: str, story: str, keep: Path | None) -> dict[st
 
 def results(xml: Path) -> dict[str, tuple[str, str]]:
     out: dict[str, tuple[str, str]] = {}
-    rank = {"passed": 0, "assertion": 1, "skipped": 2, "other": 3, "error": 4}
     for tc in ET.parse(xml).getroot().iter("testcase"):
         name = (tc.get("name") or "").split("[", 1)[0]
         kids = [k for k in tc if k.tag in ("failure", "error", "skipped")]
@@ -192,22 +198,21 @@ def results(xml: Path) -> dict[str, tuple[str, str]]:
             kind = "assertion" if msg.startswith(ASSERTION) else "other"
         else:
             kind = "skipped" if kids[0].tag == "skipped" else "error"
-        if name in out and kind == "assertion" and out[name][0] != "assertion":
-            continue  # a parametrised test: the case that did not fail by an assertion decides
-        if name not in out or rank[kind] != 1:
-            out[name] = (kind, msg)
+        if name not in out or kind != "assertion":  # a parametrised test: any case that did not fail
+            out[name] = (kind, msg)  # by an assertion decides
     return out
 
 
-def base_problem(test: str, ran: dict[str, tuple[str, str]]) -> str | None:
+def base_problem(test: str, ran: dict[str, tuple[str, str]], base: str) -> str | None:
     kind, msg = ran.get(test, ("missing", ""))
+    on = base.removeprefix("origin/")
     return {
         "assertion": None,
-        "passed": "passes already on main: it checks nothing the build will change",
-        "skipped": f"is skipped on main: a skipped test checks nothing ({msg})",
-        "other": f"fails on main for a reason other than an assertion: {msg}",
-        "error": f"could not run on main: {msg}",
-        "missing": "did not run on main (the file could not be collected)",
+        "passed": f"passes already on {on}: it checks nothing the build will change",
+        "skipped": f"is skipped on {on}: a skipped test checks nothing ({msg})",
+        "other": f"fails on {on} for a reason other than an assertion: {msg}",
+        "error": f"could not run on {on}: {msg}",
+        "missing": f"did not run on {on} (the file could not be collected)",
     }[kind]
 
 
@@ -421,9 +426,13 @@ def python_asserted(source: str, name: str) -> list:
 
 def example_matches(example: str, asserted: list) -> bool:
     """An approved example (text from the story) matches an asserted string that equals it or, at 4 characters
-    or more, contains it; or an asserted number written the same way."""
+    or more, contains it as a whole value (not "words: 3" inside "words: 30"); or an asserted number written the
+    same way."""
+    left = r"(?<!\w)" if re.match(r"\w", example) else ""
+    right = r"(?!\w)" if re.search(r"\w$", example) else ""
+    whole = re.compile(left + re.escape(example) + right)
     for a in asserted:
-        if isinstance(a, str) and (a == example or (len(example) >= 4 and example in a)):
+        if isinstance(a, str) and (a == example or (len(example) >= 4 and whole.search(a))):
             return True
         if is_num(a) and str(a) == example:
             return True
@@ -433,8 +442,17 @@ def example_matches(example: str, asserted: list) -> bool:
 # ------------------------------------------------------------------ the run
 
 
-def lock(repo: Path, story: str) -> list[str]:
-    """Add the story's test files to locks.json; never change an entry that is already there."""
+def lock(repo: Path, story: str, base: str) -> list[str]:
+    """Add the story's test files to locks.json. An entry locked on the base (approved by the owner's merge) is
+    never changed; an entry this branch wrote earlier is replaced, so a story revised before approval can be
+    locked again."""
+    shown = git(repo, "show", f"{base}:locks.json")
+    try:
+        approved = json.loads(shown.stdout).get("files", {}) if shown.returncode == 0 else {}
+        if not isinstance(approved, dict):
+            raise TypeError("files is not an object")
+    except (ValueError, TypeError, AttributeError) as e:
+        raise CannotRun(f"locks.json on {base} cannot be read: {e}") from e
     path = repo / "locks.json"
     try:
         doc = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"files": {}}
@@ -447,12 +465,13 @@ def lock(repo: Path, story: str) -> list[str]:
     for p in sorted((repo / "tests" / "acceptance" / story).rglob("*.py")):
         rel = p.relative_to(repo).as_posix()
         new = entry(p.read_bytes())
-        if rel in files and files[rel] != new:
-            problems.append(f"{rel} is already locked with other content: only the owner changes a locked test")
+        if rel in approved and approved[rel] != new:
+            on = base.removeprefix("origin/")
+            problems.append(f"{rel} is locked on {on} with other content: only the owner changes a locked test")
         files[rel] = new
     if problems:
         return problems
-    path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8", newline="\n")
     return []
 
 
@@ -465,10 +484,13 @@ def check(repo: Path, story: str, base: str, keep: Path | None) -> tuple[list[st
     request, checks = parse_story(text)
     general = story_problems(story, text, request, checks)
     tests, bad = find_tests(repo / "tests" / "acceptance" / story)
-    general += [f"tests/acceptance/{story}/{name} cannot be read as Python" for name in bad]
+    general += bad
     for name in tests:
-        if not any(matches(name, c["id"]) for c in checks):
+        carried = sum(matches(name, c["id"]) for c in checks)
+        if carried == 0:
             general.append(f"{name} carries none of this story's check IDs: one test per check, named after it")
+        elif carried > 1:  # one test per check
+            general.append(f"{name} carries more than one check ID: one test per check, named after it")
     ran = run_on_base(repo, base, story, keep) if tests else {}
     lines, count = list(general), len(general)
     for c in checks:
@@ -477,7 +499,7 @@ def check(repo: Path, story: str, base: str, keep: Path | None) -> tuple[list[st
         if len(mine) != 1:
             why.append(f"needs exactly one test named after it, found {len(mine)}")
         for t in mine:
-            if (p := base_problem(t, ran)) is not None:
+            if (p := base_problem(t, ran, base)) is not None:
                 why.append(f"{t} {p}")
             path, qual = tests[t]
             asserted = python_asserted(path.read_text(encoding="utf-8"), qual)
@@ -511,7 +533,7 @@ def main(argv: list[str] | None = None) -> int:
             raise CannotRun(f"no branch {a.base}: fetch it first (git fetch origin)")
         lines, n_checks, n_problems = check(repo, a.story, a.base, a.keep)
         if n_problems == 0 and a.lock:
-            refused = lock(repo, a.story)
+            refused = lock(repo, a.story, a.base)
             lines += refused
             n_problems += len(refused)
     except CannotRun as e:

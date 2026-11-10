@@ -40,14 +40,91 @@ def test_pass_and_lock_keeps_other_entries(tmp_path, monkeypatch, capsys):
     assert run(repo, monkeypatch, capsys, "--lock")[0] == 0
 
 
-def test_lock_never_changes_an_existing_entry(tmp_path, monkeypatch, capsys):
+def test_lock_never_changes_an_entry_locked_on_the_base(tmp_path, monkeypatch, capsys):
     repo = make_repo(tmp_path, GOOD)
     rel = "tests/acceptance/S1/test_S1_count.py"
     (repo / "locks.json").write_text(json.dumps({"files": {rel: {"sha256": "old", "tests": []}}}), encoding="utf-8")
+    git(repo, "add", "locks.json")
+    git(repo, "commit", "-q", "-m", "an approved lock on main")
     code, out = run(repo, monkeypatch, capsys, "--lock")
     assert code == 1
-    assert "already locked with other content" in out
+    assert "is locked on main with other content" in out
     assert json.loads((repo / "locks.json").read_text(encoding="utf-8"))["files"][rel]["sha256"] == "old"
+
+
+@pytest.mark.parametrize("content", ["not json", "[1]", '{"files": []}'])
+def test_unreadable_lock_file_on_the_base_cannot_run(tmp_path, monkeypatch, capsys, content):
+    repo = make_repo(tmp_path, GOOD)
+    (repo / "locks.json").write_text(content, encoding="utf-8")
+    git(repo, "add", "locks.json")
+    git(repo, "commit", "-q", "-m", "a broken lock file on main")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 2 and "locks.json on main cannot be read" in out
+
+
+def test_a_story_revised_before_approval_locks_again(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 4: an entry this branch wrote is not approved yet, so a revised test replaces it."""
+    repo = make_repo(tmp_path, GOOD)
+    assert run(repo, monkeypatch, capsys, "--lock")[0] == 0
+    test_file = repo / "tests" / "acceptance" / "S1" / "test_S1_count.py"
+    test_file.write_text(test_file.read_text().replace('"three.txt"', '"three-words.txt"'))
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0, out
+    rel = "tests/acceptance/S1/test_S1_count.py"
+    raw = (repo / "locks.json").read_bytes()
+    assert json.loads(raw)["files"][rel] == lock_check.entry(test_file.read_bytes())
+    assert b"\r" not in raw  # written with LF line ends on every system
+
+
+def test_one_test_carrying_two_check_ids_is_refused(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 2: one test per check, so a test may carry only one check ID."""
+    both = """
+def test_S1_C1_S1_C2_both(tmp_path):
+    f = tmp_path / "t.txt"
+    f.write_text("a b c")
+    assert run_app("count", str(f)).stdout.strip() == "words: 3"
+    assert "no such file" in run_app("count", str(tmp_path / "missing.txt")).stderr
+"""
+    repo = make_repo(tmp_path, both)
+    code, out = run(repo, monkeypatch, capsys)
+    assert code == 1 and "test_S1_C1_S1_C2_both carries more than one check ID" in out
+
+
+def test_a_test_name_defined_twice_is_refused(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 3: a second test of the same name would be locked but never examined."""
+    repo = make_repo(tmp_path, GOOD)
+    second = repo / "tests" / "acceptance" / "S1" / "test_S1_more.py"
+    second.write_text('def test_S1_C1_counts_the_words_in_a_file():\n    assert "words: 9" == ""\n')
+    code, out = run(repo, monkeypatch, capsys)
+    assert code == 1 and "test_S1_C1_counts_the_words_in_a_file is defined more than once" in out
+
+
+def test_owner_words_starting_with_a_hash_are_kept(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 5: the Request section ends only at the template's next heading."""
+    words = "# Word counter\n#1 thing I need: count the words in a file, and say so if the file is missing.\n"
+    repo = make_repo(tmp_path, GOOD, story=STORY.format(request=words))
+    code, out = run(repo, monkeypatch, capsys)
+    assert code == 0, out
+    request, _ = sc.parse_story(STORY.format(request=words))
+    assert request == words.strip()
+
+
+def test_messages_name_the_base_branch(tmp_path, monkeypatch, capsys):
+    passing = """
+def test_S1_C1_counts_the_words_in_a_file(tmp_path):
+    assert "words: 3" == "words: 3"
+"""
+    repo = make_repo(tmp_path, passing + GOOD_C2)
+    git(repo, "branch", "trunk")
+    monkeypatch.chdir(repo)
+    assert sc.main(["S1", "--base", "trunk"]) == 1
+    assert "passes already on trunk" in capsys.readouterr().out
+
+
+def test_the_skill_never_tells_the_agent_to_install_anything():
+    """Round 1, finding 6: decision C5, nothing else is installed on the user's machine."""
+    text = (Path(__file__).resolve().parents[2] / "plugin" / "skills" / "story" / "SKILL.md").read_text("utf-8")
+    assert "install" not in text.lower()
 
 
 @pytest.mark.parametrize("content", ["not json", '{"no_files": 1}', '{"files": []}', "[1]"])
@@ -418,6 +495,10 @@ def test_find_py_test_misses():
         ("3", [True], False),
         ("3", [3.0], False),
         ("7", ["words: 7"], False),
+        ("words: 3", ["words: 30"], False),  # round 1, finding 1: a different value is not the example
+        ("words: 3", ["the count is words: 3."], True),
+        ("words: 3", ["xwords: 3"], False),
+        ("Hello, Ada!", ["Hello, Ada!!"], True),  # the example's edges are not letters or digits
     ],
 )
 def test_example_matches(example, asserted, ok):

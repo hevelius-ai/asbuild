@@ -1,6 +1,6 @@
 ---
 name: story
-description: "Agree a story with a person before an AI builds it: save their words unchanged, agree 2 to 5 plain checks with exact examples, write one test per check, run AsBuild's story-time checks and open the story pull request. Use when someone asks for a new feature or change in a repository wired to AsBuild (it has dev-docs/stories/ and locks.json), or runs /asbuild:story. Needs Claude Code in a GitHub repository with Python, pytest, git and the gh command."
+description: "Agree a story with a person before an AI builds it: save their words unchanged, agree 2 to 5 plain checks with exact examples, write one test per check, run AsBuild's story-time checks and open the story pull request. Use when someone asks for a new feature or change in a repository wired to AsBuild (its .github/workflows/ holds asbuild-test.yml), or runs /asbuild:story. Needs Claude Code in a GitHub repository with Python, pytest, git and the gh command."
 ---
 
 # AsBuild: agree a story before anything is built
@@ -32,7 +32,7 @@ Is each of these right? You can say "yes", or tell me which number to change and
 
 ## 3. Write the story file
 
-Under the request, add the rest. Each criterion restates exactly one approved line; add nothing the person did not approve.
+Complete the file in this layout, keeping the request exactly as saved. Each criterion restates exactly one approved line; add nothing the person did not approve.
 
 ```markdown
 # S<n>: <short title in the person's words>
@@ -75,7 +75,7 @@ Run this from the repository root, with the Python that runs the project's tests
 
 - Exit 0: every check passed, and the tests' fingerprints were added to `locks.json`.
 - Exit 1: each line says what is wrong. Fix the test, never the person's words or examples. If an example cannot be checked as agreed, ask the person. After three failed attempts, stop and tell the person what failed.
-- Exit 2: the checks could not run. Fix what the message names (fetch `origin`, install pytest), then run again.
+- Exit 2: the checks could not run. Fix what the message names (fetch `origin`, or use the Python that has the project's pytest), then run again.
 
 ## 6. Open the story pull request
 
