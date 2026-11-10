@@ -33,7 +33,6 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from engine import lock_check  # noqa: E402
-from engine.c3_overlay import TEST_FILE  # noqa: E402  - the test files the "before" run lays over main
 from engine.common import gh, gh_paged  # noqa: E402
 from engine.junit_classify import Key, load  # noqa: E402
 from engine.receipt import render, technical, write_receipt  # noqa: E402
@@ -221,20 +220,14 @@ def judge(f: Facts) -> dict:
     title, checks = parse_story(story_md.decode("utf-8", errors="replace")) if story_md else ("", [])
     if not checks:
         codes.append(code("NO_STORY", branch=f.branch))
-    # Acceptance files the AI changed take checks out of judging, wherever the file lives: checks are tied to
-    # tests by name, not by folder. A changed test file takes out the checks whose tests come from it (matched by
-    # the file's name in the tests' class names); any other changed acceptance file (a helper, __init__.py, data)
-    # takes out every check, because the "before" run lays only test files over main.
-    changed_acc = sorted(
-        {
-            c["params"]["path"]
-            for c in codes
-            if c["code"] in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
-            and c["params"]["path"].startswith("tests/acceptance/")
-        }
+    # Decision D25: if the pull request changed any agreed acceptance file (a test, helper, data or package file,
+    # in any folder), no line of the checklist is judged. Test files can import each other, so no rule that
+    # matches a changed file to the checks it affects can be sure; this one can never show a false "works".
+    changed_acc = any(
+        c["code"] in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
+        and c["params"]["path"].startswith("tests/acceptance/")
+        for c in codes
     )
-    changed_tests = {Path(p).stem for p in changed_acc if TEST_FILE.search(p)}
-    changed_shared = any(not TEST_FILE.search(p) for p in changed_acc)
 
     pr_res, acc, c3 = load_evidence(f.evidence)
     items = [dict(c, status="not_checked") for c in checks]
@@ -263,8 +256,7 @@ def judge(f: Facts) -> dict:
             with_ = {k: v for k, v in acc.items() if matches(k[1], item["id"])}
             own |= set(with_)
             without = [before(c3, k) for k in with_]
-            modules = {part for k in with_ for part in k[0].split(".")}
-            if changed_shared or (changed_tests and (not with_ or changed_tests & modules)):
+            if changed_acc:
                 item["status"] = "check_changed"
             elif not with_:
                 item["status"] = "not_checked"

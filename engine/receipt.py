@@ -53,7 +53,7 @@ PLAIN_FILE = [
 STATUS = {
     "works": "✓ works",
     "fails": "✗ doesn't work yet",
-    "check_changed": "! the AI changed how this line is checked",
+    "check_changed": "? not judged: the AI changed one of your agreed checks",
     "not_checked": "? not checked this time",
     "already_passed": "? not shown yet: this was already true before the AI started",
     "exists_only": "? not shown yet: it failed before only because a part of the app didn't exist",

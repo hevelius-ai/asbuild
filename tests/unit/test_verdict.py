@@ -102,7 +102,7 @@ def test_changed_locked_test_is_never_shown_as_working(tmp_path, c3):
     assert [i["status"] for i in v["items"]] == ["check_changed", "check_changed"]
     assert "ACCEPTANCE_PASSES_ON_MAIN" not in codes(v)
     assert "✓" not in r["top"] and "Suggest a new example" not in r["top"]
-    assert "! the AI changed how this line is checked" in r["top"]
+    assert "? not judged: the AI changed one of your agreed checks" in r["top"]
 
 
 def test_changed_sample_data_marks_the_storys_checks(tmp_path):
@@ -326,12 +326,25 @@ FOLDERS = ["tests/acceptance/S1/", "tests/acceptance/S2/", "tests/acceptance/", 
 
 
 @pytest.mark.parametrize("folder", FOLDERS)
-@pytest.mark.parametrize("kind", ["test file holding the checks", "helper", "data", "package marker"])
+@pytest.mark.parametrize(
+    "kind",
+    [
+        "test file holding the checks",
+        "helper",
+        "helper named like a test",
+        "another test file",
+        "data",
+        "package marker",
+    ],
+)
 def test_no_changed_acceptance_file_anywhere_leaves_a_check_working(tmp_path, folder, kind):
-    """Every place an acceptance file can live, against every kind of file: a change never shows as 'works'."""
+    """Every place an acceptance file can live, against every kind of file: a change never shows as 'works'
+    (decision D25: any changed agreed acceptance file leaves every line unjudged)."""
     name = {
         "test file holding the checks": "test_S1_moved.py",
         "helper": "expected.py",
+        "helper named like a test": "test_helpers.py",
+        "another test file": "test_S2_greet.py",
         "data": "words.txt",
         "package marker": "__init__.py",
     }[kind]
@@ -358,14 +371,20 @@ def test_no_changed_acceptance_file_anywhere_leaves_a_check_working(tmp_path, fo
     assert "✓" not in render(v)["top"]
 
 
-def test_other_storys_changed_test_does_not_mark_this_storys_checks(tmp_path):
+def test_a_change_to_another_storys_test_also_leaves_this_story_unjudged(tmp_path):
+    """The cost decision D25 accepted: the lines are unjudged, never wrongly 'works'."""
     other = "tests/acceptance/S2/test_S2_greet.py"
     f = facts(tmp_path, changed=["app/count.py", other])
     f.main_files[other] = b"def test_S2_C1_greets():\n    assert False\n"
     f.head_files[other] = b"def test_S2_C1_greets():\n    assert True\n"
     v = judge(f)
-    assert [i["status"] for i in v["items"]] == ["works", "works"]
+    assert [i["status"] for i in v["items"]] == ["check_changed", "check_changed"]
     assert v["verdict"] == "WAITING FOR YOU"
+
+
+def test_nothing_changed_in_acceptance_files_still_judges_each_line(tmp_path):
+    v = judge(facts(tmp_path, changed=["app/count.py", "README.md"]))
+    assert [i["status"] for i in v["items"]] == ["works", "works"] and v["verdict"] == "PROVEN"
 
 
 @pytest.mark.parametrize("second_row", ["", "| S2-C2 |  |\n", "| S2-C2 | |\n"])
