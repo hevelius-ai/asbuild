@@ -17,3 +17,5 @@ Append-only. UTC.
 - 2026-11-10T19:15Z S1: confirm-only re-check (claude-fable-5-2): APPROVE. Known issues K1, K2 logged. PR hevelius-ai/asbuild#1 marked ready.
 - 2026-11-10T19:21Z S1: hevelius-ai/asbuild#1 merged by chrisz-glitch (561817d). Branch delete on GitHub refused by the agent's permission check: left for the owner.
 - 2026-11-10T19:22Z S1: demo setup PR hevelius-ai/asbuild-demo#1 opened.
+- 2026-11-10T19:33Z S1: demo setup PR hevelius-ai/asbuild-demo#1 merged by chrisz-glitch (ef2d91b).
+- 2026-11-10T19:35Z S1: demo story PR hevelius-ai/asbuild-demo#2 opened; first live verdict: AsBuild: WAITING FOR YOU (NEW_CHECKS), one check run, one receipt; wait script exit 4. S1-C7 shown live. K3 logged.
