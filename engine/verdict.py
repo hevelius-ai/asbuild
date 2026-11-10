@@ -42,6 +42,7 @@ BUILD_BRANCH = re.compile(r"^build/(S\d+)(?:$|[-/])")
 STORY_DIR = re.compile(r"^tests/acceptance/(S\d+)/")
 FAILED = ("strong", "existence-only")
 MAX_BLOB = 1024 * 1024
+MAX_FILES = 3000
 
 # Protected files (HANDOVER section 3): fixed here, read from main's copy of this code, never from the
 # pull request. A name without "/" matches the file's own name anywhere in the repository.
@@ -108,7 +109,8 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
         if line.startswith("#"):
             in_plain = "plain" in line.lower()
         elif in_plain:
-            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            row = line.strip().removeprefix("|").removesuffix("|")
+            cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", row)]  # "\|" is a literal bar
             if len(cells) >= 2 and CHECK_ID.fullmatch(cells[0]):
                 plain[cells[0]] = cells[1]
     return title, [{"id": i, "plain": plain.get(i, "One of your checks has no plain sentence yet.")} for i in ids]
@@ -139,12 +141,26 @@ def code(name: str, **params) -> dict:
     return {"code": name, "params": params}
 
 
+def before(c3: dict[Key, str], key: Key) -> str | None:
+    """How a test behaved laid over main. A collection error of its file (pytest records it with an empty
+    classname and the module's dotted path as the name) counts for every test in that file."""
+    if key in c3:
+        return c3[key]
+    parts = key[0].split(".")
+    for i in range(len(parts), 0, -1):
+        hit = c3.get(("", ".".join(parts[:i])))
+        if hit is not None:
+            return hit
+    return None
+
+
 def judge(f: Facts) -> dict:
     main_locks = lock_check.parse(f.main_files.get("locks.json"))
     head_locks = lock_check.parse(f.head_files.get("locks.json"))
     new_locks = [p for p in head_locks if p not in main_locks]
     build = BUILD_BRANCH.match(f.branch)
     story_pr = bool(new_locks) and not build
+    changed = set(f.files_changed)
     codes: list[dict] = []
     base: dict[str, Any] = {
         "pr": f.pr_number,
@@ -156,43 +172,77 @@ def judge(f: Facts) -> dict:
         "rows": [],
     }
 
-    # Protected files and the lock on the files themselves (no test results needed).
-    for p in sorted(set(f.files_changed)):
+    # Protected files and the lock on the files themselves (no test results needed). A locked file that
+    # differs at the head although the pull request did not touch it means main moved on since the branch
+    # started: the branch is out of date, which is not a change the AI made.
+    for p in sorted(changed):
         if protected(p, p in f.main_files, story_pr):
             codes.append(code("PROTECTED_CHANGED", path=p))
+    stale: set[str] = set()
     for p, rec in sorted(main_locks.items()):
         raw = f.head_files.get(p)
-        if raw is None:
+        differs = raw is None or lock_check.entry(raw)["sha256"] != rec.get("sha256")
+        if differs and p not in changed:
+            stale.add(p)
+            codes.append(code("OUT_OF_DATE", path=p))
+        elif raw is None:
             codes.append(code("LOCK_DELETED", path=p))
-        elif lock_check.entry(raw)["sha256"] != rec.get("sha256"):
+        elif differs:
             codes.append(code("LOCK_CHANGED", path=p))
         elif head_locks.get(p) != rec:
-            codes.append(code("LOCK_CHANGED", path="locks.json"))
+            codes.append(code("OUT_OF_DATE" if "locks.json" not in changed else "LOCK_CHANGED", path="locks.json"))
 
     if story_pr:
-        sid = next((m.group(1) for p in new_locks if (m := STORY_DIR.match(p))), "")
-        title, checks = parse_story(f.head_files.get(f"dev-docs/stories/{sid}/story.md", b"").decode("utf-8"))
-        codes.insert(0, code("NEW_CHECKS", story=sid, checks=[c["id"] for c in checks]))
+        sids = sorted({m.group(1) for p in new_locks if (m := STORY_DIR.match(p))})
+        titles: list[str] = []
+        checks: list[dict] = []
+        undescribed = [p for p in new_locks if not STORY_DIR.match(p)]
+        for sid in sids:
+            raw_story = f.head_files.get(f"dev-docs/stories/{sid}/story.md", b"")
+            t, cs = parse_story(raw_story.decode("utf-8", errors="replace"))
+            titles += [t] if t else []
+            checks += cs
+            undescribed += [] if cs else [f"dev-docs/stories/{sid}/story.md"]
+        codes.insert(0, code("NEW_CHECKS", stories=sids, checks=[c["id"] for c in checks]))
+        if undescribed:
+            codes.append(code("NEW_CHECKS_UNDESCRIBED", paths=undescribed))
         items = [dict(c, status="new") for c in checks]
-        return dict(base, verdict="WAITING FOR YOU", story=sid, title=title, codes=codes, items=items)
+        story_name = ", ".join(sids) or None
+        return dict(
+            base, verdict="WAITING FOR YOU", story=story_name, title=" and ".join(titles), codes=codes, items=items
+        )
 
     story = build.group(1) if build else None
     story_md = f.main_files.get(f"dev-docs/stories/{story}/story.md") if story else None
-    title, checks = parse_story(story_md.decode("utf-8")) if story_md else ("", [])
+    title, checks = parse_story(story_md.decode("utf-8", errors="replace")) if story_md else ("", [])
     if not checks:
         codes.append(code("NO_STORY", branch=f.branch))
+    # Paths in this story's acceptance folder that the AI changed: the checks they belong to are not judged.
+    touched = sorted(
+        {
+            c["params"]["path"]
+            for c in codes
+            if c["code"] in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
+            and story
+            and c["params"]["path"].startswith(f"tests/acceptance/{story}/")
+        }
+    )
 
     pr_res, acc, c3 = load_evidence(f.evidence)
     items = [dict(c, status="not_checked") for c in checks]
     if pr_res is None or acc is None:
         codes.append(code("NO_RESULTS", pr_xml=pr_res is not None, acceptance_xml=acc is not None))
     else:
-        # Every locked test must have run, and none may be skipped.
+        # Every locked test must have run, and none may be skipped. A test is found by its file's name in any
+        # part of its class name (a test inside a class has the class as the last part).
         status: dict[tuple[str, str], str] = {}
         for (cls, name), kind in acc.items():  # a parametrised test counts as skipped if any case is
-            key = (cls.split(".")[-1], name.split("[", 1)[0])
-            status[key] = "skipped" if kind == "skipped" or status.get(key) == "skipped" else kind
+            for part in cls.split("."):
+                key = (part, name.split("[", 1)[0])
+                status[key] = "skipped" if kind == "skipped" or status.get(key) == "skipped" else kind
         for p, rec in sorted(main_locks.items()):
+            if p in stale:
+                continue
             for t in rec.get("tests", []):
                 st = status.get((p.rsplit("/", 1)[-1].removesuffix(".py"), t))
                 if st is None:
@@ -204,8 +254,11 @@ def judge(f: Facts) -> dict:
         for item in items:
             with_ = {k: v for k, v in acc.items() if matches(k[1], item["id"])}
             own |= set(with_)
-            without = [c3.get(k) for k in with_]
-            if not with_:
+            without = [before(c3, k) for k in with_]
+            modules = {part for k in with_ for part in k[0].split(".")}
+            if touched and (not with_ or any(not p.endswith(".py") or Path(p).stem in modules for p in touched)):
+                item["status"] = "check_changed"
+            elif not with_:
                 item["status"] = "not_checked"
                 codes.append(code("LOCK_TEST_MISSING", check=item["id"]))
             elif any(v == "skipped" for v in with_.values()):
@@ -214,6 +267,9 @@ def judge(f: Facts) -> dict:
             elif any(v != "passed" for v in with_.values()):
                 item["status"] = "fails"
                 codes.append(code("CHECK_FAILS", check=item["id"]))
+            elif any(v is None for v in without):
+                item["status"] = "not_checked"
+                codes.append(code("NO_BEFORE_RESULT", check=item["id"]))
             elif all(v == "strong" for v in without):
                 item["status"] = "works"
             elif all(v in FAILED for v in without):
@@ -231,7 +287,7 @@ def judge(f: Facts) -> dict:
         broken = sorted(
             k
             for k, v in others.items()
-            if v in FAILED and not (story_of(k[0]) not in (None, story) and c3.get(k) in FAILED)
+            if v in FAILED and not (story_of(k[0]) not in (None, story) and before(c3, k) in FAILED)
         )
         base["pass_to_pass"] = {"total": len(others), "broken": len(broken)}
         if broken:
@@ -240,7 +296,7 @@ def judge(f: Facts) -> dict:
     names = {c["code"] for c in codes}
     if names & WAITING:
         v = "WAITING FOR YOU"
-    elif "NO_RESULTS" in names:
+    elif names & {"NO_RESULTS", "NO_BEFORE_RESULT"}:
         v = "UNRESOLVED"
     elif names & {"CHECK_FAILS", "PASS_TO_PASS_BROKEN"}:
         v = "NOT PROVEN"
@@ -253,9 +309,11 @@ def judge(f: Facts) -> dict:
 
 WAITING = {
     "NEW_CHECKS",
+    "NEW_CHECKS_UNDESCRIBED",
     "PROTECTED_CHANGED",
     "LOCK_CHANGED",
     "LOCK_DELETED",
+    "OUT_OF_DATE",
     "LOCK_TEST_MISSING",
     "LOCK_TEST_SKIPPED",
     "ACCEPTANCE_PASSES_ON_MAIN",
@@ -298,6 +356,10 @@ def read_tree(root: str) -> dict[str, bytes]:
 def fetch_facts(a: argparse.Namespace, api: Callable = gh, paged: Callable = gh_paged) -> Facts:
     repo = os.environ.get("REPO") or os.environ.get("GITHUB_REPOSITORY", "")
     pr = api(f"repos/{repo}/pulls/{a.pr}")
+    if pr["head"]["sha"] != a.head:  # the files list would be the newer commit's: judge only the current head
+        raise ValueError(f"the pull request has moved on to {pr['head']['sha'][:10]}; that commit gets its own verdict")
+    if pr.get("changed_files", 0) > MAX_FILES:  # GitHub lists at most 3,000 files of a pull request
+        raise ValueError(f"the pull request changes {pr['changed_files']} files, more than AsBuild can list")
     files: list[str] = []
     for item in paged(f"repos/{repo}/pulls/{a.pr}/files"):
         files += [item["filename"]] + ([item["previous_filename"]] if item.get("previous_filename") else [])
@@ -319,12 +381,16 @@ def fetch_facts(a: argparse.Namespace, api: Callable = gh, paged: Callable = gh_
     )
 
 
-def run(argv: list[str] | None = None, fetch: Callable[[argparse.Namespace], Facts] = fetch_facts) -> int:
-    ap = argparse.ArgumentParser()
+def parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(prog="verdict.py")
     for name in ("--evidence", "--head", "--pr", "--out", "--summary", "--receipt"):
         ap.add_argument(name, required=True)
     ap.add_argument("--main", default=".")
-    a = ap.parse_args(argv)
+    return ap
+
+
+def run(argv: list[str] | None = None, fetch: Callable[[argparse.Namespace], Facts] = fetch_facts) -> int:
+    a = parser().parse_args(argv)
     try:
         v = judge(fetch(a))
     except Exception as e:  # noqa: BLE001 - a crash must still give a verdict, never a silent pass

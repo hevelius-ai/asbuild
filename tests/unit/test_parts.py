@@ -102,6 +102,7 @@ ITEM = {"id": "S1-C1", "plain": "The app counts words.", "status": "not_checked"
         ([("PROTECTED_CHANGED", {"path": "notes/x"}), ("LOCK_TEST_MISSING", {"check": "S1-C1"})], "a file only you"),
         ([("NEW_CHECKS", {}), ("PROTECTED_CHANGED", {"path": "setup.py"})], "the settings for how your checks run"),
         ([("SOMETHING_NEW", {})], "Look at the details below"),
+        ([("PROTECTED_CHANGED", {"path": "a.pth"}), ("OUT_OF_DATE", {"path": "locks.json"})], "up to date"),
         (
             [
                 ("PROTECTED_CHANGED", {"path": "x.pth"}),

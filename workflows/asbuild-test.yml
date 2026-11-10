@@ -8,6 +8,7 @@ name: asbuild-test
 
 on:
   pull_request:
+    branches: [main] # AsBuild judges changes to main only
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -24,13 +25,13 @@ jobs:
     env:
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.12"
 
@@ -60,7 +61,7 @@ jobs:
         continue-on-error: true
         run: python "$ASBUILD/engine/c3_overlay.py" --base "origin/${{ github.base_ref }}" --out out/c3
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
         with:
           name: asbuild-evidence

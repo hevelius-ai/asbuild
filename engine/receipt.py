@@ -18,8 +18,15 @@ import os
 import re
 
 MARKER = "<!-- asbuild-receipt -->"
-TEMPLATE_2 = ("NEW_CHECKS", "LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
-TEMPLATE_3 = ("LOCK_TEST_MISSING", "LOCK_TEST_SKIPPED", "ACCEPTANCE_PASSES_ON_MAIN", "EXISTENCE_ONLY", "NO_STORY")
+TEMPLATE_2 = ("NEW_CHECKS", "NEW_CHECKS_UNDESCRIBED", "LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
+TEMPLATE_3 = (
+    "OUT_OF_DATE",
+    "LOCK_TEST_MISSING",
+    "LOCK_TEST_SKIPPED",
+    "ACCEPTANCE_PASSES_ON_MAIN",
+    "EXISTENCE_ONLY",
+    "NO_STORY",
+)
 
 # Protected files, named for the person by what they are, never by path.
 PLAIN_FILE = [
@@ -46,6 +53,7 @@ PLAIN_FILE = [
 STATUS = {
     "works": "✓ works",
     "fails": "✗ doesn't work yet",
+    "check_changed": "! the AI changed how this line is checked",
     "not_checked": "? not checked this time",
     "already_passed": "? not shown yet: this was already true before the AI started",
     "exists_only": "? not shown yet: it failed before only because a part of the app didn't exist",
@@ -87,6 +95,12 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             "GitHub with the green button (Merge pull request). From then on the AI can't change them."
         )
         actions.append("If a line is wrong, tell the AI what it should say instead, before you approve.")
+    if "NEW_CHECKS_UNDESCRIBED" in names:
+        head[:] = [
+            "Stop. Don't approve these yet. The AI added new checks without describing them in plain words, so "
+            "you can't see what you would approve."
+        ]
+        actions[:] = ['Yes. Tell the AI: "Describe every new check in plain words in its story, then show it to me."']
     if any(n in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for n in names):
         if not head:
             head.append(
@@ -98,7 +112,16 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             actions.append("Only if you did ask for it, accept the change yourself after reading it.")
     for n in [n for n in TEMPLATE_3 if n in names]:
         lead = not head
-        if n in ("LOCK_TEST_MISSING", "LOCK_TEST_SKIPPED"):
+        if n == "OUT_OF_DATE":
+            if lead:
+                head.append(
+                    "Stop. This needs you. Don't accept it yet. The AI's work starts from an older version of your "
+                    "app, so AsBuild can't check it against your latest list."
+                )
+            actions.append(
+                'Yes. Tell the AI: "Bring your work up to date with the latest version of the app, then check again."'
+            )
+        elif n in ("LOCK_TEST_MISSING", "LOCK_TEST_SKIPPED"):
             if lead:
                 head.append(
                     "Stop. This needs you. Don't accept it yet. One of your checks didn't run, so AsBuild "
@@ -143,7 +166,9 @@ def render(v: dict) -> dict:
     head: list[str] = []
     actions: list[str] = []
     if n == 1:
-        head.append("Done. Every line on your list works, and everything that worked before still works.")
+        head.append("Done. Every line on your list works.")
+        if (v.get("pass_to_pass") or {}).get("total"):
+            head.append("Everything that worked before still works.")
         actions.append(f"Yes, one last step to add it to your app. Open [this change on GitHub]({v['pr_url']}).")
         actions.append(
             "Press the green button there (Merge pull request). It's safe to press, because every "
@@ -156,6 +181,9 @@ def render(v: dict) -> dict:
         if n == 5:
             head.append("Something that worked before has stopped working.")
         actions.append("No, not yet. Wait: you'll get a new note when the AI has tried again.")
+    elif "CRASH" in names:  # the tests may have run; AsBuild itself could not finish
+        head.append("Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked.")
+        actions.append('Yes. Tell the AI: "Run the AsBuild check again." If it happens again, ask for help.')
     else:
         head.append("Stop. Don't accept it. The checks couldn't run, so nothing was checked.")
         actions.append(
@@ -177,7 +205,13 @@ def render(v: dict) -> dict:
     if checklist:
         top += ["", listed] + [f"- {c}" for c in checklist]
     top += ["", "Do you need to do anything?"] + [f"- {a}" for a in actions]
-    if n == 6 or not v["items"]:  # nothing was checked, so the note claims nothing about the list
+    if "NEW_CHECKS" in names:  # nothing is checked until the owner approves the lines
+        top += [
+            "",
+            "Good to know: AsBuild hasn't checked anything yet. Once you approve these lines, it checks the AI's "
+            "work against them, on GitHub, separately from the AI.",
+        ]
+    elif n == 6 or all(i["status"] == "not_checked" for i in v["items"]):  # nothing was checked: claim nothing
         top += ["", "Good to know: AsBuild runs on GitHub, separately from the AI."]
     else:
         top += [

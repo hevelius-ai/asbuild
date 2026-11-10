@@ -7,7 +7,8 @@ posts the AsBuild check run. This script waits for that check run itself.
 Usage (from the repository root, after `git push`): python asbuild_wait.py [--timeout 1200] [--sha SHA]
 
 Prints the check run's summary and exits:
-  0 PROVEN   1 NOT PROVEN   3 UNRESOLVED   4 WAITING FOR YOU   7 timeout (no verdict yet)
+  0 PROVEN   1 NOT PROVEN   3 UNRESOLVED   4 WAITING FOR YOU
+  5 could not ask GitHub (gh or git failed: not logged in, no network)   7 timeout (no verdict yet)
 """
 
 from __future__ import annotations
@@ -20,12 +21,17 @@ import time
 from collections.abc import Callable
 
 EXIT = {"PROVEN": 0, "NOT PROVEN": 1, "UNRESOLVED": 3, "WAITING FOR YOU": 4}
+TOOL_FAILED = 5
+
+
+class ToolError(Exception):
+    """gh or git failed, so there is no verdict to report."""
 
 
 def sh(*cmd: str) -> str:
     p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
     if p.returncode != 0:
-        raise SystemExit(f"{' '.join(cmd)} failed: {p.stderr.strip()}")
+        raise ToolError(f"{' '.join(cmd)} failed: {p.stderr.strip()}")
     return p.stdout.strip()
 
 
@@ -45,6 +51,16 @@ def main(
     ap.add_argument("--interval", type=int, default=20)
     ap.add_argument("--sha", help="defaults to git rev-parse HEAD")
     a = ap.parse_args(argv)
+    try:
+        return wait(a, run, sleep, clock)
+    except ToolError as e:
+        print(f"could not ask GitHub for the verdict: {e}")
+        return TOOL_FAILED
+
+
+def wait(
+    a: argparse.Namespace, run: Callable[..., str], sleep: Callable[[float], None], clock: Callable[[], float]
+) -> int:
     repo = run("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner")
     sha = a.sha or run("git", "rev-parse", "HEAD")
     print(f"waiting for the AsBuild check on {repo}@{sha[:10]} (up to {a.timeout}s)")

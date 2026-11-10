@@ -24,14 +24,18 @@ def sh(cmd: list[str], cwd: str) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
 
 
-def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser()
+def parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(prog="c3_overlay.py")
     ap.add_argument("--base", required=True)
     ap.add_argument("--head", default="HEAD")
     ap.add_argument("--paths", default="tests/acceptance")
     ap.add_argument("--out", required=True)
     ap.add_argument("--repo", default=".")
-    a = ap.parse_args(argv)
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    a = parser().parse_args(argv)
     out = os.path.abspath(a.out)
     os.makedirs(out, exist_ok=True)
     head = sh(["git", "rev-parse", a.head], a.repo).stdout.strip()

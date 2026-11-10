@@ -78,8 +78,16 @@ def test_timeout(capsys):
 
 def test_sh_runs_and_fails():
     assert asbuild_wait.sh(sys.executable, "-c", "print('ok')") == "ok"
-    with pytest.raises(SystemExit, match="failed"):
+    with pytest.raises(asbuild_wait.ToolError, match="failed"):
         asbuild_wait.sh(sys.executable, "-c", "import sys; sys.exit(2)")
+
+
+def test_a_failed_tool_is_exit_5_never_not_proven(capsys):
+    def broken(*_cmd):
+        raise asbuild_wait.ToolError("gh api failed: HTTP 401")
+
+    assert asbuild_wait.main([], run=broken, sleep=lambda _s: None) == 5
+    assert "could not ask GitHub" in capsys.readouterr().out
 
 
 def test_no_output_block():
