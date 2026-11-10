@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -178,6 +179,54 @@ def test_unreadable_settings_cannot_run_and_change_nothing(tmp_path, monkeypatch
     assert code == 2 and ".claude/settings.json cannot be read" in out and said in out
     assert not (repo / "locks.json").exists()
     assert (repo / ".claude" / "settings.json").read_text(encoding="utf-8") == content
+
+
+def test_a_claude_folder_that_is_a_file_cannot_run_and_changes_nothing(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 5: a file-system problem is exit 2, found before anything is written."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").write_text("not a folder", encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 2 and ".claude/settings.json cannot be written" in out
+    assert not (repo / "locks.json").exists()
+
+
+def test_a_read_only_settings_file_cannot_run_and_changes_nothing(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    settings = repo / ".claude" / "settings.json"
+    settings.write_text("{}", encoding="utf-8")
+    settings.chmod(stat.S_IREAD)
+    try:
+        code, out = run(repo, monkeypatch, capsys, "--lock")
+    finally:
+        settings.chmod(stat.S_IREAD | stat.S_IWRITE)
+    assert code == 2 and ".claude/settings.json cannot be written" in out
+    assert not (repo / "locks.json").exists()
+
+
+def test_a_write_that_fails_late_is_exit_2(tmp_path, monkeypatch):
+    def refuse(*args, **kwargs):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(Path, "write_text", refuse)
+    with pytest.raises(sc.CannotRun, match="cannot be written: denied"):
+        sc.protect(tmp_path, "S1", {"permissions": {"deny": []}})
+
+
+def test_an_unreadable_settings_file_is_exit_2(tmp_path, monkeypatch):
+    (tmp_path / ".claude" / "settings.json").mkdir(parents=True)  # a folder where the file should be
+    with pytest.raises(sc.CannotRun, match="cannot be"):
+        sc.read_settings(tmp_path)
+
+
+def test_the_line_already_there_leaves_the_file_untouched(tmp_path):
+    """Round 1, LOW: no formatting-only change in the story pull request."""
+    (tmp_path / ".claude").mkdir()
+    settings = tmp_path / ".claude" / "settings.json"
+    raw = '{"permissions":{"deny":["Edit(/tests/acceptance/S1/**)"]}}'
+    settings.write_text(raw, encoding="utf-8")
+    sc.protect(tmp_path, "S1", sc.read_settings(tmp_path))
+    assert settings.read_text(encoding="utf-8") == raw
 
 
 def test_a_refused_lock_adds_no_deny_rule(tmp_path, monkeypatch, capsys):

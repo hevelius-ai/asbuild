@@ -109,14 +109,20 @@ def test_S3_C2_story_lock_adds_the_deny_line_and_page_says_what_it_misses(tmp_pa
     assert "`.claude/settings.json`" in page
     assert "a script that opens a file itself is not blocked" in page
     assert "CI is the check" in page
+    # no local check (D15): no asbuild command, no uv, no Stop hook line
+    assert not re.search(r"\buvx?\b|Stop hook|\"Stop\"", page, re.IGNORECASE)
+    assert "asbuild check" not in page  # the cut command, lower case; "the AsBuild check" is the check run
+    assert not re.search(r"^\s*asbuild\s", page, re.MULTILINE)
 
 
 def test_S3_C3_verdict_after_each_push():
     page = install_section()
     assert "/asbuild:verdict" in page
     assert "after each push" in page.lower()
-    assert "gh pr checks --watch" in page
+    assert "`gh pr checks --watch` is not enough" in page
     text = VERDICT_SKILL.read_text(encoding="utf-8")
+    # the wiring pull request never gets a verdict, so the skill must not wait for one there
+    assert "gets no verdict" in text
     lines = text.splitlines()
     assert len(lines) < 60
     assert lines[0] == "---" and "---" in lines[1:]

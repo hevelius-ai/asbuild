@@ -492,8 +492,12 @@ def deny_rule(story: str) -> str:
 def read_settings(repo: Path) -> dict:
     """The project's Claude Code settings, checked before anything is written, so a bad file changes nothing."""
     path = repo / SETTINGS
+    if path.parent.exists() and not path.parent.is_dir():
+        raise CannotRun(".claude/settings.json cannot be written: .claude is not a folder")
+    if path.is_file() and not os.access(path, os.W_OK):
+        raise CannotRun(".claude/settings.json cannot be written: it is read-only")
     try:
-        doc = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        doc = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
         if not isinstance(doc, dict):
             raise TypeError("it is not an object")
         perms = doc.setdefault("permissions", {})
@@ -501,21 +505,26 @@ def read_settings(repo: Path) -> dict:
             raise TypeError("permissions is not an object")
         if not isinstance(perms.setdefault("deny", []), list):
             raise TypeError("permissions.deny is not a list")
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError, OSError) as e:
         raise CannotRun(f".claude/settings.json cannot be read: {e}; fix it, then run this again") from e
     return doc
 
 
 def protect(repo: Path, story: str, doc: dict) -> str:
-    """Add the story's deny rule once, keeping every other setting."""
+    """Add the story's deny rule once, keeping every other setting; a file that has it already is left as it is."""
     rule = deny_rule(story)
     deny = doc["permissions"]["deny"]
-    if rule not in deny:
-        deny.append(rule)
+    done = f"{story} tests protected: {rule} in .claude/settings.json"
+    if rule in deny:
+        return done
+    deny.append(rule)
     path = repo / SETTINGS
-    path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    return f"{story} tests protected: {rule} in .claude/settings.json"
+    try:
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    except OSError as e:
+        raise CannotRun(f".claude/settings.json cannot be written: {e}; fix it, then run this again") from e
+    return done
 
 
 def check(repo: Path, story: str, base: str, keep: Path | None) -> tuple[list[str], int, int]:

@@ -2,7 +2,7 @@
 
 AsBuild checks an AI agent's work on a pull request against tests a person approved, and records the result in a plain receipt.
 
-Work in progress: the install steps below work; the rest of this page comes with the demo.
+Work in progress: the install steps are below; the rest of this page comes with the demo.
 
 ## Install
 
@@ -66,7 +66,7 @@ The story pull request also adds one line to `.claude/settings.json`, Claude Cod
 
 ### 4. Get the verdict after each push
 
-AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request, Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
+AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request (except the one that adds the workflow files, which gets no verdict), Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
 
 ## Licence
 

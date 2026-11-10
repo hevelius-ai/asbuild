@@ -22,3 +22,8 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - A test outside `tests/acceptance` that already fails on main is counted as "something that worked before broke": the full suite runs only on the pull request, as in step 0. Graded PARKED in S1 review round 3 (2026-11-10).
 - The story-time example check counts a negated assertion (`assert "words: 3" not in ...`) as checking the example (ported F4 behaviour). Graded PARKED in S2 review round 1 (2026-11-10).
 - A timeout on the story-time checks' run of the tests on the base branch. Graded PARKED in S2 review round 1 (2026-11-10).
+- The install page does not say whether a plugin installed from the shell needs a reload or a new session before `/asbuild:story`. Graded PARKED in S3 review round 1 (2026-11-10).
+- The install page's needs list does not say Python with pytest must be on the reader's own machine for the story-time checks and the wait script. Graded PARKED in S3 review round 1 (2026-11-10).
+- A `.claude/settings.json` that is gitignored, or saved with a byte-order mark, when the story-time checks add the deny line. Graded PARKED in S3 review round 1 (2026-11-10).
+- The skills' commands say `python`, not `python3`. Graded PARKED in S3 review round 1 (2026-11-10).
+- The wait script's timeout exit code 7 is a bare number. Graded PARKED in S3 review round 1 (2026-11-10).
