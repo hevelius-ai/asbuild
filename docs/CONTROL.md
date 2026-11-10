@@ -4,14 +4,14 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- Story: S1 (CI check, verdict and receipts), stage: review approved (after S1-3 = 3A, D25); PR ready, waiting for owner merge 1.
-- Branch: `build/S1` in `hevelius-ai/asbuild`, pushed; draft PR hevelius-ai/asbuild#1, CI green at f967717.
-- Demo: branch `wiring` in `hevelius-ai/asbuild-demo` committed locally (d79cef4), not pushed; demo story S1 drafted (not in a repository yet).
+- Story: S1 (CI check, verdict and receipts), stage: engine merged (hevelius-ai/asbuild#1, merge 561817d by chrisz-glitch); live demo of the criteria next.
+- Branch `build/S1` in `hevelius-ai/asbuild`: merged; deleted locally only after the owner deletes it on GitHub (the agent's delete was refused by the permission check).
+- Demo: setup PR hevelius-ai/asbuild-demo#1 (branch `wiring`) open, waiting for owner merge 2; demo story S1 drafted.
 
 ## Open pull requests and merge order
 
-1. hevelius-ai/asbuild#1 (draft; S1). Merges first: the demo's workflows fetch the engine from its main.
-2. Then the demo setup PR (not opened yet).
+1. hevelius-ai/asbuild-demo#1 (setup; gets no verdict). Merge now.
+2. Then the demo story PR (not opened yet).
 
 ## Running jobs
 
@@ -27,5 +27,6 @@ None.
 
 ## Next steps
 
-1. Owner merge 1: hevelius-ai/asbuild#1.
+1. Owner merge 2: hevelius-ai/asbuild-demo#1.
+2. Demo story PR (owner merge 3), then the demo build PRs.
 3. Demo setup PR (owner merge 2), then the demo story PR (owner merge 3), then the demo build PRs.

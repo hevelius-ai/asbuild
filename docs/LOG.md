@@ -15,3 +15,5 @@ Append-only. UTC.
 - 2026-11-10T19:06Z S1: changed-check rule re-planned (73ea8aa, 16-case matrix); second re-check: still HIGH in three import-related states. Stopped for the owner's decision S1-3 (playbook 2.2).
 - 2026-11-10T19:12Z S1: owner answered S1-3 = 3A (D25); applied in 4b705bf.
 - 2026-11-10T19:15Z S1: confirm-only re-check (claude-fable-5-2): APPROVE. Known issues K1, K2 logged. PR hevelius-ai/asbuild#1 marked ready.
+- 2026-11-10T19:21Z S1: hevelius-ai/asbuild#1 merged by chrisz-glitch (561817d). Branch delete on GitHub refused by the agent's permission check: left for the owner.
+- 2026-11-10T19:22Z S1: demo setup PR hevelius-ai/asbuild-demo#1 opened.
