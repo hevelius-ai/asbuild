@@ -1,0 +1,169 @@
+"""Unit tests for engine/verdict.py: the branches the S1 acceptance tests do not reach."""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import json
+
+from engine import verdict as vm
+from engine.lock_check import entry
+from engine.verdict import Facts, judge, matches, parse_story, protected, story_of
+from tests.acceptance.S1.test_S1_verdicts import A1, A2, ACC, ACC_CLS, ACC_PATH, STORY, UNIT, facts, locks
+
+
+def codes(v):
+    return [c["code"] for c in v["codes"]]
+
+
+def test_matches_whole_words_only():
+    assert matches("test_S1_C1_counts", "S1-C1")
+    assert matches("test_x_S1_C1[case-a]", "S1-C1")
+    assert not matches("test_S1_C10_counts", "S1-C1")
+    assert not matches("test_S11_C1_counts", "S1-C1")
+
+
+def test_story_of_and_protected():
+    assert story_of(ACC_CLS) == "S1"
+    assert story_of("tests.unit.test_app") is None
+    assert protected("app/conftest.py", False, False)
+    assert protected(".github/workflows/x.yml", False, False)
+    assert protected("requirements-dev.txt", False, False)
+    assert protected("locks.json", True, False) and not protected("locks.json", True, True)
+    assert protected("dev-docs/stories/S1/story.md", True, True)
+    assert not protected("dev-docs/stories/S2/story.md", False, True)
+    assert protected("tests/acceptance/S2/test_new.py", False, False)
+    assert not protected("app/main.py", False, False)
+
+
+def test_parse_story_without_heading_or_plain_sentence():
+    title, checks = parse_story("| S3-C1 | something |\n")
+    assert title == ""
+    assert checks == [{"id": "S3-C1", "plain": "One of your checks has no plain sentence yet."}]
+
+
+def test_locked_file_deleted(tmp_path):
+    f = facts(tmp_path)
+    del f.head_files[ACC_PATH]
+    assert codes(judge(f))[0] == "LOCK_DELETED"
+
+
+def test_lock_entry_rewritten_in_lock_file(tmp_path):
+    f = facts(tmp_path)
+    f.head_files["locks.json"] = json.dumps({"files": {ACC_PATH: dict(entry(ACC), tests=[])}}).encode()
+    v = judge(f)
+    assert {"code": "LOCK_CHANGED", "params": {"path": "locks.json"}} in v["codes"]
+    assert v["verdict"] == "WAITING FOR YOU"
+
+
+def test_locked_test_missing_from_run_or_skipped(tmp_path):
+    v = judge(facts(tmp_path, acc=[(*A1, "pass")], pr=[(*UNIT, "pass"), (*A1, "pass")]))
+    assert "LOCK_TEST_MISSING" in codes(v)
+    d = tmp_path / "skip"
+    d.mkdir()
+    v = judge(facts(d, acc=[(*A1, "pass"), (A2[0], A2[1] + "[a]", "pass"), (A2[0], A2[1] + "[b]", "skip")]))
+    assert "LOCK_TEST_SKIPPED" in codes(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+
+
+def test_check_with_no_test_and_existence_only(tmp_path):
+    story = STORY.replace("| S1-C2 | For", "| S1-C3 | Extra |\n| S1-C2 | For")
+    f = facts(tmp_path, c3=[(*A1, "import"), (*A2, "assert")])
+    f.main_files["dev-docs/stories/S1/story.md"] = story.encode()
+    v = judge(f)
+    assert {"code": "LOCK_TEST_MISSING", "params": {"check": "S1-C3"}} in v["codes"]
+    assert {"code": "EXISTENCE_ONLY", "params": {"check": "S1-C1"}} in v["codes"]
+    assert [i["status"] for i in v["items"]] == ["exists_only", "not_checked", "works"]
+
+
+def test_other_story_failing_on_main_too_is_not_breakage(tmp_path):
+    other = ("tests.acceptance.S2.test_S2_greet", "test_S2_C1_greets")
+    f = facts(tmp_path, pr=[(*UNIT, "pass"), (*A1, "pass"), (*A2, "pass"), (*other, "assert")])
+    (tmp_path / "evidence" / "c3" / "s2.xml").write_text(
+        f'<testsuites><testsuite><testcase classname="{other[0]}" name="{other[1]}">'
+        '<failure message="AssertionError: no" /></testcase></testsuite></testsuites>'
+    )
+    v = judge(f)
+    assert v["verdict"] == "PROVEN"
+    assert v["pass_to_pass"] == {"total": 2, "broken": 0}
+
+
+def test_story_pr_that_also_changes_an_existing_lock(tmp_path):
+    s2 = "tests/acceptance/S2/test_S2_x.py"
+    f = facts(
+        tmp_path,
+        branch="story/S2",
+        changed=["locks.json", s2],
+        head_extra={"locks.json": locks({ACC_PATH: b"other", s2: b"def test_S2_C1_x(): pass\n"})},
+    )
+    v = judge(f)
+    assert codes(v) == ["NEW_CHECKS", "LOCK_CHANGED"]
+    assert v["items"] == []
+
+
+def test_read_tree_and_fetch_facts(tmp_path, monkeypatch):
+    (tmp_path / "tests" / "acceptance" / "S1").mkdir(parents=True)
+    (tmp_path / "tests" / "acceptance" / "S1" / "test_a.py").write_bytes(b"x")
+    (tmp_path / "locks.json").write_bytes(b"{}")
+    assert vm.read_tree(str(tmp_path)) == {"tests/acceptance/S1/test_a.py": b"x", "locks.json": b"{}"}
+    assert vm.read_tree(str(tmp_path / "missing")) == {}
+
+    blobs = {"b1": b"lock", "b2": b"story"}
+    tree = {
+        "tree": [
+            {"type": "blob", "path": "locks.json", "sha": "b1", "size": 4},
+            {"type": "blob", "path": "dev-docs/stories/S1/story.md", "sha": "b2", "size": 5},
+            {"type": "blob", "path": "app/x.py", "sha": "b3", "size": 1},
+            {"type": "blob", "path": "tests/acceptance/big.bin", "sha": "b4", "size": 10**8},
+            {"type": "tree", "path": "tests/acceptance", "sha": "t1"},
+        ]
+    }
+
+    def api(path):
+        if path.endswith("/pulls/7"):
+            return {"head": {"ref": "build/S1"}, "html_url": "https://x/pull/7"}
+        if "/git/trees/" in path:
+            return tree
+        return {"content": base64.b64encode(blobs[path.rsplit("/", 1)[1]]).decode()}
+
+    def paged(_path):
+        return [{"filename": "a.py"}, {"filename": "b.py", "previous_filename": "old.py"}]
+
+    monkeypatch.setenv("REPO", "o/r")
+    monkeypatch.setenv("RUN_URL", "https://run")
+    a = argparse.Namespace(pr="7", head="h" * 40, main=str(tmp_path), evidence="ev")
+    f = vm.fetch_facts(a, api=api, paged=paged)
+    assert f.branch == "build/S1" and f.files_changed == ["a.py", "b.py", "old.py"]
+    assert f.head_files == {"locks.json": b"lock", "dev-docs/stories/S1/story.md": b"story"}
+    assert f.run_url == "https://run" and "locks.json" in f.main_files
+
+
+def test_run_writes_three_files(tmp_path):
+    out = tmp_path / "out"
+    f = facts(tmp_path)
+    rc = vm.run(
+        [
+            "--evidence",
+            "x",
+            "--head",
+            "a" * 40,
+            "--pr",
+            "7",
+            "--out",
+            str(out / "v.json"),
+            "--summary",
+            str(out / "s.md"),
+            "--receipt",
+            str(out / "r.md"),
+        ],
+        fetch=lambda _a: f,
+    )
+    assert rc == 0
+    assert json.loads((out / "v.json").read_text(encoding="utf-8"))["verdict"] == "PROVEN"
+    assert "AsBuild: PROVEN" in (out / "s.md").read_text(encoding="utf-8")
+    assert (out / "r.md").read_text(encoding="utf-8").startswith("<!-- asbuild-receipt -->")
+
+
+def test_facts_defaults():
+    f = Facts(branch="b", pr_number=1, pr_url="u", head_sha="s")
+    assert f.files_changed == [] and f.main_files == {} and f.evidence == ""

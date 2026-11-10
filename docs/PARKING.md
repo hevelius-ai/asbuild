@@ -1,0 +1,21 @@
+# Parking list: AsBuild
+
+Not in Core. Nothing here is designed, reviewed or built until "done" is met and a real user asks. Add new items as one line with the date and the reason.
+
+- Session hardening against a cheating agent: custom guard, hashes after every tool call, test-detection scans, held-out twins, the 12-run G3 test (root cause 1 again; CI already does the job)
+- The auto-merge gate and builder account as a product; a GitHub ruleset requiring the verdict before merge
+- Browser builders, TypeScript, web apps, screenshots, the Lovable flow
+- Three modes; the baseline for existing apps; story slicing and build-next-story
+- The secret-key wrapper; signed releases
+- Publishing to PyPI (needs an account and a token only the owner holds)
+- Star-count bars
+- The regulated add-on (belongs to the compliance-review track, which is parked)
+- Entire CLI transcripts, Spec Kit and Superpowers adapters, Agent Trace, attestations
+- Checking a story pull request's `locks.json` entries against its test files (D11 check, 9 Nov 2026: a mismatch only makes later builds wait, never a false PROVEN)
+- Locking acceptance data files outside `tests/acceptance/` (D11 check, 9 Nov 2026: that folder is already protected whole)
+- Pinning the workflow templates' actions by commit SHA (D11 check, 9 Nov 2026)
+- Verdicts for pull requests from forks (D11 check, 9 Nov 2026: the organization requires approval before fork workflows run)
+- The local check: `asbuild check` through uvx, and the Stop hook line (D15, 9 Nov 2026: never ran in the form specified; Claude Code's own hooks and deny rules cover the session)
+- Hardening against forged test results in the job that runs the pull request's code (9 Nov 2026 check: stated as a limit in the README, D16)
+- A Vitest or Jest preset beside pytest (9 Nov 2026 check: TypeScript is the largest share of Claude Code's pull requests; the first item to look at if a stranger asks)
+- A control write-up on AI-written changes offered to FINOS's SDLC Controls Framework, with AsBuild as the worked example (9 Nov 2026 check: writing, not building, and only after "done"; not checked whether one is already proposed there)
