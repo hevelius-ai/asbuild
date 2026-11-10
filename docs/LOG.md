@@ -13,3 +13,5 @@ Append-only. UTC.
 - 2026-11-10T18:10Z S1: review round 3 (last): A, B, C closed; 1 HIGH and 1 MEDIUM in the fix commit's new rules. Build stopped for the owner's decision S1-2 (playbook 2.5).
 - 2026-11-10T18:58Z S1: owner answered S1-2 = 2A (D24); round 3's two findings fixed (fa61430); re-check confirmed both, found the symptom in another story's folder (HIGH).
 - 2026-11-10T19:06Z S1: changed-check rule re-planned (73ea8aa, 16-case matrix); second re-check: still HIGH in three import-related states. Stopped for the owner's decision S1-3 (playbook 2.2).
+- 2026-11-10T19:12Z S1: owner answered S1-3 = 3A (D25); applied in 4b705bf.
+- 2026-11-10T19:15Z S1: confirm-only re-check (claude-fable-5-2): APPROVE. Known issues K1, K2 logged. PR hevelius-ai/asbuild#1 marked ready.
