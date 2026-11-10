@@ -4,7 +4,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- Story: S1 (CI check, verdict and receipts), stage: stopped after review round 3 of 3 (1 HIGH, 1 MEDIUM left); waiting for the owner's decision S1-2.
+- Story: S1 (CI check, verdict and receipts), stage: stopped; S1-2 fixes done, but the changed-check rule's re-plan did not close its HIGH; waiting for the owner's decision S1-3.
 - Branch: `build/S1` in `hevelius-ai/asbuild`, pushed; draft PR hevelius-ai/asbuild#1, CI green at f967717.
 - Demo: branch `wiring` in `hevelius-ai/asbuild-demo` committed locally (d79cef4), not pushed; demo story S1 drafted (not in a repository yet).
 
@@ -19,7 +19,7 @@ None.
 
 ## Open decisions
 
-- S1-2: S1 review round 3 still blocks (1 HIGH, 1 MEDIUM). Fix both with a confirm-only re-check, or other (see the report of 2026-11-10T18:10Z).
+- S1-3: how a changed acceptance file affects the receipt's check lines (see the report of 2026-11-10T19:07Z). S1-2 was answered 2A (D24).
 
 ## QUALITY RISK
 

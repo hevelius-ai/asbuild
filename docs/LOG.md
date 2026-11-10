@@ -11,3 +11,5 @@ Append-only. UTC.
 - 2026-11-10T17:57Z S1: asbuild's own CI file did not parse (YAML ": " in the install line); root cause and prevention in docs/reviews/S1.md.
 - 2026-11-10T17:59Z S1: review round 2: 15 of 18 closed, 1 HIGH and 2 MEDIUM left; triage confirmed 3; fixed in f967717. CI green at f967717.
 - 2026-11-10T18:10Z S1: review round 3 (last): A, B, C closed; 1 HIGH and 1 MEDIUM in the fix commit's new rules. Build stopped for the owner's decision S1-2 (playbook 2.5).
+- 2026-11-10T18:58Z S1: owner answered S1-2 = 2A (D24); round 3's two findings fixed (fa61430); re-check confirmed both, found the symptom in another story's folder (HIGH).
+- 2026-11-10T19:06Z S1: changed-check rule re-planned (73ea8aa, 16-case matrix); second re-check: still HIGH in three import-related states. Stopped for the owner's decision S1-3 (playbook 2.2).
