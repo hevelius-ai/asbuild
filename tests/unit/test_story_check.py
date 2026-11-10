@@ -76,6 +76,31 @@ def test_a_story_revised_before_approval_locks_again(tmp_path, monkeypatch, caps
     assert b"\r" not in raw  # written with LF line ends on every system
 
 
+def test_a_renamed_test_file_leaves_no_lock_entry_behind(tmp_path, monkeypatch, capsys):
+    """Round 2, N3: a revision that renames a test file replaces this branch's entries, not only adds to them."""
+    repo = make_repo(tmp_path, GOOD)
+    other = {"tests/acceptance/S0/test_S0_x.py": {"sha256": "ab", "tests": ["test_S0_C1_x"]}}
+    (repo / "locks.json").write_text(json.dumps({"files": other}), encoding="utf-8")
+    git(repo, "add", "locks.json")
+    git(repo, "commit", "-q", "-m", "story S0 approved on main")
+    assert run(repo, monkeypatch, capsys, "--lock")[0] == 0
+    folder = repo / "tests" / "acceptance" / "S1"
+    (folder / "test_S1_count.py").rename(folder / "test_S1_word_count.py")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0, out
+    files = json.loads((repo / "locks.json").read_text(encoding="utf-8"))["files"]
+    assert set(files) == {"tests/acceptance/S0/test_S0_x.py", "tests/acceptance/S1/test_S1_word_count.py"}
+
+
+def test_a_title_with_request_in_it_still_needs_the_owners_words(tmp_path, monkeypatch, capsys):
+    """Round 2, N1: only the template's Request heading opens the Request section."""
+    story = STORY.format(request="").replace("# S1: Count words", "# S1: Request a word count")
+    repo = make_repo(tmp_path, GOOD, story=story)
+    code, out = run(repo, monkeypatch, capsys)
+    assert code == 1 and "Request section is empty" in out
+    assert sc.parse_story(story)[0] == ""
+
+
 def test_one_test_carrying_two_check_ids_is_refused(tmp_path, monkeypatch, capsys):
     """Round 1, finding 2: one test per check, so a test may carry only one check ID."""
     both = """
@@ -499,6 +524,15 @@ def test_find_py_test_misses():
         ("words: 3", ["the count is words: 3."], True),
         ("words: 3", ["xwords: 3"], False),
         ("Hello, Ada!", ["Hello, Ada!!"], True),  # the example's edges are not letters or digits
+        ("Total: $10", ["Total: $10.50"], False),  # round 2, N2: a decimal part makes another value
+        ("words: 3", ["words: 3.5"], False),
+        ("words: 3", ["words: 3,000"], False),
+        ("5 items", ["1.5 items"], False),
+        ("5 items", ["1,5 items"], False),
+        ("5 items", ["you have 5 items."], True),
+        ("$10.00", ["costs $10.00 today"], True),  # an example starting with a non-word character
+        ("$10.00", ["costs $10.005"], False),
+        ("$10.00", ["costs $10.00, paid"], True),
     ],
 )
 def test_example_matches(example, asserted, ok):

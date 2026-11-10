@@ -31,3 +31,5 @@ Append-only. UTC.
 - 2026-11-10T20:27Z Board: four `updated` stamps from this session had been typed, not read from the clock; reset to the server's write times. The project skill now says the time is copied from `date -u`, never typed.
 - 2026-11-10T20:32Z S2: review round 1 (claude-fable-5-2): REQUEST CHANGES, 8 MEDIUM, 3 LOW, 2 PARKED. Triage (claude-sonnet-5-5): 7 confirmed, 1 cannot tell.
 - 2026-11-10T20:38Z S2: round 1 fixes with tests (seen failing first); local gates: 182 tests, 100% coverage. Record: docs/reviews/S2.md.
+- 2026-11-10T20:42Z S2: review round 2 (claude-fable-5-2): round 1 closed; 3 new MEDIUM in the fix code. Triage (claude-sonnet-5-5): 3 confirmed.
+- 2026-11-10T20:46Z S2: round 2 fixes with tests (seen failing first); local gates: 193 tests, 100% coverage. Demo #8 re-checked against the fixed script: passes, lock file byte-identical.

@@ -84,7 +84,7 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
             request.append(line)  # the owner's words may hold lines that start with "#"
         elif line.startswith("#"):
             heading = line.lower()
-            section = "request" if "request" in heading else "plain" if "plain" in heading else ""
+            section = "request" if heading.startswith("## request") else "plain" if "plain" in heading else ""
         elif section == "plain":
             row = cells(line)
             if len(row) >= 2 and CHECK_ID.fullmatch(row[0]):
@@ -426,10 +426,12 @@ def python_asserted(source: str, name: str) -> list:
 
 def example_matches(example: str, asserted: list) -> bool:
     """An approved example (text from the story) matches an asserted string that equals it or, at 4 characters
-    or more, contains it as a whole value (not "words: 3" inside "words: 30"); or an asserted number written the
-    same way."""
+    or more, contains it as a whole value (not "words: 3" inside "words: 30", "words: 3.5" or "words: 3,000");
+    or an asserted number written the same way."""
     left = r"(?<!\w)" if re.match(r"\w", example) else ""
+    left += r"(?<!\d[.,])" if re.match(r"\d", example) else ""  # "5 items" is not inside "1.5 items"
     right = r"(?!\w)" if re.search(r"\w$", example) else ""
+    right += r"(?![.,]\d)" if re.search(r"\d$", example) else ""  # "words: 3" is not inside "words: 3.5"
     whole = re.compile(left + re.escape(example) + right)
     for a in asserted:
         if isinstance(a, str) and (a == example or (len(example) >= 4 and whole.search(a))):
@@ -461,6 +463,9 @@ def lock(repo: Path, story: str, base: str) -> list[str]:
             raise TypeError("files is not an object")
     except (ValueError, KeyError, TypeError, AttributeError) as e:
         raise CannotRun(f"locks.json cannot be read: {e}") from e
+    mine = f"tests/acceptance/{story}/"
+    for rel in [r for r in files if r.startswith(mine) and r not in approved]:
+        del files[rel]  # written by an earlier run on this branch: the files as they are now replace them
     problems = []
     for p in sorted((repo / "tests" / "acceptance" / story).rglob("*.py")):
         rel = p.relative_to(repo).as_posix()
