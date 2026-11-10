@@ -530,6 +530,8 @@ def test_find_py_test_misses():
         ("5 items", ["1.5 items"], False),
         ("5 items", ["1,5 items"], False),
         ("5 items", ["you have 5 items."], True),
+        ("5 items", ["-5 items"], False),  # round 3 note: a sign makes another value
+        ("5 items", ["+5 items"], False),
         ("$10.00", ["costs $10.00 today"], True),  # an example starting with a non-word character
         ("$10.00", ["costs $10.005"], False),
         ("$10.00", ["costs $10.00, paid"], True),

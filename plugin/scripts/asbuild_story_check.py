@@ -429,7 +429,7 @@ def example_matches(example: str, asserted: list) -> bool:
     or more, contains it as a whole value (not "words: 3" inside "words: 30", "words: 3.5" or "words: 3,000");
     or an asserted number written the same way."""
     left = r"(?<!\w)" if re.match(r"\w", example) else ""
-    left += r"(?<!\d[.,])" if re.match(r"\d", example) else ""  # "5 items" is not inside "1.5 items"
+    left += r"(?<!\d[.,])(?<![-+])" if re.match(r"\d", example) else ""  # not inside "1.5 items" or "-5 items"
     right = r"(?!\w)" if re.search(r"\w$", example) else ""
     right += r"(?![.,]\d)" if re.search(r"\d$", example) else ""  # "words: 3" is not inside "words: 3.5"
     whole = re.compile(left + re.escape(example) + right)
