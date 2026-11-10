@@ -34,3 +34,4 @@ Append-only. UTC.
 - 2026-11-10T20:42Z S2: review round 2 (claude-fable-5-2): round 1 closed; 3 new MEDIUM in the fix code. Triage (claude-sonnet-5-5): 3 confirmed.
 - 2026-11-10T20:46Z S2: round 2 fixes with tests (seen failing first); local gates: 193 tests, 100% coverage. Demo #8 re-checked against the fixed script: passes, lock file byte-identical.
 - 2026-11-10T20:49Z S2: review round 3 (claude-fable-5-2): APPROVE; 2 LOW taken; its uncounted note (a sign before an edge digit) fixed with a test seen failing first.
+- 2026-11-10T20:52Z S2: confirm-only re-check (claude-fable-5-2): APPROVE. CI green on 8e1ed34. PR hevelius-ai/asbuild#2 marked ready for the owner's merge.
