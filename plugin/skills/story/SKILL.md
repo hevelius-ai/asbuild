@@ -73,13 +73,13 @@ Run this from the repository root, with the Python that runs the project's tests
 
 `python "${CLAUDE_PLUGIN_ROOT}/scripts/asbuild_story_check.py" S<n> --lock`
 
-- Exit 0: every check passed, and the tests' fingerprints were added to `locks.json`.
+- Exit 0: every check passed, the tests' fingerprints were added to `locks.json`, and one line in `.claude/settings.json` (`Edit(/tests/acceptance/S<n>/**)`) now stops Claude Code's file tools changing these tests in later sessions. If the person later asks to change a check, remove that line first, then run the checks again: they add it back.
 - Exit 1: each line says what is wrong. Fix the test, never the person's words or examples. If an example cannot be checked as agreed, ask the person. After three failed attempts, stop and tell the person what failed.
 - Exit 2: the checks could not run. Fix what the message names (fetch `origin`, or use the Python that has the project's pytest), then run again.
 
 ## 6. Open the story pull request
 
-1. Commit only `story.md`, the test file and `locks.json`. Push the branch.
+1. Commit only `story.md`, the test file, `locks.json` and `.claude/settings.json`. Push the branch.
 2. Run `gh pr create --base main --title "Story S<n>: <title>"`. In the body, list the checklist and add: "Merging this pull request approves these checks. AsBuild then checks every build of this story against them."
 3. Tell the person in plain words: read the list on the pull request, and merge it if it is right. Nothing is built yet. AsBuild's note on this pull request always says it is waiting for them.
 

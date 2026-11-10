@@ -160,6 +160,54 @@ def test_unreadable_lock_file_cannot_run(tmp_path, monkeypatch, capsys, content)
     assert code == 2 and "locks.json cannot be read" in out
 
 
+@pytest.mark.parametrize(
+    "content, said",
+    [
+        ("not json", "cannot be read"),
+        ("[1]", "it is not an object"),
+        ('{"permissions": []}', "permissions is not an object"),
+        ('{"permissions": {"deny": "Edit(x)"}}', "permissions.deny is not a list"),
+    ],
+)
+def test_unreadable_settings_cannot_run_and_change_nothing(tmp_path, monkeypatch, capsys, content, said):
+    """D26: the settings file is read before anything is written, so a bad one leaves no lock behind."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    (repo / ".claude" / "settings.json").write_text(content, encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 2 and ".claude/settings.json cannot be read" in out and said in out
+    assert not (repo / "locks.json").exists()
+    assert (repo / ".claude" / "settings.json").read_text(encoding="utf-8") == content
+
+
+def test_a_refused_lock_adds_no_deny_rule(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    git(repo, "add", ".")
+    git(repo, "commit", "-q", "-m", "story")
+    code, _ = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0
+    git(repo, "add", ".")
+    git(repo, "commit", "-q", "-m", "locked")
+    git(repo, "branch", "-f", "approved")
+    (repo / ".claude" / "settings.json").unlink()
+    test_file = repo / "tests" / "acceptance" / "S1" / "test_S1_count.py"
+    test_file.write_text(test_file.read_text(encoding="utf-8") + "\n# changed\n", encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock", "--base", "approved")
+    assert "is locked on approved with other content" in out
+    assert not (repo / ".claude" / "settings.json").exists()
+
+
+def test_the_deny_rule_keeps_non_ascii_settings_and_writes_lf(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    (repo / ".claude" / "settings.json").write_text('{"env": {"NOTE": "café"}}', encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0 and "S1 tests protected: Edit(/tests/acceptance/S1/**) in .claude/settings.json" in out
+    raw = (repo / ".claude" / "settings.json").read_bytes()
+    assert b"\r\n" not in raw and "café".encode() in raw
+    assert json.loads(raw) == {"env": {"NOTE": "café"}, "permissions": {"deny": ["Edit(/tests/acceptance/S1/**)"]}}
+
+
 def test_without_lock_writes_no_lock_file_and_keep_saves_the_results(tmp_path, monkeypatch, capsys):
     repo = make_repo(tmp_path, GOOD)
     assert run(repo, monkeypatch, capsys, "--keep", str(tmp_path / "kept"))[0] == 0

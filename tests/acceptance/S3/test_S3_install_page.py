@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 from plugin.scripts import asbuild_wait
+from tests.acceptance.S2.test_S2_story_checks import GOOD_C1, GOOD_C2, make_repo, run_checks
 
 ROOT = Path(__file__).resolve().parents[3]
 VERDICT_SKILL = ROOT / "plugin" / "skills" / "verdict" / "SKILL.md"
@@ -67,6 +68,47 @@ def test_S3_C1_install_page_matches_the_repository():
     assert "/asbuild:story" in page
     # no time claim until done line 3 gives one
     assert not re.search(r"\b\d+\s*(s|sec|secs|seconds?|min|mins|minutes?|hours?)\b", page, re.IGNORECASE)
+
+
+def settings_of(repo):
+    return json.loads((repo / ".claude" / "settings.json").read_text(encoding="utf-8"))
+
+
+def test_S3_C2_story_lock_adds_the_deny_line_and_page_says_what_it_misses(tmp_path):
+    line = "Edit(/tests/acceptance/S1/**)"
+    # a repository with settings of its own: they are kept, and the story's line is added once
+    repo = make_repo(tmp_path / "a", GOOD_C1 + GOOD_C2)
+    (repo / ".claude").mkdir()
+    own = {"model": "claude-sonnet-5-5", "permissions": {"allow": ["Bash(ls)"], "deny": ["Read(./.env)"]}}
+    (repo / ".claude" / "settings.json").write_text(json.dumps(own, indent=2) + "\n", encoding="utf-8")
+    out = run_checks(repo, "--lock")
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert settings_of(repo) == {
+        "model": "claude-sonnet-5-5",
+        "permissions": {"allow": ["Bash(ls)"], "deny": ["Read(./.env)", line]},
+    }
+    out = run_checks(repo, "--lock")
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert settings_of(repo)["permissions"]["deny"] == ["Read(./.env)", line]
+    # a repository without settings: the file is created with the one line
+    repo = make_repo(tmp_path / "b", GOOD_C1 + GOOD_C2)
+    out = run_checks(repo, "--lock")
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert settings_of(repo) == {"permissions": {"deny": [line]}}
+    # when a check fails, nothing is locked and no line is added
+    passing = GOOD_C1.replace('== "words: 3"', '!= "words: 3"').replace("assert out.returncode == 0\n", "")
+    repo = make_repo(tmp_path / "c", passing + GOOD_C2)
+    out = run_checks(repo, "--lock")
+    assert out.returncode == 1, out.stdout + out.stderr
+    assert not (repo / ".claude" / "settings.json").exists()
+    # the skill commits the line with the story; the page says what the line does and does not cover
+    skill = (ROOT / "plugin" / "skills" / "story" / "SKILL.md").read_text(encoding="utf-8")
+    assert "`.claude/settings.json`" in skill
+    page = install_section()
+    assert "`Edit(/tests/acceptance/S<n>/**)`" in page
+    assert "`.claude/settings.json`" in page
+    assert "a script that opens a file itself is not blocked" in page
+    assert "CI is the check" in page
 
 
 def test_S3_C3_verdict_after_each_push():

@@ -10,7 +10,8 @@ For story S<n> (dev-docs/stories/S<n>/story.md and its tests in tests/acceptance
   - check 1: each test fails on the base branch, by an assertion. The story's test folder is laid over the base in
     a git worktree and run with CI's hardened flags, as CI's fails-before check does (engine/c3_overlay.py);
   - check 2: each test asserts its check's approved examples (Phase 0's F4 example check, Python part).
---lock then adds the story's test files to locks.json, with the same entries as engine/lock_check.py.
+--lock then adds the story's test files to locks.json, with the same entries as engine/lock_check.py, and adds
+Claude Code's deny rule for the story's test folder to .claude/settings.json (decision D26).
 --keep DIR keeps pytest's JUnit file. Exit 0: every check passed. 1: a check failed (one line per problem,
 saying why). 2: the checks could not run. Standard library only; pytest is the project's own.
 """
@@ -480,6 +481,43 @@ def lock(repo: Path, story: str, base: str) -> list[str]:
     return []
 
 
+SETTINGS = Path(".claude") / "settings.json"
+
+
+def deny_rule(story: str) -> str:
+    """Claude Code's deny rule for one story's locked tests (decision D26)."""
+    return f"Edit(/tests/acceptance/{story}/**)"
+
+
+def read_settings(repo: Path) -> dict:
+    """The project's Claude Code settings, checked before anything is written, so a bad file changes nothing."""
+    path = repo / SETTINGS
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        if not isinstance(doc, dict):
+            raise TypeError("it is not an object")
+        perms = doc.setdefault("permissions", {})
+        if not isinstance(perms, dict):
+            raise TypeError("permissions is not an object")
+        if not isinstance(perms.setdefault("deny", []), list):
+            raise TypeError("permissions.deny is not a list")
+    except (ValueError, TypeError) as e:
+        raise CannotRun(f".claude/settings.json cannot be read: {e}; fix it, then run this again") from e
+    return doc
+
+
+def protect(repo: Path, story: str, doc: dict) -> str:
+    """Add the story's deny rule once, keeping every other setting."""
+    rule = deny_rule(story)
+    deny = doc["permissions"]["deny"]
+    if rule not in deny:
+        deny.append(rule)
+    path = repo / SETTINGS
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return f"{story} tests protected: {rule} in .claude/settings.json"
+
+
 def check(repo: Path, story: str, base: str, keep: Path | None) -> tuple[list[str], int, int]:
     """(output lines, number of checks, number of problems)."""
     story_file = repo / "dev-docs" / "stories" / story / "story.md"
@@ -520,7 +558,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="asbuild_story_check.py", description="AsBuild's story-time checks.")
     ap.add_argument("story", help="the story's ID, such as S2")
     ap.add_argument("--base", default="origin/main", help="the branch the build will start from")
-    ap.add_argument("--lock", action="store_true", help="when every check passes, add the tests to locks.json")
+    ap.add_argument("--lock", action="store_true", help="when every check passes, lock the tests, add the deny rule")
     ap.add_argument("--keep", type=Path, help="keep pytest's JUnit file in this folder")
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
@@ -538,8 +576,9 @@ def main(argv: list[str] | None = None) -> int:
             raise CannotRun(f"no branch {a.base}: fetch it first (git fetch origin)")
         lines, n_checks, n_problems = check(repo, a.story, a.base, a.keep)
         if n_problems == 0 and a.lock:
+            settings = read_settings(repo)
             refused = lock(repo, a.story, a.base)
-            lines += refused
+            lines += refused or [protect(repo, a.story, settings)]
             n_problems += len(refused)
     except CannotRun as e:
         print(f"story-time checks could not run: {e}")

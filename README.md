@@ -62,6 +62,8 @@ Pushing workflow files needs a GitHub login with the `workflow` scope. If the pu
 
 In Claude Code, run `/asbuild:story` and say what you want, in your own words. It agrees a short checklist with you, writes one test per line, and opens a story pull request. AsBuild's verdict on a story pull request is always WAITING FOR YOU: merging it approves the checks, and from then on they are locked.
 
+The story pull request also adds one line to `.claude/settings.json`, Claude Code's own deny rule for that story's tests, such as `Edit(/tests/acceptance/S1/**)`. Each story adds its own line, in the form `Edit(/tests/acceptance/S<n>/**)`. From the next session on, Claude Code's file tools, and the file commands it recognises in its shell, can't change those tests. It is on by default; to turn it off for a story, delete that line from the story pull request before you merge it. What it does not cover: a script that opens a file itself is not blocked. CI is the check: whatever changes a locked test, AsBuild's verdict says so. AsBuild does not check `.claude/settings.json` itself, so a pull request could remove the line; the tests stay locked either way.
+
 ### 4. Get the verdict after each push
 
 AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request, Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
