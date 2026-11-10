@@ -4,14 +4,13 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- Story: S1 (CI check, verdict and receipts), stage: engine merged (hevelius-ai/asbuild#1, merge 561817d by chrisz-glitch); live demo of the criteria next.
+- Story: S1 done 2026-11-10 (all seven criteria shown live on hevelius-ai/asbuild-demo #2 to #7). Next: S2 (the skill and story-time checks), plan first.
 - Branch `build/S1` in `hevelius-ai/asbuild`: merged; deleted locally only after the owner deletes it on GitHub (the agent's delete was refused by the permission check).
-- Demo: setup merged (ef2d91b). Story PR hevelius-ai/asbuild-demo#2: AsBuild: WAITING FOR YOU (S1-C7 live); waiting for owner merge 3.
+- Demo: setup (ef2d91b) and story S1 (e681f36) merged. Open demo PRs, not for merging (S4's demo): #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU (weakened check), #6 UNRESOLVED, #7 WAITING FOR YOU (no story).
 
 ## Open pull requests and merge order
 
-1. hevelius-ai/asbuild-demo#2 (story S1; WAITING FOR YOU). Merge now: it approves the checks.
-2. Then the demo build PRs (not opened yet).
+None to merge now. The demo PRs #3 to #7 stay open for S4. This branch (`records/after-S1`, local) goes in with S2's PR, with the K3 fix.
 
 ## Running jobs
 
@@ -27,6 +26,6 @@ None.
 
 ## Next steps
 
-1. Owner merge 3: hevelius-ai/asbuild-demo#2.
-2. Demo build PRs: PROVEN, NOT PROVEN, WAITING (changed check), UNRESOLVED, no story.
+1. S2: written plan and premortem, acceptance tests first.
+2. Owner: delete branch `build/S1` on GitHub (asbuild#1 page).
 3. Demo setup PR (owner merge 2), then the demo story PR (owner merge 3), then the demo build PRs.

@@ -19,3 +19,5 @@ Append-only. UTC.
 - 2026-11-10T19:22Z S1: demo setup PR hevelius-ai/asbuild-demo#1 opened.
 - 2026-11-10T19:33Z S1: demo setup PR hevelius-ai/asbuild-demo#1 merged by chrisz-glitch (ef2d91b).
 - 2026-11-10T19:35Z S1: demo story PR hevelius-ai/asbuild-demo#2 opened; first live verdict: AsBuild: WAITING FOR YOU (NEW_CHECKS), one check run, one receipt; wait script exit 4. S1-C7 shown live. K3 logged.
+- 2026-11-10T19:56Z S1: story PR hevelius-ai/asbuild-demo#2 merged by chrisz-glitch (e681f36).
+- 2026-11-10T19:59Z S1: live verdicts: #3 PROVEN, #4 NOT PROVEN (names S1-C2), #5 WAITING FOR YOU (changed check, no line judged), #6 UNRESOLVED (no results), #7 WAITING FOR YOU (no story); one AsBuild check run and one receipt each; wait-script exits 0, 1, 4, 3, 4. Verdict runs ran on main (e681f36). S1 done.
