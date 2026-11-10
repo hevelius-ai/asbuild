@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -158,6 +159,118 @@ def test_unreadable_lock_file_cannot_run(tmp_path, monkeypatch, capsys, content)
     (repo / "locks.json").write_text(content, encoding="utf-8")
     code, out = run(repo, monkeypatch, capsys, "--lock")
     assert code == 2 and "locks.json cannot be read" in out
+
+
+@pytest.mark.parametrize(
+    "content, said",
+    [
+        ("not json", "cannot be read"),
+        ("[1]", "it is not an object"),
+        ('{"permissions": []}', "permissions is not an object"),
+        ('{"permissions": {"deny": "Edit(x)"}}', "permissions.deny is not a list"),
+    ],
+)
+def test_unreadable_settings_cannot_run_and_change_nothing(tmp_path, monkeypatch, capsys, content, said):
+    """D26: the settings file is read before anything is written, so a bad one leaves no lock behind."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    (repo / ".claude" / "settings.json").write_text(content, encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 2 and ".claude/settings.json cannot be read" in out and said in out
+    assert not (repo / "locks.json").exists()
+    assert (repo / ".claude" / "settings.json").read_text(encoding="utf-8") == content
+
+
+def test_a_claude_folder_that_is_a_file_cannot_run_and_changes_nothing(tmp_path, monkeypatch, capsys):
+    """Round 1, finding 5: a file-system problem is exit 2, found before anything is written."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").write_text("not a folder", encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 2 and ".claude/settings.json cannot be written" in out
+    assert not (repo / "locks.json").exists()
+
+
+def test_a_read_only_settings_file_cannot_run_and_changes_nothing(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    settings = repo / ".claude" / "settings.json"
+    settings.write_text("{}", encoding="utf-8")
+    settings.chmod(stat.S_IREAD)
+    try:
+        code, out = run(repo, monkeypatch, capsys, "--lock")
+    finally:
+        settings.chmod(stat.S_IREAD | stat.S_IWRITE)
+    assert code == 2 and ".claude/settings.json cannot be written" in out
+    assert not (repo / "locks.json").exists()
+
+
+def test_a_read_only_settings_file_that_has_the_line_already_passes(tmp_path, monkeypatch, capsys):
+    """Round 2, finding 2: nothing needs writing, so a read-only file is no reason to stop."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    settings = repo / ".claude" / "settings.json"
+    raw = '{"permissions": {"deny": ["Edit(/tests/acceptance/S1/**)"]}}'
+    settings.write_text(raw, encoding="utf-8")
+    settings.chmod(stat.S_IREAD)
+    try:
+        code, out = run(repo, monkeypatch, capsys, "--lock")
+    finally:
+        settings.chmod(stat.S_IREAD | stat.S_IWRITE)
+    assert code == 0, out
+    assert settings.read_text(encoding="utf-8") == raw
+
+
+def test_a_write_that_fails_late_cannot_run(tmp_path, monkeypatch):
+    def refuse(*args, **kwargs):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(Path, "write_text", refuse)
+    with pytest.raises(sc.CannotRun, match="cannot be written: denied"):
+        sc.protect(tmp_path, "S1", {"permissions": {"deny": []}})
+
+
+def test_an_unreadable_settings_file_cannot_run(tmp_path, monkeypatch):
+    (tmp_path / ".claude" / "settings.json").mkdir(parents=True)  # a folder where the file should be
+    with pytest.raises(sc.CannotRun, match="cannot be"):
+        sc.read_settings(tmp_path, "S1")
+
+
+def test_the_line_already_there_leaves_the_file_untouched(tmp_path):
+    """Round 1, LOW: no formatting-only change in the story pull request."""
+    (tmp_path / ".claude").mkdir()
+    settings = tmp_path / ".claude" / "settings.json"
+    raw = '{"permissions":{"deny":["Edit(/tests/acceptance/S1/**)"]}}'
+    settings.write_text(raw, encoding="utf-8")
+    sc.protect(tmp_path, "S1", sc.read_settings(tmp_path, "S1"))
+    assert settings.read_text(encoding="utf-8") == raw
+
+
+def test_a_refused_lock_adds_no_deny_rule(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    git(repo, "add", ".")
+    git(repo, "commit", "-q", "-m", "story")
+    code, _ = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0
+    git(repo, "add", ".")
+    git(repo, "commit", "-q", "-m", "locked")
+    git(repo, "branch", "-f", "approved")
+    (repo / ".claude" / "settings.json").unlink()
+    test_file = repo / "tests" / "acceptance" / "S1" / "test_S1_count.py"
+    test_file.write_text(test_file.read_text(encoding="utf-8") + "\n# changed\n", encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock", "--base", "approved")
+    assert "is locked on approved with other content" in out
+    assert not (repo / ".claude" / "settings.json").exists()
+
+
+def test_the_deny_rule_keeps_non_ascii_settings_and_writes_lf(tmp_path, monkeypatch, capsys):
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    (repo / ".claude" / "settings.json").write_text('{"env": {"NOTE": "café"}}', encoding="utf-8")
+    code, out = run(repo, monkeypatch, capsys, "--lock")
+    assert code == 0 and "S1 tests protected: Edit(/tests/acceptance/S1/**) in .claude/settings.json" in out
+    raw = (repo / ".claude" / "settings.json").read_bytes()
+    assert b"\r\n" not in raw and "café".encode() in raw
+    assert json.loads(raw) == {"env": {"NOTE": "café"}, "permissions": {"deny": ["Edit(/tests/acceptance/S1/**)"]}}
 
 
 def test_without_lock_writes_no_lock_file_and_keep_saves_the_results(tmp_path, monkeypatch, capsys):
