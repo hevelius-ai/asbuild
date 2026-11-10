@@ -83,4 +83,4 @@ Run this from the repository root, with the Python that runs the project's tests
 2. Run `gh pr create --base main --title "Story S<n>: <title>"`. In the body, list the checklist and add: "Merging this pull request approves these checks. AsBuild then checks every build of this story against them."
 3. Tell the person in plain words: read the list on the pull request, and merge it if it is right. Nothing is built yet. AsBuild's note on this pull request always says it is waiting for them.
 
-The build comes later, in its own pull request from a branch named `build/S<n>`, and never changes `tests/acceptance/`.
+The build comes later, in its own pull request from a branch named `build/S<n>`, and never changes `tests/acceptance/`. After each push to it, get AsBuild's verdict with `/asbuild:verdict`.
