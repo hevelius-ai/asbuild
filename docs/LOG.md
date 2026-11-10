@@ -35,3 +35,5 @@ Append-only. UTC.
 - 2026-11-10T20:46Z S2: round 2 fixes with tests (seen failing first); local gates: 193 tests, 100% coverage. Demo #8 re-checked against the fixed script: passes, lock file byte-identical.
 - 2026-11-10T20:49Z S2: review round 3 (claude-fable-5-2): APPROVE; 2 LOW taken; its uncounted note (a sign before an edge digit) fixed with a test seen failing first.
 - 2026-11-10T20:52Z S2: confirm-only re-check (claude-fable-5-2): APPROVE. CI green on 8e1ed34. PR hevelius-ai/asbuild#2 marked ready for the owner's merge.
+- 2026-11-10T20:54Z S2: hevelius-ai/asbuild#2 merged by chrisz-glitch (56da078). S2 done: the plugin, the /asbuild:story skill (86 lines), the story-time checks, the marketplace file; K2 and K3 fixed.
+- 2026-11-10T20:56Z S2: `build/S2` deleted on both sides; local `records/after-S1` deleted (merged with S2).

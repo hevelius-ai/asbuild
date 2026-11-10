@@ -2,3 +2,5 @@ date,story,kind,hours,note
 2026-11-10,M0,agent,0.9,"setup: skills, decisions D21-D23, board, two repositories"
 2026-11-10,S1,agent,3.4,"plan, tests, port, three review rounds, three re-checks, fixes and the live demo"
 2026-11-10,S1,owner,0.3,"decisions S1-2 and S1-3, three merges"
+2026-11-10,S2,agent,0.9,"plan, tests, plugin, skill, story-time checks, live run, three review rounds and a re-check"
+2026-11-10,S2,owner,0.1,"one merge"
