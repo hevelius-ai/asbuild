@@ -204,7 +204,23 @@ def test_a_read_only_settings_file_cannot_run_and_changes_nothing(tmp_path, monk
     assert not (repo / "locks.json").exists()
 
 
-def test_a_write_that_fails_late_is_exit_2(tmp_path, monkeypatch):
+def test_a_read_only_settings_file_that_has_the_line_already_passes(tmp_path, monkeypatch, capsys):
+    """Round 2, finding 2: nothing needs writing, so a read-only file is no reason to stop."""
+    repo = make_repo(tmp_path, GOOD)
+    (repo / ".claude").mkdir()
+    settings = repo / ".claude" / "settings.json"
+    raw = '{"permissions": {"deny": ["Edit(/tests/acceptance/S1/**)"]}}'
+    settings.write_text(raw, encoding="utf-8")
+    settings.chmod(stat.S_IREAD)
+    try:
+        code, out = run(repo, monkeypatch, capsys, "--lock")
+    finally:
+        settings.chmod(stat.S_IREAD | stat.S_IWRITE)
+    assert code == 0, out
+    assert settings.read_text(encoding="utf-8") == raw
+
+
+def test_a_write_that_fails_late_cannot_run(tmp_path, monkeypatch):
     def refuse(*args, **kwargs):
         raise PermissionError("denied")
 
@@ -213,10 +229,10 @@ def test_a_write_that_fails_late_is_exit_2(tmp_path, monkeypatch):
         sc.protect(tmp_path, "S1", {"permissions": {"deny": []}})
 
 
-def test_an_unreadable_settings_file_is_exit_2(tmp_path, monkeypatch):
+def test_an_unreadable_settings_file_cannot_run(tmp_path, monkeypatch):
     (tmp_path / ".claude" / "settings.json").mkdir(parents=True)  # a folder where the file should be
     with pytest.raises(sc.CannotRun, match="cannot be"):
-        sc.read_settings(tmp_path)
+        sc.read_settings(tmp_path, "S1")
 
 
 def test_the_line_already_there_leaves_the_file_untouched(tmp_path):
@@ -225,7 +241,7 @@ def test_the_line_already_there_leaves_the_file_untouched(tmp_path):
     settings = tmp_path / ".claude" / "settings.json"
     raw = '{"permissions":{"deny":["Edit(/tests/acceptance/S1/**)"]}}'
     settings.write_text(raw, encoding="utf-8")
-    sc.protect(tmp_path, "S1", sc.read_settings(tmp_path))
+    sc.protect(tmp_path, "S1", sc.read_settings(tmp_path, "S1"))
     assert settings.read_text(encoding="utf-8") == raw
 
 

@@ -489,13 +489,12 @@ def deny_rule(story: str) -> str:
     return f"Edit(/tests/acceptance/{story}/**)"
 
 
-def read_settings(repo: Path) -> dict:
+def read_settings(repo: Path, story: str) -> dict:
     """The project's Claude Code settings, checked before anything is written, so a bad file changes nothing."""
     path = repo / SETTINGS
+    again = "; fix it, then run this again"
     if path.parent.exists() and not path.parent.is_dir():
-        raise CannotRun(".claude/settings.json cannot be written: .claude is not a folder")
-    if path.is_file() and not os.access(path, os.W_OK):
-        raise CannotRun(".claude/settings.json cannot be written: it is read-only")
+        raise CannotRun(f".claude/settings.json cannot be written: .claude is not a folder{again}")
     try:
         doc = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
         if not isinstance(doc, dict):
@@ -506,7 +505,9 @@ def read_settings(repo: Path) -> dict:
         if not isinstance(perms.setdefault("deny", []), list):
             raise TypeError("permissions.deny is not a list")
     except (ValueError, TypeError, OSError) as e:
-        raise CannotRun(f".claude/settings.json cannot be read: {e}; fix it, then run this again") from e
+        raise CannotRun(f".claude/settings.json cannot be read: {e}{again}") from e
+    if deny_rule(story) not in doc["permissions"]["deny"] and path.is_file() and not os.access(path, os.W_OK):
+        raise CannotRun(f".claude/settings.json cannot be written: it is read-only{again}")
     return doc
 
 
@@ -585,7 +586,7 @@ def main(argv: list[str] | None = None) -> int:
             raise CannotRun(f"no branch {a.base}: fetch it first (git fetch origin)")
         lines, n_checks, n_problems = check(repo, a.story, a.base, a.keep)
         if n_problems == 0 and a.lock:
-            settings = read_settings(repo)
+            settings = read_settings(repo, a.story)
             refused = lock(repo, a.story, a.base)
             lines += refused or [protect(repo, a.story, settings)]
             n_problems += len(refused)

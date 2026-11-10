@@ -27,3 +27,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - A `.claude/settings.json` that is gitignored, or saved with a byte-order mark, when the story-time checks add the deny line. Graded PARKED in S3 review round 1 (2026-11-10).
 - The skills' commands say `python`, not `python3`. Graded PARKED in S3 review round 1 (2026-11-10).
 - The wait script's timeout exit code 7 is a bare number. Graded PARKED in S3 review round 1 (2026-11-10).
+- An unreadable or unwritable `locks.json` ends the story-time checks in a traceback, not exit 2 (S2's code). Graded PARKED in S3 review round 2 (2026-11-10).
+- No flow for changing a check after its story is merged: only the owner changes a locked test. Graded PARKED in S3 review round 2 (2026-11-10).

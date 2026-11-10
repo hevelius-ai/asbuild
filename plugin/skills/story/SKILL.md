@@ -73,7 +73,7 @@ Run this from the repository root, with the Python that runs the project's tests
 
 `python "${CLAUDE_PLUGIN_ROOT}/scripts/asbuild_story_check.py" S<n> --lock`
 
-- Exit 0: every check passed, the tests' fingerprints were added to `locks.json`, and one line in `.claude/settings.json` (`Edit(/tests/acceptance/S<n>/**)`) now stops Claude Code's file tools changing these tests in later sessions. If the person later asks to change a check, remove that line, start a new Claude Code session, change the test there, then run the checks again: they add the line back.
+- Exit 0: every check passed, the tests' fingerprints were added to `locks.json`, and one line in `.claude/settings.json` (`Edit(/tests/acceptance/S<n>/**)`) now stops Claude Code's file tools changing these tests in later sessions. If the person asks to change a check before the story pull request is merged, remove that line, start a new Claude Code session, change the test there, then run the checks again: they add the line back. After the merge the tests are locked, and only the person changes them.
 - Exit 1: each line says what is wrong. Fix the test, never the person's words or examples. If an example cannot be checked as agreed, ask the person. After three failed attempts, stop and tell the person what failed.
 - Exit 2: the checks could not run. Fix what the message names (fetch `origin`, or use the Python that has the project's pytest), then run again.
 
