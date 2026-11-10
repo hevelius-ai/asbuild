@@ -37,3 +37,10 @@ Append-only. UTC.
 - 2026-11-10T20:52Z S2: confirm-only re-check (claude-fable-5-2): APPROVE. CI green on 8e1ed34. PR hevelius-ai/asbuild#2 marked ready for the owner's merge.
 - 2026-11-10T20:54Z S2: hevelius-ai/asbuild#2 merged by chrisz-glitch (56da078). S2 done: the plugin, the /asbuild:story skill (86 lines), the story-time checks, the marketplace file; K2 and K3 fixed.
 - 2026-11-10T20:55Z S2: `build/S2` deleted on both sides; local `records/after-S1` deleted (merged with S2).
+- 2026-11-10T21:07Z S3: started; `build/S3` from `records/after-S2`. Probe: a folder-wide deny rule blocks the Write tool creating a new story's tests ($0.27).
+- 2026-11-10T21:10Z S3: plan with premortem, install page, `/asbuild:verdict` skill, plugin 0.2.0, tests C1 and C3 seen failing then passing (2314f43). Decision S3-1 laid out for the owner.
+- 2026-11-10T22:02Z S3: the owner chose 1C, automated (D26). Probe: a deny line written mid-session does not apply to that `claude -p` session ($0.25).
+- 2026-11-10T22:08Z S3: `--lock` adds the story's deny line; S3-C2 seen failing first (793d743).
+- 2026-11-10T22:09Z S3: draft PR hevelius-ai/asbuild#3 opened; review round 1 (claude-fable-5-2): 7 MEDIUM; triage 6 confirmed, 1 cannot tell.
+- 2026-11-10T22:18Z S3: round 1 fixes (e09ca96). Review round 2: all closed, 2 new MEDIUM, both confirmed.
+- 2026-11-10T22:26Z S3: round 2 fixes (5f15f9b). Review round 3: APPROVE on the whole branch. CI green.
