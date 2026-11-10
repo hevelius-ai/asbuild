@@ -5,7 +5,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 ## Now
 
 - Story: S1 done 2026-11-10 (all seven criteria shown live on hevelius-ai/asbuild-demo #2 to #7). Next: S2 (the skill and story-time checks), plan first.
-- Branch `build/S1` in `hevelius-ai/asbuild`: merged; deleted locally only after the owner deletes it on GitHub (the agent's delete was refused by the permission check).
+- Branch `build/S1` in `hevelius-ai/asbuild`: merged and deleted on both sides (2026-11-10, at the owner's request).
 - Demo: setup (ef2d91b) and story S1 (e681f36) merged. Open demo PRs, not for merging (S4's demo): #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU (weakened check), #6 UNRESOLVED, #7 WAITING FOR YOU (no story).
 
 ## Open pull requests and merge order
@@ -27,5 +27,4 @@ None.
 ## Next steps
 
 1. S2: written plan and premortem, acceptance tests first.
-2. Owner: delete branch `build/S1` on GitHub (asbuild#1 page).
 3. Demo setup PR (owner merge 2), then the demo story PR (owner merge 3), then the demo build PRs.
