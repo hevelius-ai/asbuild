@@ -1,0 +1,69 @@
+# AsBuild, the UNTRUSTED half. Copy this file to .github/workflows/ in your repository.
+# It runs the pull request's own code with read-only rights, collects the test results and uploads them.
+# It never gives a verdict: asbuild-verdict.yml does, from your main branch.
+# Trigger: pull_request only, so the pull request's code never runs with write rights. AsBuild uses no
+# repository secrets.
+
+name: asbuild-test
+
+on:
+  pull_request:
+    branches: [main] # AsBuild judges changes to main only
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asbuild-test-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Fetch AsBuild (from hevelius-ai/asbuild, never from this repository)
+        run: |
+          git clone --quiet --depth 1 --branch main https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          echo "ASBUILD=$RUNNER_TEMP/asbuild" >> "$GITHUB_ENV"
+          mkdir -p out
+
+      - name: Install the project (its requirements.txt must include pytest)
+        continue-on-error: true # if this fails, the tests cannot run: the verdict says UNRESOLVED
+        run: python -m pip install --quiet -r requirements.txt
+
+      - name: Full suite on the pull request
+        continue-on-error: true # failing tests are evidence; the verdict decides
+        run: python -m pytest --continue-on-collection-errors -o junit_family=xunit2 --junitxml=out/pr.xml
+
+      - name: Acceptance tests, hardened (no conftest, no plugin autoload)
+        continue-on-error: true
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          python -m pytest tests/acceptance --noconftest -p no:cacheprovider \
+            --continue-on-collection-errors -o junit_family=xunit2 --junitxml=out/acceptance.xml
+
+      - name: Fails before, each acceptance test file laid over main
+        continue-on-error: true
+        run: python "$ASBUILD/engine/c3_overlay.py" --base "origin/${{ github.base_ref }}" --out out/c3
+
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: always()
+        with:
+          name: asbuild-evidence
+          path: out/
+          retention-days: 7
