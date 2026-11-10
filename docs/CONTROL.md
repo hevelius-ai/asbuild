@@ -4,18 +4,17 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- Story: S1 (CI check, verdict and receipts), stage: review approved (after S1-3 = 3A, D25); PR ready, waiting for owner merge 1.
-- Branch: `build/S1` in `hevelius-ai/asbuild`, pushed; draft PR hevelius-ai/asbuild#1, CI green at f967717.
-- Demo: branch `wiring` in `hevelius-ai/asbuild-demo` committed locally (d79cef4), not pushed; demo story S1 drafted (not in a repository yet).
+- Story: S2 (the skill and story-time checks): PR hevelius-ai/asbuild#2 from `build/S2`. Live run done (demo story PR hevelius-ai/asbuild-demo#8, WAITING FOR YOU). Review approved (round 3 and the confirm-only re-check); PR ready for the owner's merge. S1 done 2026-11-10.
+- Branch `build/S1` in `hevelius-ai/asbuild`: merged and deleted on both sides (2026-11-10, at the owner's request).
+- Demo: setup (ef2d91b) and story S1 (e681f36) merged. Open demo PRs, not for merging (S4's demo): #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU (weakened check), #6 UNRESOLVED, #7 WAITING FOR YOU (no story). #8 is S2's live-run story PR (story S2, count lines), WAITING FOR YOU; merging it is optional.
 
 ## Open pull requests and merge order
 
-1. hevelius-ai/asbuild#1 (draft; S1). Merges first: the demo's workflows fetch the engine from its main.
-2. Then the demo setup PR (not opened yet).
+Merge now: hevelius-ai/asbuild#2 (S2, carrying the S1 records), the only PR waiting for a merge. The demo PRs #3 to #8 stay open.
 
 ## Running jobs
 
-None.
+None between steps; each review round runs in the background and wakes the build session.
 
 ## Open decisions
 
@@ -27,5 +26,5 @@ None.
 
 ## Next steps
 
-1. Owner merge 1: hevelius-ai/asbuild#1.
-3. Demo setup PR (owner merge 2), then the demo story PR (owner merge 3), then the demo build PRs.
+1. S2: PR #2 ready; waiting for the owner's merge.
+2. S3: the install page.

@@ -15,3 +15,23 @@ Append-only. UTC.
 - 2026-11-10T19:06Z S1: changed-check rule re-planned (73ea8aa, 16-case matrix); second re-check: still HIGH in three import-related states. Stopped for the owner's decision S1-3 (playbook 2.2).
 - 2026-11-10T19:12Z S1: owner answered S1-3 = 3A (D25); applied in 4b705bf.
 - 2026-11-10T19:15Z S1: confirm-only re-check (claude-fable-5-2): APPROVE. Known issues K1, K2 logged. PR hevelius-ai/asbuild#1 marked ready.
+- 2026-11-10T19:21Z S1: hevelius-ai/asbuild#1 merged by chrisz-glitch (561817d). Branch delete on GitHub refused by the agent's permission check: left for the owner.
+- 2026-11-10T19:22Z S1: demo setup PR hevelius-ai/asbuild-demo#1 opened.
+- 2026-11-10T19:33Z S1: demo setup PR hevelius-ai/asbuild-demo#1 merged by chrisz-glitch (ef2d91b).
+- 2026-11-10T19:35Z S1: demo story PR hevelius-ai/asbuild-demo#2 opened; first live verdict: AsBuild: WAITING FOR YOU (NEW_CHECKS), one check run, one receipt; wait script exit 4. S1-C7 shown live. K3 logged.
+- 2026-11-10T19:56Z S1: story PR hevelius-ai/asbuild-demo#2 merged by chrisz-glitch (e681f36).
+- 2026-11-10T19:59Z S1: live verdicts: #3 PROVEN, #4 NOT PROVEN (names S1-C2), #5 WAITING FOR YOU (changed check, no line judged), #6 UNRESOLVED (no results), #7 WAITING FOR YOU (no story); one AsBuild check run and one receipt each; wait-script exits 0, 1, 4, 3, 4. Verdict runs ran on main (e681f36). S1 done.
+- 2026-11-10T20:04Z Housekeeping: merged demo branches `wiring` and `story/S1` deleted on both sides (owner's request: keep the project clean).
+- 2026-11-10T20:11Z Board: card "the verdict job runs from main" was left in To do (the 19:59 batch wrote its note but not its column); corrected and read back. The project skill now requires a field-by-field read-back of every card a batch touches.
+- 2026-11-10T20:14Z S2: plan and premortem written (docs/plans/S2.md, e055619).
+- 2026-11-10T20:15Z S2: five acceptance tests written first and seen failing: S2-C1 and the three S2-C2 tests exit 2 (the script did not exist), S2-C3 FileNotFoundError (no skill file) (1b04d85).
+- 2026-11-10T20:24Z S2: plugin, skill (86 lines), story-time check script, marketplace file, K2 and K3 fixes (fee5d08). Local gates: ruff, format, mypy, 169 tests, 100% coverage; `claude plugin validate --strict` passes on ./plugin and the root.
+- 2026-11-10T20:26Z S2: live run of /asbuild:story on a clone of the demo started (headless, claude-sonnet-5-5); review round 1 started (claude-fable-5-2).
+- 2026-11-10T20:27Z S2: live run done: hevelius-ai/asbuild-demo#8 (story S2) opened by the headless session; the owner's 160 bytes saved exactly; re-run checks pass; AsBuild WAITING FOR YOU (NEW_CHECKS), wait exit 4.
+- 2026-11-10T20:27Z Board: four `updated` stamps from this session had been typed, not read from the clock; reset to the server's write times. The project skill now says the time is copied from `date -u`, never typed.
+- 2026-11-10T20:32Z S2: review round 1 (claude-fable-5-2): REQUEST CHANGES, 8 MEDIUM, 3 LOW, 2 PARKED. Triage (claude-sonnet-5-5): 7 confirmed, 1 cannot tell.
+- 2026-11-10T20:38Z S2: round 1 fixes with tests (seen failing first); local gates: 182 tests, 100% coverage. Record: docs/reviews/S2.md.
+- 2026-11-10T20:42Z S2: review round 2 (claude-fable-5-2): round 1 closed; 3 new MEDIUM in the fix code. Triage (claude-sonnet-5-5): 3 confirmed.
+- 2026-11-10T20:46Z S2: round 2 fixes with tests (seen failing first); local gates: 193 tests, 100% coverage. Demo #8 re-checked against the fixed script: passes, lock file byte-identical.
+- 2026-11-10T20:49Z S2: review round 3 (claude-fable-5-2): APPROVE; 2 LOW taken; its uncounted note (a sign before an edge digit) fixed with a test seen failing first.
+- 2026-11-10T20:52Z S2: confirm-only re-check (claude-fable-5-2): APPROVE. CI green on 8e1ed34. PR hevelius-ai/asbuild#2 marked ready for the owner's merge.
