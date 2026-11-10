@@ -114,7 +114,8 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
             row = line.strip().removeprefix("|").removesuffix("|")
             cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", row)]  # "\|" is a literal bar
             if len(cells) >= 2 and CHECK_ID.fullmatch(cells[0]):
-                plain[cells[0]] = cells[1]
+                if cells[1]:  # an empty cell is no sentence: the check counts as undescribed
+                    plain[cells[0]] = cells[1]
     return title, [{"id": i, "plain": plain.get(i, NO_PLAIN)} for i in ids]
 
 
@@ -232,7 +233,9 @@ def judge(f: Facts) -> dict:
         }
     )
     own_dir = f"tests/acceptance/{story}/"
-    changed_tests = {Path(p).stem for p in changed_acc if p.startswith(own_dir) and TEST_FILE.search(p)}
+    changed_tests = {  # a test file in this story's folder, or one outside every story folder
+        Path(p).stem for p in changed_acc if TEST_FILE.search(p) and (p.startswith(own_dir) or not STORY_DIR.match(p))
+    }
     changed_shared = any(
         not TEST_FILE.search(p) and (p.startswith(own_dir) or not STORY_DIR.match(p)) for p in changed_acc
     )

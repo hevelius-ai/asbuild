@@ -300,6 +300,28 @@ def test_changed_locked_helper_marks_every_check(tmp_path, helper):
     assert "✓" not in render(v)["top"]
 
 
+@pytest.mark.parametrize("where", ["tests/acceptance/test_S1_count.py", "tests/acceptance/shared/test_S1_count.py"])
+def test_changed_locked_test_outside_a_story_folder_marks_its_checks(tmp_path, where):
+    cls = where.removesuffix(".py").replace("/", ".")
+    f = facts(
+        tmp_path,
+        changed=["app/count.py", where],
+        pr=[(*UNIT, "pass"), (cls, A1[1], "pass"), (cls, A2[1], "pass")],
+        acc=[(cls, A1[1], "pass"), (cls, A2[1], "pass")],
+        c3=[(cls, A1[1], "assert"), (cls, A2[1], "assert")],
+    )
+    weakened = ACC.replace(b"assert False", b"assert 1")
+    for files in (f.main_files, f.head_files):
+        del files[ACC_PATH]
+    f.main_files[where] = ACC
+    f.head_files[where] = weakened
+    f.main_files["locks.json"] = f.head_files["locks.json"] = locks({where: ACC})
+    v = judge(f)
+    assert {"code": "LOCK_CHANGED", "params": {"path": where}} in v["codes"]
+    assert [i["status"] for i in v["items"]] == ["check_changed", "check_changed"]
+    assert "✓" not in render(v)["top"]
+
+
 def test_other_storys_changed_test_does_not_mark_this_storys_checks(tmp_path):
     other = "tests/acceptance/S2/test_S2_greet.py"
     f = facts(tmp_path, changed=["app/count.py", other])
@@ -310,11 +332,12 @@ def test_other_storys_changed_test_does_not_mark_this_storys_checks(tmp_path):
     assert v["verdict"] == "WAITING FOR YOU"
 
 
-def test_story_pr_with_a_check_missing_its_plain_sentence(tmp_path):
+@pytest.mark.parametrize("second_row", ["", "| S2-C2 |  |\n", "| S2-C2 | |\n"])
+def test_story_pr_with_a_check_missing_its_plain_sentence(tmp_path, second_row):
     s2 = "tests/acceptance/S2/test_S2_a.py"
     story = (
         "# S2: Greet\n\n## Criteria\n\n| S2-C1 | greets |\n| S2-C2 | usage |\n\n"
-        "## Plain checklist\n\n| S2-C1 | Says hello. |\n"
+        "## Plain checklist\n\n| S2-C1 | Says hello. |\n" + second_row
     )
     f = facts(
         tmp_path,
