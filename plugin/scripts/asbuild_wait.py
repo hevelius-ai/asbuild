@@ -29,7 +29,10 @@ class ToolError(Exception):
 
 
 def sh(*cmd: str) -> str:
-    p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+    except OSError as e:  # the program is not installed or cannot start
+        raise ToolError(f"{cmd[0]} could not run: {e}") from e
     if p.returncode != 0:
         raise ToolError(f"{' '.join(cmd)} failed: {p.stderr.strip()}")
     return p.stdout.strip()
@@ -66,7 +69,11 @@ def wait(
     print(f"waiting for the AsBuild check on {repo}@{sha[:10]} (up to {a.timeout}s)")
     deadline = clock() + a.timeout
     while clock() < deadline:
-        data = json.loads(run("gh", "api", f"repos/{repo}/commits/{sha}/check-runs?check_name=AsBuild&per_page=100"))
+        reply = run("gh", "api", f"repos/{repo}/commits/{sha}/check-runs?check_name=AsBuild&per_page=100")
+        try:
+            data = json.loads(reply)
+        except ValueError as e:
+            raise ToolError(f"GitHub's answer was not readable: {reply[:200]}") from e
         done = [
             r
             for r in data.get("check_runs", [])

@@ -284,3 +284,49 @@ def test_crash_receipt_says_asbuild_could_not_finish():
 def test_facts_defaults():
     f = Facts(branch="b", pr_number=1, pr_url="u", head_sha="s")
     assert f.files_changed == [] and f.main_files == {} and f.evidence == ""
+
+
+@pytest.mark.parametrize(
+    "helper", ["tests/acceptance/S1/expected.py", "tests/acceptance/helpers.py", "tests/acceptance/S1/__init__.py"]
+)
+def test_changed_locked_helper_marks_every_check(tmp_path, helper):
+    f = facts(tmp_path, changed=["app/count.py", helper])
+    f.main_files[helper] = b"EXPECTED = 3\n"
+    f.head_files[helper] = b"EXPECTED = 0\n"
+    f.main_files["locks.json"] = f.head_files["locks.json"] = locks({ACC_PATH: ACC, helper: b"EXPECTED = 3\n"})
+    v = judge(f)
+    assert {"code": "LOCK_CHANGED", "params": {"path": helper}} in v["codes"]
+    assert {i["status"] for i in v["items"]} == {"check_changed"}
+    assert "✓" not in render(v)["top"]
+
+
+def test_other_storys_changed_test_does_not_mark_this_storys_checks(tmp_path):
+    other = "tests/acceptance/S2/test_S2_greet.py"
+    f = facts(tmp_path, changed=["app/count.py", other])
+    f.main_files[other] = b"def test_S2_C1_greets():\n    assert False\n"
+    f.head_files[other] = b"def test_S2_C1_greets():\n    assert True\n"
+    v = judge(f)
+    assert [i["status"] for i in v["items"]] == ["works", "works"]
+    assert v["verdict"] == "WAITING FOR YOU"
+
+
+def test_story_pr_with_a_check_missing_its_plain_sentence(tmp_path):
+    s2 = "tests/acceptance/S2/test_S2_a.py"
+    story = (
+        "# S2: Greet\n\n## Criteria\n\n| S2-C1 | greets |\n| S2-C2 | usage |\n\n"
+        "## Plain checklist\n\n| S2-C1 | Says hello. |\n"
+    )
+    f = facts(
+        tmp_path,
+        branch="story/S2",
+        changed=["locks.json", s2, "dev-docs/stories/S2/story.md"],
+        head_extra={
+            "locks.json": locks({ACC_PATH: ACC, s2: b"x"}),
+            s2: b"x",
+            "dev-docs/stories/S2/story.md": story.encode(),
+        },
+    )
+    v = judge(f)
+    assert {"code": "NEW_CHECKS_UNDESCRIBED", "params": {"paths": ["dev-docs/stories/S2/story.md"]}} in v["codes"]
+    r = render(v)
+    assert "Don't approve these yet" in r["top"] and "If every line says what you asked for" not in r["top"]

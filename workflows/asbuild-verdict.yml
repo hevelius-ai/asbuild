@@ -18,8 +18,10 @@ permissions:
   issues: write
   pull-requests: write
 
-concurrency: # one verdict at a time per branch, so a late run cannot overwrite a newer receipt
-  group: asbuild-verdict-${{ github.event.workflow_run.head_branch }}
+# One verdict at a time per commit, so a re-run cannot post a second receipt. A run for an older commit finds no
+# pull request whose head it is and posts nothing, so it can never overwrite the newer receipt or cancel its run.
+concurrency:
+  group: asbuild-verdict-${{ github.event.workflow_run.head_sha }}
   cancel-in-progress: false
 
 jobs:

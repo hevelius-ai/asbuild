@@ -31,6 +31,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 - CI decides (playbook 2.4). `hevelius-ai/asbuild` gets its own CI in S1's first pull request: one workflow running pytest with coverage, lint and types, on every pull request.
 - Local early warnings: pytest on the tests touching the changed modules, plus the lint and type tools chosen in story S1 and recorded here when chosen.
 - History check (before each commit and push): every new commit's author email is the heveliusai-dev no-reply address; `git log --format=%ae origin/main..HEAD` prints only that address. Nothing more in Core.
+- Every workflow file is parsed by the tests (`tests/unit/test_yaml_files.py`): GitHub rejects a file whose plain YAML value holds ": " without running any job.
 - Python and pytest only.
 
 ## Reviews (decision D21)

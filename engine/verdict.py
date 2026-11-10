@@ -33,6 +33,7 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from engine import lock_check  # noqa: E402
+from engine.c3_overlay import TEST_FILE  # noqa: E402  - the test files the "before" run lays over main
 from engine.common import gh, gh_paged  # noqa: E402
 from engine.junit_classify import Key, load  # noqa: E402
 from engine.receipt import render, technical, write_receipt  # noqa: E402
@@ -43,6 +44,7 @@ STORY_DIR = re.compile(r"^tests/acceptance/(S\d+)/")
 FAILED = ("strong", "existence-only")
 MAX_BLOB = 1024 * 1024
 MAX_FILES = 3000
+NO_PLAIN = "One of your checks has no plain sentence yet."
 
 # Protected files (HANDOVER section 3): fixed here, read from main's copy of this code, never from the
 # pull request. A name without "/" matches the file's own name anywhere in the repository.
@@ -113,7 +115,7 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
             cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", row)]  # "\|" is a literal bar
             if len(cells) >= 2 and CHECK_ID.fullmatch(cells[0]):
                 plain[cells[0]] = cells[1]
-    return title, [{"id": i, "plain": plain.get(i, "One of your checks has no plain sentence yet.")} for i in ids]
+    return title, [{"id": i, "plain": plain.get(i, NO_PLAIN)} for i in ids]
 
 
 def matches(test_name: str, check: str) -> bool:
@@ -202,7 +204,8 @@ def judge(f: Facts) -> dict:
             t, cs = parse_story(raw_story.decode("utf-8", errors="replace"))
             titles += [t] if t else []
             checks += cs
-            undescribed += [] if cs else [f"dev-docs/stories/{sid}/story.md"]
+            if not cs or any(c["plain"] == NO_PLAIN for c in cs):  # every new check needs its plain sentence
+                undescribed.append(f"dev-docs/stories/{sid}/story.md")
         codes.insert(0, code("NEW_CHECKS", stories=sids, checks=[c["id"] for c in checks]))
         if undescribed:
             codes.append(code("NEW_CHECKS_UNDESCRIBED", paths=undescribed))
@@ -217,15 +220,21 @@ def judge(f: Facts) -> dict:
     title, checks = parse_story(story_md.decode("utf-8", errors="replace")) if story_md else ("", [])
     if not checks:
         codes.append(code("NO_STORY", branch=f.branch))
-    # Paths in this story's acceptance folder that the AI changed: the checks they belong to are not judged.
-    touched = sorted(
+    # Acceptance files the AI changed. A changed test file of this story takes its own checks out of judging;
+    # any other changed file this story's tests can use (a helper, __init__.py, data, in the story's folder or
+    # shared above it) takes all of them out, because the "before" run lays only test files over main.
+    changed_acc = sorted(
         {
             c["params"]["path"]
             for c in codes
             if c["code"] in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
-            and story
-            and c["params"]["path"].startswith(f"tests/acceptance/{story}/")
+            and c["params"]["path"].startswith("tests/acceptance/")
         }
+    )
+    own_dir = f"tests/acceptance/{story}/"
+    changed_tests = {Path(p).stem for p in changed_acc if p.startswith(own_dir) and TEST_FILE.search(p)}
+    changed_shared = any(
+        not TEST_FILE.search(p) and (p.startswith(own_dir) or not STORY_DIR.match(p)) for p in changed_acc
     )
 
     pr_res, acc, c3 = load_evidence(f.evidence)
@@ -256,7 +265,7 @@ def judge(f: Facts) -> dict:
             own |= set(with_)
             without = [before(c3, k) for k in with_]
             modules = {part for k in with_ for part in k[0].split(".")}
-            if touched and (not with_ or any(not p.endswith(".py") or Path(p).stem in modules for p in touched)):
+            if changed_shared or (changed_tests and (not with_ or changed_tests & modules)):
                 item["status"] = "check_changed"
             elif not with_:
                 item["status"] = "not_checked"

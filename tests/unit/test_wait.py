@@ -105,3 +105,10 @@ def test_no_output_block():
 def test_subprocess_is_used(monkeypatch):
     monkeypatch.setattr(asbuild_wait.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, " x \n", ""))
     assert asbuild_wait.sh("anything") == "x"
+
+
+def test_missing_program_or_unreadable_answer_is_exit_5(capsys):
+    with pytest.raises(asbuild_wait.ToolError, match="could not run"):
+        asbuild_wait.sh("asbuild-no-such-program-xyz")
+    assert asbuild_wait.main([], run=fake(["not json"]), sleep=lambda _s: None) == 5
+    assert "not readable" in capsys.readouterr().out
