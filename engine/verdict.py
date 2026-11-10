@@ -221,9 +221,10 @@ def judge(f: Facts) -> dict:
     title, checks = parse_story(story_md.decode("utf-8", errors="replace")) if story_md else ("", [])
     if not checks:
         codes.append(code("NO_STORY", branch=f.branch))
-    # Acceptance files the AI changed. A changed test file of this story takes its own checks out of judging;
-    # any other changed file this story's tests can use (a helper, __init__.py, data, in the story's folder or
-    # shared above it) takes all of them out, because the "before" run lays only test files over main.
+    # Acceptance files the AI changed take checks out of judging, wherever the file lives: checks are tied to
+    # tests by name, not by folder. A changed test file takes out the checks whose tests come from it (matched by
+    # the file's name in the tests' class names); any other changed acceptance file (a helper, __init__.py, data)
+    # takes out every check, because the "before" run lays only test files over main.
     changed_acc = sorted(
         {
             c["params"]["path"]
@@ -232,13 +233,8 @@ def judge(f: Facts) -> dict:
             and c["params"]["path"].startswith("tests/acceptance/")
         }
     )
-    own_dir = f"tests/acceptance/{story}/"
-    changed_tests = {  # a test file in this story's folder, or one outside every story folder
-        Path(p).stem for p in changed_acc if TEST_FILE.search(p) and (p.startswith(own_dir) or not STORY_DIR.match(p))
-    }
-    changed_shared = any(
-        not TEST_FILE.search(p) and (p.startswith(own_dir) or not STORY_DIR.match(p)) for p in changed_acc
-    )
+    changed_tests = {Path(p).stem for p in changed_acc if TEST_FILE.search(p)}
+    changed_shared = any(not TEST_FILE.search(p) for p in changed_acc)
 
     pr_res, acc, c3 = load_evidence(f.evidence)
     items = [dict(c, status="not_checked") for c in checks]

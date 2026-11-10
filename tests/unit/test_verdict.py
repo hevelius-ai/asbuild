@@ -322,6 +322,42 @@ def test_changed_locked_test_outside_a_story_folder_marks_its_checks(tmp_path, w
     assert "✓" not in render(v)["top"]
 
 
+FOLDERS = ["tests/acceptance/S1/", "tests/acceptance/S2/", "tests/acceptance/", "tests/acceptance/shared/"]
+
+
+@pytest.mark.parametrize("folder", FOLDERS)
+@pytest.mark.parametrize("kind", ["test file holding the checks", "helper", "data", "package marker"])
+def test_no_changed_acceptance_file_anywhere_leaves_a_check_working(tmp_path, folder, kind):
+    """Every place an acceptance file can live, against every kind of file: a change never shows as 'works'."""
+    name = {
+        "test file holding the checks": "test_S1_moved.py",
+        "helper": "expected.py",
+        "data": "words.txt",
+        "package marker": "__init__.py",
+    }[kind]
+    changed = folder + name
+    if kind == "test file holding the checks":
+        cls = changed.removesuffix(".py").replace("/", ".")
+        f = facts(
+            tmp_path,
+            changed=["app/count.py", changed],
+            pr=[(*UNIT, "pass"), (cls, A1[1], "pass"), (cls, A2[1], "pass")],
+            acc=[(cls, A1[1], "pass"), (cls, A2[1], "pass")],
+            c3=[(cls, A1[1], "assert"), (cls, A2[1], "assert")],
+        )
+        for files in (f.main_files, f.head_files):
+            del files[ACC_PATH]
+        f.main_files[changed], f.head_files[changed] = ACC, ACC.replace(b"assert False", b"assert 1")
+        f.main_files["locks.json"] = f.head_files["locks.json"] = locks({changed: ACC})
+    else:
+        f = facts(tmp_path, changed=["app/count.py", changed])
+        f.main_files[changed], f.head_files[changed] = b"A = 1\n", b"A = 2\n"
+    v = judge(f)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert [i["status"] for i in v["items"]] == ["check_changed", "check_changed"], (folder, kind)
+    assert "✓" not in render(v)["top"]
+
+
 def test_other_storys_changed_test_does_not_mark_this_storys_checks(tmp_path):
     other = "tests/acceptance/S2/test_S2_greet.py"
     f = facts(tmp_path, changed=["app/count.py", other])
