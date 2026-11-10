@@ -1,0 +1,14 @@
+{
+  "name": "hevelius-ai",
+  "description": "Plugins from Hevelius AI Group LLC",
+  "owner": {
+    "name": "Hevelius AI Group LLC"
+  },
+  "plugins": [
+    {
+      "name": "asbuild",
+      "source": "./plugin",
+      "description": "Agree the checks with the person before an AI builds, then check each pull request against them in CI, with a plain receipt."
+    }
+  ]
+}

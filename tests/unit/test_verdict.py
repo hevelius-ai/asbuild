@@ -103,6 +103,20 @@ def test_changed_locked_test_is_never_shown_as_working(tmp_path, c3):
     assert "ACCEPTANCE_PASSES_ON_MAIN" not in codes(v)
     assert "✓" not in r["top"] and "Suggest a new example" not in r["top"]
     assert "? not judged: the AI changed one of your agreed checks" in r["top"]
+    assert "checked only the lines" not in r["top"]  # K2: nothing was judged, so the footer claims nothing
+
+
+def test_story_receipt_points_up_to_the_new_lines(tmp_path):  # K3: the lines are above the action
+    s2 = "tests/acceptance/S2/test_S2_a.py"
+    st = b"# S2: Thing\n\n## Plain checklist\n\n| ID | plain: |\n| --- | --- |\n| S2-C1 | Line one. |\n"
+    f = facts(
+        tmp_path,
+        branch="story/S2",
+        changed=["locks.json", s2, "dev-docs/stories/S2/story.md"],
+        head_extra={"locks.json": locks({ACC_PATH: ACC, s2: b"x"}), "dev-docs/stories/S2/story.md": st},
+    )
+    top = render(judge(f))["top"]
+    assert top.index("Line one.") < top.index("Read each new line above.")
 
 
 def test_changed_sample_data_marks_the_storys_checks(tmp_path):

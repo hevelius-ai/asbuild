@@ -91,7 +91,7 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             "This needs you: the AI has written new checks for this job, and they count only once you approve them."
         )
         actions.append(
-            "Yes. Read each new line below. If every line says what you asked for, approve them on "
+            "Yes. Read each new line above. If every line says what you asked for, approve them on "
             "GitHub with the green button (Merge pull request). From then on the AI can't change them."
         )
         actions.append("If a line is wrong, tell the AI what it should say instead, before you approve.")
@@ -211,7 +211,7 @@ def render(v: dict) -> dict:
             "Good to know: AsBuild hasn't checked anything yet. Once you approve these lines, it checks the AI's "
             "work against them, on GitHub, separately from the AI.",
         ]
-    elif n == 6 or all(i["status"] == "not_checked" for i in v["items"]):  # nothing was checked: claim nothing
+    elif n == 6 or all(i["status"] in ("not_checked", "check_changed") for i in v["items"]):  # nothing judged
         top += ["", "Good to know: AsBuild runs on GitHub, separately from the AI."]
     else:
         top += [
