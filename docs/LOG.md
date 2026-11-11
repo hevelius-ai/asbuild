@@ -44,3 +44,11 @@ Append-only. UTC.
 - 2026-11-10T22:09Z S3: draft PR hevelius-ai/asbuild#3 opened; review round 1 (claude-fable-5-2): 7 MEDIUM; triage 6 confirmed, 1 cannot tell.
 - 2026-11-10T22:18Z S3: round 1 fixes (e09ca96). Review round 2: all closed, 2 new MEDIUM, both confirmed.
 - 2026-11-10T22:26Z S3: round 2 fixes (5f15f9b). Review round 3: APPROVE on the whole branch. CI green.
+- 2026-11-10T22:43Z S3: hevelius-ai/asbuild#3 merged by chrisz-glitch (4402c85); `build/S3` deleted on both sides; local `records/after-S2` deleted (merged with S3).
+- 2026-11-10T22:44Z S3: hevelius-ai/auto-job-search created, private; first commit (README stub, MIT licence) on main (D22).
+- 2026-11-10T22:45Z S3: live run (claude-sonnet-5-5, 44 s, $1.10) followed the install section from main word for word: marketplace added, asbuild 0.2.0 installed at user scope, wiring PR auto-job-search#1 with both workflow files byte-identical to asbuild main and requirements.txt (pytest). One command it joined on one line was refused by its tool rules; it ran the two separately, as the page shows them.
+- 2026-11-11T03:19Z Decision D27 (the owner's): the release walkthrough step; the kit's `skills-update/engineering-build-loop` refreshed from the synced folder.
+- 2026-11-11T03:20Z S3: auto-job-search#1 merged by chrisz-glitch (89f51d1); `asbuild-setup` deleted.
+- 2026-11-11T03:21Z S3: story S1 (personal-data scan) agreed with the owner through `/asbuild:story` (decisions 2A, 3A); the owner's E1-S1 words saved byte for byte (1,368 bytes); story-time checks passed, 3 checks, 3 tests; PR auto-job-search#2.
+- 2026-11-11T03:21Z Night protocol started: keep-awake hold, heartbeat cron 6278088a.
+- 2026-11-11T03:22Z S3: auto-job-search#2 verdict WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), read with `/asbuild:verdict` (exit 4). S3 criterion 1 met; S3 done.
