@@ -62,3 +62,6 @@ Append-only. UTC.
 - 2026-11-11T13:42Z auto-job-search#3 verdict PROVEN (S1-C1 to S1-C3 work; 33 other tests, 0 broken), read with the wait script (exit 0). The first real story PROVEN.
 - 2026-11-11T13:46Z S4: asbuild#4 (4660b50), asbuild#5 (f59e1a0) and asbuild-demo#9 (20ae52c) merged by chrisz-glitch; `build/S4`, `build/S4-directory` and `docs/asbuild-links` deleted on both sides; local `records/after-S3` deleted (merged with #4).
 - 2026-11-11T13:49Z Decision D28 (the owner's 5A): E1-S1's coverage floor through coverage.py and pytest-cov, pinned.
+- 2026-11-11T13:51Z auto-job-search#3 (build S1, PROVEN) merged by chrisz-glitch (bc9ff68); `build/S1` deleted on both sides. Story S1 done: 1 of 3 real stories.
+- 2026-11-11T13:52Z auto-job-search: E1-S1's gate built (gate command, secret scan, the personal-data scan's --all mode, CI on Linux and Windows); local gate passed every step, coverage 93%. Setup PR auto-job-search#4; review round 1 running.
+- 2026-11-11T13:53Z Decision D29 (the owner's 6B): the clean-install CI job joins S4.
