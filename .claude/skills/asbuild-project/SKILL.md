@@ -51,7 +51,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 
 - Time zone: America/New_York; times shown as "3:04 PM".
 - Machine: Windows; shell Windows PowerShell 5.1 (no `&&`, no `<` redirection, `'""'` for an empty argument), Git Bash available.
-- Night protocol, machine specifics: start the keep-awake hold (it stops only idle sleep); remind the owner once not to press the power button or choose Sleep unless the button is set to do nothing when plugged in; each morning check the system log for standby and report it; re-create the heartbeat if it is missing.
+- Away protocol, machine specifics: start the keep-awake hold (it stops only idle sleep); remind the owner once not to press the power button or choose Sleep unless the button is set to do nothing when plugged in; each morning check the system log for standby and report it; re-create the heartbeat if it is missing.
 
 ## Status block (ends every report)
 

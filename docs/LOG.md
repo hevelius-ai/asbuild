@@ -71,3 +71,4 @@ Append-only. UTC.
 - 2026-11-11T14:26Z S4 clean-install: review round 3 blocked on one records-only finding (the control file contradicted itself); the owner chose 8A.
 - 2026-11-11T14:28Z S4 clean-install: confirm-only re-check APPROVE; CI green; hevelius-ai/asbuild#6 marked ready.
 - 2026-11-11T14:30Z auto-job-search#4 (E1-S1's gate, 3e8fb4b) and hevelius-ai/asbuild#6 (the clean-install job, 0db08d3) merged by chrisz-glitch; `setup/gate`, `build/S4-install` and local `records/after-S4-readme` deleted. E1-S1 complete; the gate passes on auto-job-search's main.
+- 2026-11-11T15:52Z Away protocol started (keep-awake hold, heartbeat cron c2c1a600); decision D30 renames the night protocol; the kit's skill copies refreshed from the synced folder first (D27).
