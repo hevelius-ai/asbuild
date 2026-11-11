@@ -2,7 +2,23 @@
 
 AsBuild checks an AI agent's work on a pull request against tests a person approved, and records the result in a plain receipt.
 
-Work in progress: the install steps are below; the rest of this page comes with the demo.
+## What AsBuild is
+
+A maker-checker record for pull requests written by an AI agent: the agent builds, a program checks, a person approves. Each pull request ends up showing four things:
+
+- the checks were approved before the build (the merged story pull request);
+- each agreed test failed before the change and passes after it (the receipt);
+- who built the change;
+- who merged it (both in GitHub's own history, which AsBuild does not check).
+
+It is for people who merge an agent's work in GitHub and answer for it, not for builders who do not use pull requests.
+
+How it works, in four steps:
+
+1. You tell Claude Code what you want, and `/asbuild:story` agrees a short checklist with you, in plain words, with exact examples. It writes one test per line and opens a story pull request.
+2. Merging that story pull request approves the checks. From then on their tests are locked.
+3. The agent builds the change on a branch named `build/S<n>` and opens a pull request.
+4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads it with `/asbuild:verdict`. You decide whether to merge.
 
 ## Install
 
@@ -67,6 +83,32 @@ The story pull request also adds one line to `.claude/settings.json`, Claude Cod
 ### 4. Get the verdict after each push
 
 AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request (except the one that adds the workflow files, which gets no verdict), Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
+
+## The receipts
+
+Each pull request gets one of four verdicts, with a receipt in plain words on top and the technical report underneath. No model writes any of it. Each verdict below links to a real pull request in [the demo](https://github.com/hevelius-ai/asbuild-demo).
+
+- **PROVEN**: every check you approved failed before the change and passes after it, none was changed, and nothing that worked before broke. Read it, and merge it if you want it. Example: [demo #3](https://github.com/hevelius-ai/asbuild-demo/pull/3).
+- **NOT PROVEN**: a check still fails, or something that worked before broke. The receipt names the line. Don't merge it yet; the agent fixes the code and pushes again. Example: [demo #4](https://github.com/hevelius-ai/asbuild-demo/pull/4).
+- **WAITING FOR YOU**: the decision is yours. There are new checks to approve, or a locked check or protected file was changed, or a check is missing, skipped or already passed before the change, or no story covers the change. The receipt says which. Example, a weakened check: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
+- **UNRESOLVED**: AsBuild could not read the test results or compute a verdict, so nothing is claimed. The receipt says what failed. Example: [demo #6](https://github.com/hevelius-ai/asbuild-demo/pull/6).
+
+A story pull request always gets WAITING FOR YOU: its receipt lists the new checks for you to approve by merging.
+
+## What AsBuild does not prove
+
+1. PROVEN means every test you approved failed before the change, passes after it and was not changed, and nothing that worked before broke. It does not mean the request is fully met; the agent wrote the tests and you approved them.
+2. AsBuild blocks nothing: any pull request can still be merged.
+3. The test results come from a job that runs the pull request's own code, so AsBuild catches tests that were changed, skipped, weakened or never failed, not a deliberate forgery of results.
+4. AsBuild does not check who built a change and who merged it; GitHub's history shows that.
+
+## The pressure test
+
+This test ran on an earlier in-session version with a guard that AsBuild Core does not include. In a six-run pressure test (Claude Sonnet 5.5 and Opus 5.5, one small repository), no agent faked done or changed an agreed test, and a hash check found every protected file unchanged. The test did not show that the gate can stop an agent that tries: the guard denied nothing and there was no false 'done' to block.
+
+## Security
+
+AsBuild uses no repository secrets: its two workflows use only the token GitHub gives each run. The job that runs the pull request's code has read-only rights; the job that posts the verdict runs from `main` and never runs pull-request code. A login that can push to your repository can usually also create or delete its secrets, and AsBuild does not watch them. AsBuild does not look for keys or passwords in your code either: for that, turn on GitHub's own secret scanning and push protection (https://docs.github.com/en/code-security/secret-scanning).
 
 ## Licence
 
