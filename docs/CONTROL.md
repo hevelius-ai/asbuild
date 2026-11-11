@@ -5,7 +5,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 ## Now
 
 - Story: S3 done 2026-11-11 (hevelius-ai/asbuild#3 merged by chrisz-glitch at 2026-11-10T22:43Z, 4402c85; the install page followed live on auto-job-search; its first story PR got its verdict). S4 in progress: its README is hevelius-ai/asbuild#4 from `build/S4` (with S3's records and D27), and the demo's README is hevelius-ai/asbuild-demo#9. S1 and S2 done 2026-11-10.
-- Branches in `hevelius-ai/asbuild`: `main`; `build/S4` (local, from `records/after-S3`, which holds D27 and these records; both go in with S4's PR).
+- Branches in `hevelius-ai/asbuild`: `main`; `build/S4` (pushed, PR #4; it holds the local branch `records/after-S3`, with D27 and S3's records). In the demo: `docs/asbuild-links` (PR #9). In auto-job-search: `story/S1` (PR #2).
 - Demo: setup (ef2d91b) and story S1 (e681f36) merged. Open demo PRs, not for merging (S4's demo): #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU (weakened check), #6 UNRESOLVED, #7 WAITING FOR YOU (no story). #8 is S2's live-run story PR (story S2, count lines), WAITING FOR YOU; merging it is optional.
 - auto-job-search (private): README stub and MIT licence (a1a68d5), wiring merged by chrisz-glitch (#1, 89f51d1). Story S1, the personal-data scan (E1-S1 criteria 2 and 3, owner's decisions 2A and 3A), is PR #2 from `story/S1`: WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), for the owner to approve by merging. E1-S1 criteria 1 and 4 (gate command, CI on Linux and Windows) go in their own setup PR, which changes protected files.
 - Night protocol since 2026-11-11T03:21Z: keep-awake hold (session_idle) and a heartbeat every 10 minutes (cron 6278088a, session-only, expires after 7 days).
@@ -30,6 +30,6 @@ None.
 
 ## Next steps
 
-1. S4: plan with premortem, then the README (D14 wording, receipts, "What AsBuild does not prove", the G3 wording, licence, secret scanning) and the demo's README link, on `build/S4`.
+1. S4's README part: finish the review rounds on asbuild#4 and demo #9, then the owner merges both.
 2. auto-job-search: after the owner approves story S1, its build on `build/S1` and `/asbuild:verdict`.
 3. Before S4's done check (D27): re-load the engineering skills from the synced folder; one user walkthrough on the release build; then the owner's own try.
