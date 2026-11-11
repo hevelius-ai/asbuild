@@ -8,7 +8,8 @@ A maker-checker record for pull requests written by an AI agent: the agent build
 
 - the checks were approved before the build (the merged story pull request);
 - each agreed test failed before the change and passes after it (the receipt);
-- who built the change, and who merged it (both in GitHub's own history, which AsBuild does not check).
+- who built the change;
+- and who merged it (both in GitHub's own history, which AsBuild does not check).
 
 It is for people who merge an agent's work in GitHub and answer for it, not for builders who do not use pull requests.
 
