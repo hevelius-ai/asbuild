@@ -12,7 +12,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-None to merge. Build S3 waits on decision 12. The demo PRs #3 to #8 stay open.
+auto-job-search#10 (S3-C1's change, 12A) and the setup PR adding anthropic 2.3.0 are independent (different files); merge either first. Build S3 waits on both. The demo PRs #3 to #8 stay open.
 
 ## Running jobs
 
@@ -20,13 +20,13 @@ None.
 
 ## Open decisions
 
-- 12 (build S3): S3-C1 asserts the `x-api-key` header, which anthropic 2.x no longer sends. A: the owner approves one change to the locked check, accepting the key in either `x-api-key` or `Authorization: Bearer` (lean); B: pin anthropic 1.x, the older API version; C: reverse 11A and use Python's built-in web client.
+None.
 
 ## QUALITY RISK
 
-- A locked check (S3-C1) asserts how a key is carried, not which key reached Anthropic; decision 12.
+None. (S3-C1's header assertion: the owner chose 12A; the change is auto-job-search#10.)
 
 ## Next steps
 
-1. Decision 12; then the setup PR adding anthropic 2.3.0, build S3, and one build PR that misses its checks and gets NOT PROVEN.
-2. The release (D18, D27): the owner tags; the pin PRs; the user walkthrough after re-loading the engineering skills from the synced folder; the owner's try. Then the directory submission (the owner's step).
+1. The owner merges #10 and the setup PR; then build S3, and one build PR that misses its checks and gets NOT PROVEN.
+2. The release (D18, D27; the walkthrough per D31: create the empty private `hevelius-ai/asbuild-walkthrough` just before the run, the walker on `claude-sonnet-5-5` at high effort): the owner tags; the pin PRs; the user walkthrough after re-loading the engineering skills from the synced folder; the owner's try. Then the directory submission (the owner's step).
