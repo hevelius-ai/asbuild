@@ -69,3 +69,5 @@ Append-only. UTC.
 - 2026-11-11T14:10Z S4: clean-install review round 1 (claude-fable-5-2): 6 MEDIUM, all confirmed by triage; fixed with tests: the pull request's own commit checked out and the clone checked against it, the installed scripts started from outside the checkout, the test holds the job's whole shape, the check's outcomes tested, untrue lines corrected.
 - 2026-11-11T14:22Z auto-job-search#4 (E1-S1's gate): the owner chose 7A; the fix in acd23b2; confirm-only re-check APPROVE; marked ready for the owner's merge.
 - 2026-11-11T14:26Z S4 clean-install: review round 3 blocked on one records-only finding (the control file contradicted itself); the owner chose 8A.
+- 2026-11-11T14:28Z S4 clean-install: confirm-only re-check APPROVE; CI green; hevelius-ai/asbuild#6 marked ready.
+- 2026-11-11T14:30Z auto-job-search#4 (E1-S1's gate, 3e8fb4b) and hevelius-ai/asbuild#6 (the clean-install job, 0db08d3) merged by chrisz-glitch; `setup/gate`, `build/S4-install` and local `records/after-S4-readme` deleted. E1-S1 complete; the gate passes on auto-job-search's main.
