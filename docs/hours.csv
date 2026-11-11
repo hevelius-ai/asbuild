@@ -4,3 +4,5 @@ date,story,kind,hours,note
 2026-11-10,S1,owner,0.3,"decisions S1-2 and S1-3, three merges"
 2026-11-10,S2,agent,0.9,"plan, tests, plugin, skill, story-time checks, live run, three review rounds and a re-check"
 2026-11-10,S2,owner,0.1,"one merge"
+2026-11-10,S3,agent,1.2,"plan, page, verdict skill, D26 deny line, probes, three review rounds, live run, first story"
+2026-11-10,S3,owner,0.2,"decisions S3-1, 2A and 3A, the story questions, two merges"
