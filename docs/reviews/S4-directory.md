@@ -28,7 +28,13 @@ REQUEST CHANGES: all five round 1 findings closed (finding 5 by merge order: #4 
 
 | # | Grade | Finding | Fix |
 | --- | --- | --- | --- |
-| 1 | MEDIUM | "the next run of the checks adds it back" was untrue when that run fails: the script writes `locks.json` and the deny line only when every check passes. The story skill said the same | The README and the story skill say both are written only on a pass, and that the line stays deleted until then |
-| 2 | MEDIUM | The skill-name loop could not fail: both names were already in the README | The test now pins the verdict skill's bullet ("push to the build branch") and the pass-only wording; seen failing before the fix |
+| 1 | MEDIUM | "the next run of the checks adds it back" was untrue when that run fails: the script writes `locks.json` and the deny line only when every check passes. The story skill said the same | The README and the story skill say both are written only on a pass; the README adds that the line stays deleted until then |
+| 2 | MEDIUM | The skill-name loop could not fail: both names were already in the README | The test now pins the verdict skill's bullet ("push to the build branch", already in the README at 616e25e) and the pass-only wording (those two assertions seen failing before the fix) |
 
 LOW taken (the record's wording). PARKED: `git worktree prune` clears every missing worktree's record, not only AsBuild's (S2's code); `protect()` rewrites the whole settings file with two-space indents (S3's code); round 1's two parked items.
+
+## Round 3: claude-fable-5-2, the round 2 fixes (b0e11e9); approval on the whole branch
+
+APPROVE: both round 2 findings closed; no new HIGH or MEDIUM. 3 LOW, all taken (the README mentions git's own record of the temporary copy; two record sentences made exact). Cost $1.23. CI green at b0e11e9.
+
+Cost for this step's reviews: $3.61 for the three rounds ($1.20, $1.18, $1.23) and $0.51 for triage ($0.28, $0.23), $4.12 in all.

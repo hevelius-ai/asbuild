@@ -29,3 +29,8 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - The wait script's timeout exit code 7 is a bare number. Graded PARKED in S3 review round 1 (2026-11-10).
 - An unreadable or unwritable `locks.json` ends the story-time checks in a traceback, not exit 2 (S2's code). Graded PARKED in S3 review round 2 (2026-11-10).
 - No flow for changing a check after its story is merged: only the owner changes a locked test. Graded PARKED in S3 review round 2 (2026-11-10).
+- The story-time checks' `git worktree prune` clears the record of every missing worktree, not only AsBuild's copy (S2's code). Graded PARKED in the S4 directory review, round 2 (2026-11-11).
+- The story-time checks rewrite the whole `.claude/settings.json` with two-space indents when they add the deny line, so a file laid out differently shows more than one changed line (S3's code). Graded PARKED in the S4 directory review, round 2 (2026-11-11).
+- The story skill says a checklist has 2 to 5 lines; the story-time checks accept 1 to 5. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
+- The story-time checks' `--keep` option, which the skill never uses, writes pytest's result file to a folder the caller names. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
+- A story-time run stopped part-way leaves the temporary copy and git's record of it behind (S2's code). Graded PARKED in the S4 directory review, round 3 (2026-11-11).
