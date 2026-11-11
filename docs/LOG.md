@@ -61,3 +61,4 @@ Append-only. UTC.
 - 2026-11-11T13:41Z auto-job-search build S1: confirm-only re-check APPROVE; PR auto-job-search#3 opened from the rebased `build/S1`.
 - 2026-11-11T13:42Z auto-job-search#3 verdict PROVEN (S1-C1 to S1-C3 work; 33 other tests, 0 broken), read with the wait script (exit 0). The first real story PROVEN.
 - 2026-11-11T13:46Z S4: asbuild#4 (4660b50), asbuild#5 (f59e1a0) and asbuild-demo#9 (20ae52c) merged by chrisz-glitch; `build/S4`, `build/S4-directory` and `docs/asbuild-links` deleted on both sides; local `records/after-S3` deleted (merged with #4).
+- 2026-11-11T13:49Z Decision D28 (the owner's 5A): E1-S1's coverage floor through coverage.py and pytest-cov, pinned.

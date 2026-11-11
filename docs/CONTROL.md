@@ -21,7 +21,6 @@ None.
 
 ## Open decisions
 
-- Decision 5, E1-S1's coverage floor: allow coverage.py with pytest-cov, pinned (5A, recommended), drop the floor (5B), or a check built on the standard library's `trace` (5C).
 - Decision 6, the clean-install CI job in the synced `engineering-build-loop` 2.4: keep it out of Core as D27 records (6A, recommended) or add it to S4 (6B).
 
 ## QUALITY RISK
@@ -30,6 +29,6 @@ None.
 
 ## Next steps
 
-1. Owner merges auto-job-search#3, and answers 5 and 6.
-2. E1-S1's gate (criteria 1 and 4) in its own setup PR, after decision 5; then the second real story with `/asbuild:story`.
+1. Owner merges auto-job-search#3, and answers 6. Decision 5 answered: D28.
+2. E1-S1's gate (criteria 1 and 4) in its own setup PR (D28); then the second real story with `/asbuild:story`.
 3. The release (D18, D27): the owner tags; the pin PRs; the user walkthrough after re-loading the engineering skills from the synced folder; the owner's try. Then the directory submission (the owner's step).
