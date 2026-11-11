@@ -21,6 +21,7 @@ None.
 
 ## Open decisions
 
+None.
 
 ## QUALITY RISK
 
