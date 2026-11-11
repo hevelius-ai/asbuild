@@ -52,3 +52,20 @@ Append-only. UTC.
 - 2026-11-11T03:21Z S3: story S1 (personal-data scan) agreed with the owner through `/asbuild:story` (decisions 2A, 3A); the owner's E1-S1 words saved byte for byte (1,368 bytes); story-time checks passed, 3 checks, 3 tests; PR auto-job-search#2.
 - 2026-11-11T03:21Z Night protocol started: keep-awake hold, heartbeat cron 6278088a.
 - 2026-11-11T03:22Z S3: auto-job-search#2 verdict WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), read with `/asbuild:verdict` (exit 4). S3 criterion 1 met; S3 done.
+- 2026-11-11T03:28Z S4: plan with premortem; README sections (D14, receipts, D16, G3, security, licence), tests seen failing; PRs hevelius-ai/asbuild#4 and hevelius-ai/asbuild-demo#9 (WAITING FOR YOU, no story).
+- 2026-11-11T03:48Z S4: README review rounds 1 to 3 (claude-fable-5-2): 6 and 3 MEDIUM, all fixed; round 3 APPROVE on both branches. $10.36.
+- 2026-11-11T04:08Z S4: the plugin folder's README for Anthropic's directory (pre-submission checklist: a README is blocking; the scan looks for undisclosed behaviour), PR hevelius-ai/asbuild#5; review rounds 1 to 3: 1 HIGH and 6 MEDIUM, all fixed; round 3 APPROVE. $4.12.
+- 2026-11-11T04:33Z auto-job-search: build S1 written, all three locked checks pass; review rounds 1 to 3 (12, 3 and 5 findings, all edge cases of the personal-data scan); round 3 still blocked, so the build stopped for the owner (playbook 2.5).
+- 2026-11-11T13:37Z The owner chose 4A: build S1's five round 3 fixes, with tests seen failing first; night protocol ended (no sleep or wake in the system log).
+- 2026-11-11T13:39Z auto-job-search#2 (story S1) merged by chrisz-glitch (4022c68); `story/S1` deleted.
+- 2026-11-11T13:41Z auto-job-search build S1: confirm-only re-check APPROVE; PR auto-job-search#3 opened from the rebased `build/S1`.
+- 2026-11-11T13:42Z auto-job-search#3 verdict PROVEN (S1-C1 to S1-C3 work; 33 other tests, 0 broken), read with the wait script (exit 0). The first real story PROVEN.
+- 2026-11-11T13:46Z S4: asbuild#4 (4660b50), asbuild#5 (f59e1a0) and asbuild-demo#9 (20ae52c) merged by chrisz-glitch; `build/S4`, `build/S4-directory` and `docs/asbuild-links` deleted on both sides; local `records/after-S3` deleted (merged with #4).
+- 2026-11-11T13:49Z Decision D28 (the owner's 5A): E1-S1's coverage floor through coverage.py and pytest-cov, pinned.
+- 2026-11-11T13:51Z auto-job-search#3 (build S1, PROVEN) merged by chrisz-glitch (bc9ff68); `build/S1` deleted on both sides. Story S1 done: 1 of 3 real stories.
+- 2026-11-11T13:52Z auto-job-search: E1-S1's gate built (gate command, secret scan, the personal-data scan's --all mode, CI on Linux and Windows); local gate passed every step, coverage 93%. Setup PR auto-job-search#4; review round 1 running.
+- 2026-11-11T13:53Z Decision D29 (the owner's 6B): the clean-install CI job joins S4.
+- 2026-11-11T13:58Z S4: clean-install job, PR hevelius-ai/asbuild#6; run 43033832595 on ubuntu-latest and windows-latest: Claude Code 2.1.319 installed from npm, the marketplace cloned at `build/S4-install`, the plugin installed to `~/.claude/plugins/cache/hevelius-ai/asbuild/0.2.0` with no sign-in, the installed copy equal to `plugin/` (6 files), 22 acceptance tests passed against it.
+- 2026-11-11T14:10Z S4: clean-install review round 1 (claude-fable-5-2): 6 MEDIUM, all confirmed by triage; fixed with tests: the pull request's own commit checked out and the clone checked against it, the installed scripts started from outside the checkout, the test holds the job's whole shape, the check's outcomes tested, untrue lines corrected.
+- 2026-11-11T14:22Z auto-job-search#4 (E1-S1's gate): the owner chose 7A; the fix in acd23b2; confirm-only re-check APPROVE; marked ready for the owner's merge.
+- 2026-11-11T14:26Z S4 clean-install: review round 3 blocked on one records-only finding (the control file contradicted itself); the owner chose 8A.
