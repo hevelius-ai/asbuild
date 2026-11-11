@@ -74,3 +74,4 @@ Append-only. UTC.
 - 2026-11-11T15:52Z Away protocol started (keep-awake hold, heartbeat cron c2c1a600); decision D30 renames the night protocol; the kit's skill copies refreshed from the synced folder first (D27).
 - 2026-11-11T15:40Z to 15:49Z auto-job-search #6 (be01a28), #7 (098994a) and #5, story S2 (5a2fbe9), merged by chrisz-glitch.
 - 2026-11-11T16:17Z auto-job-search#8 (build S2): round 2's five findings fixed in 1cc195e; PROVEN; all checks green; review round 3 REQUEST CHANGES with three MEDIUM (one a regression from the round 2 CV-name fix), no HIGH; the build stops for the owner's decision 10.
+- 2026-11-11T18:13Z auto-job-search#8 (build S2): the owner chose 10A; the five fixes in 6a89bfe; PROVEN (125 other tests, 0 broken); all checks green; confirm-only re-check APPROVE; description updated; ready for the owner's merge.
