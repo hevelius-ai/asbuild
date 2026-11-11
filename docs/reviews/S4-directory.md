@@ -20,4 +20,15 @@ REQUEST CHANGES: 1 HIGH, 4 MEDIUM, 2 LOW, 2 PARKED. Cost $1.20. Triage on `claud
 | 4 | MEDIUM | The story file and the temporary copy outside the repository were not disclosed | Both named |
 | 5 | MEDIUM | The link promised the verdicts and limits, which the main README gets only in hevelius-ai/asbuild#4 | Merge order: #4 first, then this PR |
 
-The new test assertions were seen failing on the round 1 README. LOW, both taken: the temporary copy is introduced before it is named, and only the `gh api` call repeats. PARKED: the story skill says 2 to 5 lines where the script accepts 1 to 5; the script's `--keep` option, which the skill never uses.
+The new assertions on the deny line, the story file, the temporary folder and the logins were seen failing on the round 1 README; the loop over the skill names was not (both names were already there), which round 2 found. LOW, both taken: the README now introduces the temporary copy before naming it, and says only the `gh api` call repeats. PARKED: the story skill says 2 to 5 lines where the script accepts 1 to 5; the script's `--keep` option, which the skill never uses.
+
+## Round 2: claude-fable-5-2, the round 1 fixes (616e25e)
+
+REQUEST CHANGES: all five round 1 findings closed (finding 5 by merge order: #4 first); 2 new MEDIUM, 1 LOW, 3 PARKED. Cost $1.18. Triage on `claude-sonnet-5-5` ($0.23): 2 CONFIRMED.
+
+| # | Grade | Finding | Fix |
+| --- | --- | --- | --- |
+| 1 | MEDIUM | "the next run of the checks adds it back" was untrue when that run fails: the script writes `locks.json` and the deny line only when every check passes. The story skill said the same | The README and the story skill say both are written only on a pass, and that the line stays deleted until then |
+| 2 | MEDIUM | The skill-name loop could not fail: both names were already in the README | The test now pins the verdict skill's bullet ("push to the build branch") and the pass-only wording; seen failing before the fix |
+
+LOW taken (the record's wording). PARKED: `git worktree prune` clears every missing worktree's record, not only AsBuild's (S2's code); `protect()` rewrites the whole settings file with two-space indents (S3's code); round 1's two parked items.

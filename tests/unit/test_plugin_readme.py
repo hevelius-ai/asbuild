@@ -23,4 +23,8 @@ def test_plugin_readme_discloses_every_script_and_the_settings_line():
         assert f"`/asbuild:{skill}`" in text, f"the plugin README does not describe the {skill} skill"
     assert "`dev-docs/stories/S<n>/story.md`" in text and "temporary folder, outside the repository" in text
     assert "`git` and `gh` logins" in text
+    # review round 2: the verdict skill's own instructions, and writes only on a pass
+    assert "push to the build branch" in text
+    assert "Only when every check passes do they write anything" in text
+    assert "the next time the checks pass they add it back" in text
     assert "github.com/hevelius-ai/asbuild#readme" in text
