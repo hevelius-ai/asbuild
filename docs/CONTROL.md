@@ -22,6 +22,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open decisions
 
+- auto-job-search build S1 (the personal-data scan, local branch `build/S1`, 00c213b, not pushed): review round 3 still blocks (1 HIGH, 4 MEDIUM: the word list read as UTF-8 when it holds UTF-16 without a mark, a UTF-16 chunk at an odd byte, two file-name edge cases, memory on a large file, two lines that claim too much). Playbook 2.5: the build stops; the owner gets one page and decides. The build's locked checks all pass.
 - E1-S1's gate needs a coverage floor, but its constraints allow only the standard library plus ruff, mypy and pytest, and pytest has no coverage measurement without another package. Owner's call before the gate setup PR.
 
 ## QUALITY RISK
