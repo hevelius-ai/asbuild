@@ -67,3 +67,5 @@ Append-only. UTC.
 - 2026-11-11T13:53Z Decision D29 (the owner's 6B): the clean-install CI job joins S4.
 - 2026-11-11T13:58Z S4: clean-install job, PR hevelius-ai/asbuild#6; run 43033832595 on ubuntu-latest and windows-latest: Claude Code 2.1.319 installed from npm, the marketplace cloned at `build/S4-install`, the plugin installed to `~/.claude/plugins/cache/hevelius-ai/asbuild/0.2.0` with no sign-in, the installed copy equal to `plugin/` (6 files), 22 acceptance tests passed against it.
 - 2026-11-11T14:10Z S4: clean-install review round 1 (claude-fable-5-2): 6 MEDIUM, all confirmed by triage; fixed with tests: the pull request's own commit checked out and the clone checked against it, the installed scripts started from outside the checkout, the test holds the job's whole shape, the check's outcomes tested, untrue lines corrected.
+- 2026-11-11T14:22Z auto-job-search#4 (E1-S1's gate): the owner chose 7A; the fix in acd23b2; confirm-only re-check APPROVE; marked ready for the owner's merge.
+- 2026-11-11T14:26Z S4 clean-install: review round 3 blocked on one records-only finding (the control file contradicted itself); the owner chose 8A.
