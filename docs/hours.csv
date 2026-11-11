@@ -6,3 +6,6 @@ date,story,kind,hours,note
 2026-11-10,S2,owner,0.1,"one merge"
 2026-11-10,S3,agent,1.2,"plan, page, verdict skill, D26 deny line, probes, three review rounds, live run, first story"
 2026-11-10,S3,owner,0.2,"decisions S3-1, 2A and 3A, the story questions, two merges"
+2026-11-11,S4,agent,0.8,"plan, README, demo README, plugin README for the directory, six review rounds"
+2026-11-11,S4,owner,0.1,"decision 4A, four merges"
+2026-11-11,auto-job-search,agent,0.9,"build S1 (personal-data scan), three review rounds, the 4A fixes and a re-check (outside the budget, C1)"

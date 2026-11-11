@@ -52,3 +52,12 @@ Append-only. UTC.
 - 2026-11-11T03:21Z S3: story S1 (personal-data scan) agreed with the owner through `/asbuild:story` (decisions 2A, 3A); the owner's E1-S1 words saved byte for byte (1,368 bytes); story-time checks passed, 3 checks, 3 tests; PR auto-job-search#2.
 - 2026-11-11T03:21Z Night protocol started: keep-awake hold, heartbeat cron 6278088a.
 - 2026-11-11T03:22Z S3: auto-job-search#2 verdict WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), read with `/asbuild:verdict` (exit 4). S3 criterion 1 met; S3 done.
+- 2026-11-11T03:28Z S4: plan with premortem; README sections (D14, receipts, D16, G3, security, licence), tests seen failing; PRs hevelius-ai/asbuild#4 and hevelius-ai/asbuild-demo#9 (WAITING FOR YOU, no story).
+- 2026-11-11T03:48Z S4: README review rounds 1 to 3 (claude-fable-5-2): 6 and 3 MEDIUM, all fixed; round 3 APPROVE on both branches. $10.36.
+- 2026-11-11T04:08Z S4: the plugin folder's README for Anthropic's directory (pre-submission checklist: a README is blocking; the scan looks for undisclosed behaviour), PR hevelius-ai/asbuild#5; review rounds 1 to 3: 1 HIGH and 6 MEDIUM, all fixed; round 3 APPROVE. $4.12.
+- 2026-11-11T04:33Z auto-job-search: build S1 written, all three locked checks pass; review rounds 1 to 3 (12, 3 and 5 findings, all edge cases of the personal-data scan); round 3 still blocked, so the build stopped for the owner (playbook 2.5).
+- 2026-11-11T13:37Z The owner chose 4A: build S1's five round 3 fixes, with tests seen failing first; night protocol ended (no sleep or wake in the system log).
+- 2026-11-11T13:39Z auto-job-search#2 (story S1) merged by chrisz-glitch (4022c68); `story/S1` deleted.
+- 2026-11-11T13:41Z auto-job-search build S1: confirm-only re-check APPROVE; PR auto-job-search#3 opened from the rebased `build/S1`.
+- 2026-11-11T13:42Z auto-job-search#3 verdict PROVEN (S1-C1 to S1-C3 work; 33 other tests, 0 broken), read with the wait script (exit 0). The first real story PROVEN.
+- 2026-11-11T13:46Z S4: asbuild#4 (4660b50), asbuild#5 (f59e1a0) and asbuild-demo#9 (20ae52c) merged by chrisz-glitch; `build/S4`, `build/S4-directory` and `docs/asbuild-links` deleted on both sides; local `records/after-S3` deleted (merged with #4).
