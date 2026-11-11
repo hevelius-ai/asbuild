@@ -21,6 +21,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 - Decision log: `docs/DECISIONS.md`. Parking list: `docs/PARKING.md`.
 - Known issues: `docs/KNOWN-ISSUES.md`. Hours: `docs/hours.csv`.
 - Acceptance tests (locked after the owner merges a story): `tests/acceptance/`, with their hashes in `locks.json`.
+- Before a story's checks are locked: a check asserts what reached the person or the service (the key used, the words shown), never how a library carries it (a header name) unless the owner approved that form; and it is run once against a throwaway build that uses the dependencies the real build will use, with any decision those depend on settled first (on 11 Nov, S3-C1 asserted `x-api-key`, which Anthropic's current libraries no longer send).
 
 ## Budget
 
