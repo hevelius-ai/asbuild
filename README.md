@@ -8,8 +8,7 @@ A maker-checker record for pull requests written by an AI agent: the agent build
 
 - the checks were approved before the build (the merged story pull request);
 - each agreed test failed before the change and passes after it (the receipt);
-- who built the change;
-- who merged it (both in GitHub's own history, which AsBuild does not check).
+- who built the change, and who merged it (both in GitHub's own history, which AsBuild does not check).
 
 It is for people who merge an agent's work in GitHub and answer for it, not for builders who do not use pull requests.
 
@@ -86,12 +85,12 @@ AsBuild posts its verdict as a check named "AsBuild", a little after the tests f
 
 ## The receipts
 
-Each pull request gets one of four verdicts, with a receipt in plain words on top and the technical report underneath. No model writes any of it. Each verdict below links to a real pull request in [the demo](https://github.com/hevelius-ai/asbuild-demo).
+Each pull request gets one of four verdicts, with a receipt in plain words on top and the technical report underneath. A program writes both from fixed templates; no model is called. The checklist lines and the story's title are quoted from the story. Each verdict below links to a real pull request in [the demo](https://github.com/hevelius-ai/asbuild-demo).
 
 - **PROVEN**: every check you approved failed before the change and passes after it, none was changed, and nothing that worked before broke. Read it, and merge it if you want it. Example: [demo #3](https://github.com/hevelius-ai/asbuild-demo/pull/3).
-- **NOT PROVEN**: a check still fails, or something that worked before broke. The receipt names the line. Don't merge it yet; the agent fixes the code and pushes again. Example: [demo #4](https://github.com/hevelius-ai/asbuild-demo/pull/4).
-- **WAITING FOR YOU**: the decision is yours. There are new checks to approve, or a locked check or protected file was changed, or a check is missing, skipped or already passed before the change, or no story covers the change. The receipt says which. Example, a weakened check: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
-- **UNRESOLVED**: AsBuild could not read the test results or compute a verdict, so nothing is claimed. The receipt says what failed. Example: [demo #6](https://github.com/hevelius-ai/asbuild-demo/pull/6).
+- **NOT PROVEN**: a check still fails, or something that worked before broke. The receipt marks the line that fails, or says how many things broke; the technical report names the tests. Don't merge it yet; the agent fixes the code and pushes again. Example: [demo #4](https://github.com/hevelius-ai/asbuild-demo/pull/4).
+- **WAITING FOR YOU**: the decision is yours. There are new checks to approve, or a locked check or protected file was changed, or a check is missing, skipped or already passed before the change, or it failed before only because a part of the app did not exist yet, or the branch is behind a check that changed on `main`, or no story covers the change. The receipt says which. Example, a weakened check: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
+- **UNRESOLVED**: AsBuild could not read the test results or compute a verdict, so nothing is claimed. Don't merge it yet; the receipt says what failed. If the cause is your test setup or `requirements.txt`, fix it in its own pull request, because AsBuild protects those files. Example: [demo #6](https://github.com/hevelius-ai/asbuild-demo/pull/6).
 
 A story pull request always gets WAITING FOR YOU: its receipt lists the new checks for you to approve by merging.
 

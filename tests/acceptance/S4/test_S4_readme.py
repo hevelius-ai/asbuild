@@ -82,6 +82,7 @@ def test_S4_C3_receipts_security_licence_and_wording():
         )
     security = section("## Security")
     assert "no repository secrets" in security
+    assert "create or delete its secrets" in security  # the limit (HANDOVER section 3), not only the claim
     assert "https://docs.github.com/en/code-security/secret-scanning" in security
     licence = section("## Licence")
     assert "MIT" in licence and "Hevelius AI Group LLC" in licence
@@ -89,5 +90,5 @@ def test_S4_C3_receipts_security_licence_and_wording():
     rest = README.replace("## What AsBuild does not prove", "")
     for line in D16:
         rest = rest.replace(line, "")
-    assert not re.search(r"\bproof\b", rest, re.IGNORECASE)
-    assert not re.search(r"\bprov(e|es|ed|ing)\b", rest, re.IGNORECASE)
+    assert not re.search(r"\bproofs?\b|\bprovabl\w*|\bprov(e|es|ed|ing)\b", rest, re.IGNORECASE)
+    assert {w for w in re.findall(r"\bproven\b", rest, re.IGNORECASE)} <= {"PROVEN"}  # only the verdict's name

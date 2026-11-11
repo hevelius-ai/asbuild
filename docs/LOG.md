@@ -50,5 +50,5 @@ Append-only. UTC.
 - 2026-11-11T03:19Z Decision D27 (the owner's): the release walkthrough step; the kit's `skills-update/engineering-build-loop` refreshed from the synced folder.
 - 2026-11-11T03:20Z S3: auto-job-search#1 merged by chrisz-glitch (89f51d1); `asbuild-setup` deleted.
 - 2026-11-11T03:21Z S3: story S1 (personal-data scan) agreed with the owner through `/asbuild:story` (decisions 2A, 3A); the owner's E1-S1 words saved byte for byte (1,368 bytes); story-time checks passed, 3 checks, 3 tests; PR auto-job-search#2.
-- 2026-11-11T03:22Z S3: auto-job-search#2 verdict WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), read with `/asbuild:verdict` (exit 4). S3 criterion 1 met; S3 done.
 - 2026-11-11T03:21Z Night protocol started: keep-awake hold, heartbeat cron 6278088a.
+- 2026-11-11T03:22Z S3: auto-job-search#2 verdict WAITING FOR YOU (NEW_CHECKS S1-C1, S1-C2, S1-C3), read with `/asbuild:verdict` (exit 4). S3 criterion 1 met; S3 done.
