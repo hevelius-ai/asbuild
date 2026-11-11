@@ -86,7 +86,7 @@ jobs:
           npm install --global @anthropic-ai/claude-code@2.1.319
           claude --version
 
-      - name: Install AsBuild as the README says, from this branch
+      - name: Install the plugin as the README's install step 1 says, from this branch
         run: |
           claude plugin marketplace add "hevelius-ai/asbuild#$REF"
           claude plugin install asbuild@hevelius-ai

@@ -67,13 +67,17 @@ def main(argv: list[str]) -> int:
     ap.add_argument("listing", help="the output of claude plugin list --json")
     ap.add_argument("--commit", help="the commit CI checked out, which the marketplace clone must be at")
     a = ap.parse_args(argv)
-    if a.commit:
+    if a.commit is not None:  # an empty value (a failed git rev-parse) fails as a mismatch
         cloned = marketplace_commit()
         if cloned is None:
             print(f"no clone of the hevelius-ai marketplace under {MARKETPLACES}")
             return 2
         if cloned != a.commit:
-            print(f"the marketplace was cloned at {cloned}, not at {a.commit}: the branch moved; run the job again")
+            print(
+                f"the marketplace was cloned at {cloned}, not at {a.commit or 'an empty commit'}, so not at the commit "
+                "checked out: a newer commit is on the branch, or the commit could not be read; the run for the "
+                "branch's newest commit is the one that counts"
+            )
             return 1
         print(f"the marketplace was cloned at the commit checked out ({cloned[:10]})")
     doc = json.loads(Path(a.listing).read_text(encoding="utf-8"))

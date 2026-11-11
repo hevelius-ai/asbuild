@@ -12,8 +12,9 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-1. hevelius-ai/auto-job-search#4 (E1-S1's gate, a setup PR): in review; then the owner's merge.
-2. The demo PRs #3 to #8 stay open.
+1. hevelius-ai/auto-job-search#4 (E1-S1's gate, a setup PR): stopped after review round 3 for the owner's decision 7.
+2. hevelius-ai/asbuild#6 (S4's clean-install job, D29, with the records): in review; then the owner's merge. Independent of #4.
+3. The demo PRs #3 to #8 stay open.
 
 ## Running jobs
 

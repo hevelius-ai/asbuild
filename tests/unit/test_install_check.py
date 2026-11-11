@@ -93,3 +93,13 @@ def test_the_installed_marketplace_must_be_the_commit_checked_out(setup, capsys,
     assert f"the marketplace was cloned at {head}, not at {'0' * 40}" in capsys.readouterr().out
     monkeypatch.setattr(ic, "MARKETPLACES", tmp / "nowhere")
     assert ic.main([listing(installed), "--commit", head]) == 2
+
+
+def test_an_empty_commit_is_a_mismatch_not_a_skipped_check(setup, capsys, monkeypatch):
+    """Clean-install review round 2: `--commit ""` (a failed `git rev-parse`) must not switch the check off."""
+    tmp, listing = setup
+    installed = plugin_tree(tmp / "cache", SHIPPED)
+    monkeypatch.setattr(ic, "marketplace_commit", lambda: "a" * 40)
+    assert ic.main([listing(installed), "--commit", ""]) == 1
+    out = capsys.readouterr().out
+    assert "not at the commit checked out" in out and "a newer commit is on the branch" in out
