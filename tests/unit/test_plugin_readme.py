@@ -17,4 +17,10 @@ def test_plugin_readme_discloses_every_script_and_the_settings_line():
     for script in sorted((PLUGIN / "scripts").glob("*.py")):
         assert f"scripts/{script.name}" in text, f"the plugin README does not describe {script.name}"
     assert "`.claude/settings.json`" in text and "never removes or loosens" in text
+    # review round 1: the skills' own actions are disclosed too, and so is every file written
+    assert "tells Claude Code to delete that one line" in text  # the story skill may remove the deny line
+    for skill in sorted(p.name for p in (PLUGIN / "skills").iterdir()):
+        assert f"`/asbuild:{skill}`" in text, f"the plugin README does not describe the {skill} skill"
+    assert "`dev-docs/stories/S<n>/story.md`" in text and "temporary folder, outside the repository" in text
+    assert "`git` and `gh` logins" in text
     assert "github.com/hevelius-ai/asbuild#readme" in text
