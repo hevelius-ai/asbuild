@@ -83,3 +83,4 @@ Append-only. UTC.
 - 2026-11-11T20:19Z to 22:10Z GitHub Actions outage: every auto-job-search run queued; cancel and re-run refused ("not been queued yet"); fresh runs started with an empty commit on each branch at 22:10Z.
 - 2026-11-11T22:24Z auto-job-search#10 (8879294) and #11 (74a4c15) merged by chrisz-glitch; both branches deleted.
 - 2026-11-11T23:03Z auto-job-search#12 (build S3): PROVEN at c221220 (232 other tests, 0 broken); review round 1 (1 HIGH, 9 MEDIUM; triage confirmed all; fixed with tests first), round 2 APPROVE; prices checked against Anthropic's live page (Sonnet 5.5 cache read $0.10, not the $0.20 of the cached reference); ready for the owner's merge.
+- 2026-11-12T00:40Z auto-job-search#12 (build S3) merged by chrisz-glitch (f7ba459); `build/S3` deleted on both sides. 3 of 3 real stories PROVEN and merged.
