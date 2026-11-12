@@ -15,3 +15,5 @@ date,story,kind,hours,note
 2026-11-12,S4,owner,0.1,"the S4 checklist, 13A, three merges (estimated)"
 2026-11-12,S4,agent,2.4,"the release v0.2.0 and its pins, the walkthrough (setup, three runs and a re-check), the F2 and F1 fix with two review rounds, the release v0.2.1 and its pins (estimated from the log)"
 2026-11-12,S4,owner,0.7,"decisions 14A to 18B, two releases, eight merges (estimated)"
+2026-11-12,S4,agent,0.6,"the owner's try guided, the done evidence after the pin, the done check (estimated)"
+2026-11-12,S4,owner,0.8,"the owner's own try, 18:25Z to 19:10Z (estimated)"
