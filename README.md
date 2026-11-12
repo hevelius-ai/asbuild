@@ -32,7 +32,7 @@ Something missing? "Before you start" lists what to install, one line each. You 
 
 ### Before you start
 
-Your computer needs three programs; setup tells you which ones are missing. On Windows, install them in PowerShell, one line each:
+Your computer needs three programs; setup tells you which ones are missing. On Windows, install them in PowerShell, one line each, then close and reopen Claude so that it finds them:
 
 ```powershell
 winget install --id Git.Git
@@ -49,12 +49,12 @@ On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and
   git config --global user.email you@example.com
   ```
 
-- The GitHub CLI (`gh`), signed in. Run `gh auth login` once, in a terminal, and choose GitHub.com, HTTPS, and sign in with your browser. Claude never handles your password.
+- The GitHub CLI (`gh`), signed in. Run `gh auth login` once, in a terminal, and choose GitHub.com, HTTPS, Yes to signing in Git with your GitHub credentials, and sign in with your browser. Claude never handles your password.
 - Python 3.12, the version AsBuild's check uses.
 
 Your repository needs:
 
-- A GitHub repository with GitHub Actions switched on, with `main` as its default branch. It may be new and empty: setup then makes its first commit, a `requirements.txt` that lists pytest, and uploads it as `main`. If you set up a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
+- A GitHub repository with GitHub Actions switched on, with `main` as its default branch. It may be new and empty: if your folder has no commits either, setup makes the first commit, your folder's `requirements.txt` as it is on disk (saved or not) with pytest added, or a new one that lists pytest, and uploads it as `main`. If your folder already has commits, setup asks you to upload them first. If you set up a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
 - Python code whose tests run with pytest on Python 3.12, and a `requirements.txt` at the repository root that lists pytest (setup adds pytest when it is missing). The check installs your project from it.
 - The names AsBuild expects: stories in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), their locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json` at the root, and each build on a branch named `build/S<n>`. The story skill creates the first three for you.
 
@@ -94,7 +94,7 @@ When everything is in place, it uploads AsBuild's two workflow files, `.github/w
 - On a repository that already uses AsBuild, setup brings the two files up to this version. That pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
 - If setup says AsBuild is already set up here, there is nothing to merge.
 
-Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`.
+Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`. If an earlier `asbuild-setup` branch is still on GitHub, setup replaces it with one made from today's `main`.
 
 ### 3. Agree your first story
 
@@ -138,8 +138,12 @@ Each of setup's messages names its own fix. The most common ones:
 | Git has no name or email for its commits yet | Run the two `git config` commands it shows, with your own name and email |
 | The GitHub CLI (gh) is not installed | Install it: `winget install --id GitHub.cli` on Windows, or from https://cli.github.com |
 | You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
+| Git could not reach the repository on GitHub | Check that you are online; if `gh` is signed in, run `gh auth setup-git` so that Git uses the same sign-in |
+| The repository on GitHub is empty, but this folder already has commits | Run `git push -u origin HEAD:main` |
 | GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main` |
-| GitHub refused the two workflow files | Run `gh auth refresh -h github.com -s workflow` |
+| GitHub refused the two workflow files | Run `gh auth refresh -h github.com -s workflow`; if it still refuses, `gh auth setup-git` as well |
+| Git is not installed, or the GitHub CLI is not installed | Install it, then close and reopen Claude |
+| The desktop app says a marketplace with the same name already exists | It was added before, for example with the terminal commands. In Settings, Customize, Plugins, open **Add**, then **Manage marketplaces**, remove `hevelius-ai`, and add it again |
 
 Then run `/asbuild:setup` again. It is safe to run any number of times.
 

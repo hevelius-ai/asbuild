@@ -19,7 +19,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "plugin" / "scripts" / "asbuild_setup.py"
 URL = "https://github.com/someone/project.git"
-LINK = "https://github.com/someone/project/compare/main...asbuild-setup?quick_pull=1&title=Add%20AsBuild&body="
+PAGE = "https://github.com/someone/project/compare/main...asbuild-setup?quick_pull=1"
+LINK = PAGE + "&title=Add%20AsBuild&body="
+UPDATE_LINK = PAGE + "&title=Update%20AsBuild&body="
 AGAIN = "Then run /asbuild:setup again."
 FILES = (".github/workflows/asbuild-test.yml", ".github/workflows/asbuild-verdict.yml")
 
@@ -54,10 +56,15 @@ def world(tmp_path, monkeypatch):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     if os.name == "nt":
-        (bin_dir / "gh.cmd").write_text("@exit /b %FAKE_GH_EXIT%\r\n", encoding="utf-8")
+        (bin_dir / "gh.cmd").write_bytes(  # answers only the one question setup asks
+            b'@if "%1 %2 %3 %4"=="auth status --hostname github.com" exit /b %FAKE_GH_EXIT%\r\n@exit /b 99\r\n'
+        )
     else:
         fake = bin_dir / "gh"
-        fake.write_text('#!/bin/sh\nexit "$FAKE_GH_EXIT"\n', encoding="utf-8")
+        fake.write_bytes(
+            b'#!/bin/sh\nif [ "$1 $2 $3 $4" = "auth status --hostname github.com" ]; then exit "$FAKE_GH_EXIT"; fi\n'
+            b"exit 99\n"
+        )
         fake.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ["PATH"])
     monkeypatch.setenv("FAKE_GH_EXIT", "0")
@@ -119,10 +126,12 @@ def test_S5_C1_not_a_repository_no_origin_not_github(world, tmp_path, capsys):
     assert code == 1
     assert "This repository has no link to GitHub (no remote named origin)." in out
     assert "git remote add origin https://github.com/<owner>/<repository>.git" in out and AGAIN in out
-    git(work, "remote", "add", "origin", "https://gitlab.com/someone/project.git")
+    git(work, "remote", "add", "origin", "https://pat:s3cret-token@gitlab.com/someone/project.git")
     code, out = setup(work, capsys)
     assert code == 1
-    assert "This repository's origin is not on github.com: https://gitlab.com/someone/project.git" in out
+    assert "This repository's origin does not look like a github.com address: https://gitlab.com/someone/project.git" in out
+    assert "s3cret-token" not in out
+    assert "git remote set-url origin https://github.com/<owner>/<repository>.git" in out and AGAIN in out
     assert hub_branches(hub) == set()
 
 
@@ -140,6 +149,7 @@ def test_S5_C2_git_has_no_name_or_email(world, capsys):
 
 def test_S5_C3_github_cli_missing_or_not_signed_in(world, capsys, monkeypatch):
     work, hub = world
+    before = snapshot(work)
     monkeypatch.setenv("FAKE_GH_EXIT", "1")
     code, out = setup(work, capsys)
     assert code == 1
@@ -152,7 +162,8 @@ def test_S5_C3_github_cli_missing_or_not_signed_in(world, capsys, monkeypatch):
     out = capsys.readouterr().out
     assert code == 1
     assert "The GitHub CLI (gh) is not installed." in out and "https://cli.github.com" in out and AGAIN in out
-    assert hub_branches(hub) == set()
+    assert "close and reopen Claude" in out
+    assert hub_branches(hub) == set() and snapshot(work) == before
 
 
 def test_S5_C4_empty_repository_gets_its_first_commit_on_main(world, capsys):
@@ -161,7 +172,7 @@ def test_S5_C4_empty_repository_gets_its_first_commit_on_main(world, capsys):
     before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 0, out
-    assert "This repository was empty, so setup made its first commit, a requirements.txt that lists pytest" in out
+    assert "This repository was empty, so setup made its first commit, a new requirements.txt that lists pytest" in out
     assert hub_branches(hub) == {"main", "asbuild-setup"}
     assert git(hub, "ls-tree", "-r", "--name-only", "main").split() == ["requirements.txt"]
     assert hub_file(hub, "main", "requirements.txt") == b"pytest\n"
@@ -172,16 +183,41 @@ def test_S5_C4_empty_repository_gets_its_first_commit_on_main(world, capsys):
     assert snapshot(work) == before
 
 
+def test_S5_C4_empty_repository_uses_the_folders_own_requirements(world, capsys):
+    work, hub = world
+    (work / "requirements.txt").write_bytes(b"requests==2.32.3\n")  # not committed
+    before = snapshot(work)
+    code, out = setup(work, capsys)
+    assert code == 0, out
+    assert "setup made its first commit from this folder's requirements.txt, with pytest added," in out
+    assert hub_file(hub, "main", "requirements.txt") == b"requests==2.32.3\npytest\n"
+    assert snapshot(work) == before
+
+
+def test_S5_C4_empty_github_but_commits_in_the_folder_stops(world, capsys):
+    work, hub = world
+    (work / "app.py").write_text("x = 1\n", encoding="utf-8")
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "my work")
+    before = snapshot(work)
+    code, out = setup(work, capsys)
+    assert code == 1
+    assert "The repository on GitHub is empty, but this folder already has commits." in out
+    assert "git push -u origin HEAD:main" in out and AGAIN in out
+    assert hub_branches(hub) == set() and snapshot(work) == before
+
+
 def test_S5_C5_default_branch_not_main_stops(world, capsys):
     work, hub = world
     seed(work, hub, {"app.py": b"x = 1\n", "requirements.txt": b"pytest\n"})
     git(work, "push", "--quiet", "origin", "main:other")
     git(hub, "symbolic-ref", "HEAD", "refs/heads/other")
+    before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 1
     assert "GitHub's default branch for this repository is other, not main." in out
     assert "Settings, then General, and set Default branch to main" in out and AGAIN in out
-    assert hub_branches(hub) == {"main", "other"}
+    assert hub_branches(hub) == {"main", "other"} and snapshot(work) == before
 
 
 def test_S5_C6_first_setup_pushes_the_two_files_and_names_the_page(world, capsys):
@@ -200,7 +236,7 @@ def test_S5_C6_first_setup_pushes_the_two_files_and_names_the_page(world, capsys
     assert hub_file(hub, "asbuild-setup", "app.py") == b"x = 1\n"
     assert git(hub, "rev-parse", "asbuild-setup^") == git(hub, "rev-parse", "main")
     assert "Setup prepared AsBuild's two workflow files on the branch asbuild-setup." in out
-    assert "Create the pull request on the page that opened, then merge it" in out
+    assert "Create the pull request on this page, then merge it" in out
     assert LINK in out
     assert "It also adds pytest to requirements.txt" in out
     assert "This pull request gets no verdict" in out
@@ -231,6 +267,7 @@ def test_S5_C8_older_files_get_an_update_that_waits_for_you(world, capsys):
     work, hub = world
     old = plugin_copy("asbuild-test.yml").replace(b"--branch v", b"--branch old-v")
     seed(work, hub, {"requirements.txt": b"pytest\n", FILES[0]: old, FILES[1]: plugin_copy("asbuild-verdict.yml")})
+    before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 0, out
     for name in FILES:
@@ -239,12 +276,14 @@ def test_S5_C8_older_files_get_an_update_that_waits_for_you(world, capsys):
     assert "its verdict is WAITING FOR YOU. That is expected" in out
     assert "gets no verdict" not in out
     assert "It also adds pytest" not in out
-    assert LINK in out
+    assert UPDATE_LINK in out and LINK not in out
+    assert snapshot(work) == before
 
 
 def test_S5_C9_running_again_before_the_merge_pushes_nothing_new(world, capsys):
     work, hub = world
     seed(work, hub, {"requirements.txt": b"pytest\n"})
+    before = snapshot(work)
     assert setup(work, capsys)[0] == 0
     first = git(hub, "rev-parse", "asbuild-setup")
     code, out = setup(work, capsys)
@@ -252,24 +291,41 @@ def test_S5_C9_running_again_before_the_merge_pushes_nothing_new(world, capsys):
     assert "The branch asbuild-setup is already on GitHub with these files, so nothing new was uploaded." in out
     assert LINK in out
     assert git(hub, "rev-parse", "asbuild-setup") == first
+    assert snapshot(work) == before
+
+
+def test_S5_C9_an_older_setup_branch_is_replaced_by_one_on_main(world, capsys):
+    work, hub = world
+    seed(work, hub, {"requirements.txt": b"pytest\n"})
+    git(work, "push", "--quiet", "origin", "main:asbuild-setup")  # left over: an earlier setup, merged long ago
+    (work / "app.py").write_text("x = 1\n", encoding="utf-8")
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "later work")
+    git(work, "push", "--quiet", "origin", "main")
+    code, out = setup(work, capsys)
+    assert code == 0, out
+    assert "An older asbuild-setup branch, from an earlier setup, was on GitHub; setup replaced it." in out
+    assert git(hub, "rev-parse", "asbuild-setup^") == git(hub, "rev-parse", "main")
+    for name in FILES:
+        assert hub_file(hub, "asbuild-setup", name) == plugin_copy(Path(name).name)
 
 
 def test_S5_C10_push_refused_for_the_workflow_scope(world, capsys):
     work, hub = world
     seed(work, hub, {"requirements.txt": b"pytest\n"})
     hook = hub / "hooks" / "pre-receive"
-    hook.write_text(
-        "#!/bin/sh\n"
-        "echo \"refusing to allow an OAuth App to create or update workflow"
-        " \\`.github/workflows/asbuild-test.yml\\` without \\`workflow\\` scope\" >&2\n"
-        "exit 1\n",
-        encoding="utf-8",
+    hook.write_bytes(
+        b"#!/bin/sh\n"
+        b"echo \"refusing to allow an OAuth App to create or update workflow"
+        b" \\`.github/workflows/asbuild-test.yml\\` without \\`workflow\\` scope\" >&2\n"
+        b"exit 1\n"
     )
     hook.chmod(0o755)
+    before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 1
-    assert "gh auth refresh -h github.com -s workflow" in out and AGAIN in out
-    assert hub_branches(hub) == {"main"}
+    assert "gh auth refresh -h github.com -s workflow" in out and "gh auth setup-git" in out and AGAIN in out
+    assert hub_branches(hub) == {"main"} and snapshot(work) == before
 
 
 def test_S5_setup_runs_as_its_own_program(world):

@@ -66,10 +66,20 @@ def test_the_plugin_ships_the_published_workflow_files_byte_for_byte():
         (b"pytest-cov\n", b"pytest-cov\npytest\n"),
         (b"PyTest>=8\n", None),
         (b"# tools\npytest ; python_version >= '3.12'\n", None),
+        (b"", b"pytest\n"),
+        (b"requests\r\nflask\r\n", b"requests\r\nflask\r\npytest\r\n"),
+        ("\ufeffrequests\n".encode("utf-8"), "\ufeffrequests\npytest\n".encode("utf-8")),
+        (b"\xff\xfe" + "requests\r\n".encode("utf-16-le"), b"\xff\xfe" + "requests\r\npytest\r\n".encode("utf-16-le")),
+        (b"\xfe\xff" + "pytest\n".encode("utf-16-be"), None),
     ],
 )
 def test_pytest_is_added_only_when_requirements_lack_it(given, expected):
     assert asbuild_setup.with_pytest(given) == expected
+
+
+def test_requirements_that_cannot_be_read_stop_with_a_step():
+    with pytest.raises(asbuild_setup.Stop, match="Save it as UTF-8"):
+        asbuild_setup.with_pytest(b"requests\xff\n")
 
 
 @pytest.mark.parametrize(
@@ -79,6 +89,8 @@ def test_pytest_is_added_only_when_requirements_lack_it(given, expected):
         "https://someone@github.com/someone/project",
         "git@github.com:someone/project.git",
         "ssh://git@github.com/someone/project.git/",
+        "ssh://git@github.com:22/someone/project",
+        "http://www.github.com/someone/project.git",
     ],
 )
 def test_every_github_remote_form_names_the_owner_and_repository(url):
@@ -87,18 +99,19 @@ def test_every_github_remote_form_names_the_owner_and_repository(url):
 
 
 def test_the_page_link_is_encoded():
-    link = asbuild_setup.page("someone", "project", "Adds a & b.")
+    link = asbuild_setup.page("someone", "project", False, "Adds a & b.")
     assert link == (
         "https://github.com/someone/project/compare/main...asbuild-setup?quick_pull=1"
         "&title=Add%20AsBuild&body=Adds%20a%20%26%20b."
     )
+    assert "&title=Update%20AsBuild&" in asbuild_setup.page("someone", "project", True, "x")
 
 
 def test_git_missing(repo, capsys, monkeypatch):
     monkeypatch.setattr(asbuild_setup.shutil, "which", lambda name: None)
     assert asbuild_setup.main(["--repo", str(repo[0]), "--no-open"]) == 1
     out = capsys.readouterr().out
-    assert "Git is not installed." in out and "winget install --id Git.Git" in out
+    assert "Git is not installed." in out and "winget install --id Git.Git" in out and "close and reopen" in out
 
 
 def test_github_cannot_be_reached(repo, capsys, tmp_path):
@@ -106,7 +119,9 @@ def test_github_cannot_be_reached(repo, capsys, tmp_path):
     git(work, "config", f"url.{(tmp_path / 'nowhere.git').as_posix()}.insteadOf", URL)
     git(work, "config", "--unset-all", f"url.{(tmp_path / 'project.git').as_posix()}.insteadOf")
     assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 1
-    assert "Could not reach the repository on GitHub." in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "Git could not reach the repository on GitHub. Check that you are online." in out
+    assert "gh auth setup-git" in out
 
 
 def failing(command: str):
@@ -123,9 +138,7 @@ def failing(command: str):
 def test_fetch_fails(repo, capsys, monkeypatch):
     monkeypatch.setattr(asbuild_setup.Repo, "run", failing("fetch"))
     assert asbuild_setup.main(["--repo", str(repo[0]), "--no-open"]) == 1
-    assert "Could not reach the repository on GitHub. Check that you are signed in and online. Git said:\nit broke" in (
-        capsys.readouterr().out
-    )
+    assert "Git said:\nit broke" in capsys.readouterr().out
 
 
 def test_git_plumbing_fails(repo, capsys, monkeypatch):
@@ -140,15 +153,50 @@ def test_other_push_refusal_is_passed_on(repo, capsys):
     hook.chmod(0o755)
     assert asbuild_setup.main(["--repo", str(repo[0]), "--no-open"]) == 1
     out = capsys.readouterr().out
-    assert "GitHub refused the upload. Git said:" in out and "protected branch" in out
+    assert "GitHub refused the upload." in out and "gh auth setup-git" in out and "protected branch" in out
 
 
-def test_the_page_opens_in_the_browser(repo, capsys, monkeypatch):
+def test_the_page_opens_in_the_browser_after_the_link_is_printed(repo, monkeypatch):
+    stream = io.StringIO()  # a stream without reconfigure
     opened = []
-    monkeypatch.setattr(asbuild_setup.webbrowser, "open", opened.append)
-    monkeypatch.setattr(sys, "stdout", io.StringIO())  # a stream without reconfigure
+
+    def browser(link):
+        opened.append((link, stream.getvalue()))
+        return True
+
+    monkeypatch.setattr(asbuild_setup.webbrowser, "open", browser)
+    monkeypatch.setattr(sys, "stdout", stream)
     assert asbuild_setup.main(["--repo", str(repo[0])]) == 0
-    assert opened and opened[0].startswith("https://github.com/someone/project/compare/main...asbuild-setup?")
+    link, printed_before = opened[0]
+    assert link.startswith("https://github.com/someone/project/compare/main...asbuild-setup?")
+    assert link in printed_before
+    assert stream.getvalue().endswith("The page is open in your browser.\n")
+
+
+def test_no_browser_says_to_open_the_link(repo, capsys, monkeypatch):
+    monkeypatch.setattr(asbuild_setup.webbrowser, "open", lambda link: False)
+    assert asbuild_setup.main(["--repo", str(repo[0])]) == 0
+    assert capsys.readouterr().out.endswith("Open the link above in your browser.\n")
+
+
+def test_the_empty_repository_message_is_kept_when_a_later_step_stops(tmp_path, capsys, monkeypatch, repo):
+    work, hub = repo
+    empty = tmp_path / "empty.git"
+    git(tmp_path, "init", "--quiet", "--bare", "-b", "main", str(empty))
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    git(fresh, "init", "--quiet", "-b", "main")
+    git(fresh, "config", "user.name", "Pat Example")
+    git(fresh, "config", "user.email", "pat@example.com")
+    git(fresh, "remote", "add", "origin", URL)
+    git(fresh, "config", f"url.{empty.as_posix()}.insteadOf", URL)
+    hook = empty / "hooks" / "pre-receive"
+    hook.write_bytes(b'#!/bin/sh\nwhile read old new ref; do [ "$ref" = refs/heads/main ] || exit 1; done\n')
+    hook.chmod(0o755)
+    assert asbuild_setup.main(["--repo", str(fresh), "--no-open"]) == 1
+    out = capsys.readouterr().out
+    assert out.startswith("This repository was empty, so setup made its first commit")
+    assert "GitHub refused the upload." in out
 
 
 def test_a_changed_setup_branch_gets_one_more_commit(repo, capsys):
@@ -161,4 +209,6 @@ def test_a_changed_setup_branch_gets_one_more_commit(repo, capsys):
         assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
     finally:
         asbuild_setup.wanted = old
-    assert git(hub, "rev-parse", "asbuild-setup^").strip() == first
+    assert git(hub, "rev-parse", "asbuild-setup^").strip() == git(hub, "rev-parse", "main").strip()
+    assert git(hub, "rev-parse", "asbuild-setup").strip() != first
+    assert git(hub, "show", "asbuild-setup:.github/workflows/asbuild-test.yml").endswith("# changed\n")
