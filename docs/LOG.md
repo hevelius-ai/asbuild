@@ -87,3 +87,6 @@ Append-only. UTC.
 - 2026-11-12T01:52Z auto-job-search story S4 (E1-S4): checklist approved; the story-time checks refused S4-C1's five examples (limit three; my error in the proposal), the owner chose 13A; the lock first read a planted check's name from inside a text string (its line-by-line reading of test names) and was redone with that text on one line; checks proved failing on main and passing on a throwaway build; story PR #13 opened.
 - 2026-11-12T01:55Z auto-job-search#13 (story S4) merged by chrisz-glitch (86e8ac3); `story/S4` deleted on both sides.
 - 2026-11-12T02:00Z auto-job-search#14 (build S4, deliberately incomplete: sample files and credit line, no data-folder guard): NOT PROVEN at b2a9e71, CHECK_FAILS S4-C4; S4-C1 to S4-C3 work; 237 other tests, 0 broken; gate green on Linux and Windows; wait-script exit 1. Stays open as evidence. Done line 1 met.
+- 2026-11-12T02:04Z hevelius-ai/asbuild#7 (records) merged by chrisz-glitch (23fdfa0); `records/after-install` deleted on both sides.
+- 2026-11-12T02:06Z Decision 14 (the release tag's name) laid out; the owner decides on 12 Nov and compacts the session. No job running.
+- 2026-11-12T15:16Z Decision 14 answered 14A: the release tag is `v0.2.0` (D32). Both workflow templates now clone `--branch v0.2.0`; the release PR goes from `records/release`.

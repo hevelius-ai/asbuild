@@ -9,3 +9,7 @@ date,story,kind,hours,note
 2026-11-11,S4,agent,0.8,"plan, README, demo README, plugin README for the directory, six review rounds"
 2026-11-11,S4,owner,0.1,"decision 4A, four merges"
 2026-11-11,auto-job-search,agent,0.9,"build S1 (personal-data scan), three review rounds, the 4A fixes and a re-check (outside the budget, C1)"
+2026-11-11,auto-job-search,agent,2.5,"build S2 round 3 and 10A, story S3, 11A and 12A setup PRs, build S3 with two review rounds (outside the budget, C1; estimated from the log)"
+2026-11-11,S4,owner,0.3,"decisions 10A, 11A, 12A and D31, the S3 checklist, five merges (estimated)"
+2026-11-12,S4,agent,0.5,"story S4 and the NOT PROVEN build (done line 1), records PR, release layout (estimated from the log)"
+2026-11-12,S4,owner,0.1,"the S4 checklist, 13A, three merges (estimated)"
