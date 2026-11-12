@@ -49,7 +49,7 @@ In Claude Code in a terminal, type these two commands, one at a time:
 
 The second command opens AsBuild's page in the plugin panel: choose to install it. Then run `/reload-plugins`, or start Claude Code again.
 
-In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open the **Discover** tab, select AsBuild and click **Add**. It reaches your Code sessions the next time you start one ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, in a new session click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
+In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
 
 From a script, from CI, or from Claude's own shell, add the marketplace first, then install:
 
