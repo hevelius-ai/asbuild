@@ -13,3 +13,5 @@ date,story,kind,hours,note
 2026-11-11,S4,owner,0.3,"decisions 10A, 11A, 12A and D31, the S3 checklist, five merges (estimated)"
 2026-11-12,S4,agent,0.5,"story S4 and the NOT PROVEN build (done line 1), records PR, release layout (estimated from the log)"
 2026-11-12,S4,owner,0.1,"the S4 checklist, 13A, three merges (estimated)"
+2026-11-12,S4,agent,2.4,"the release v0.2.0 and its pins, the walkthrough (setup, three runs and a re-check), the F2 and F1 fix with two review rounds, the release v0.2.1 and its pins (estimated from the log)"
+2026-11-12,S4,owner,0.7,"decisions 14A to 18B, two releases, eight merges (estimated)"
