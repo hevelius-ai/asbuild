@@ -79,7 +79,12 @@ def run_step(tmp_path, title, pulls, main, outputs=None):
         RUN_URL="https://example.invalid/run/1",
         GITHUB_OUTPUT=str(out),
     )
-    script = step(title)["run"]
+    s = step(title)
+    script = s["run"]
+    for name, value in s.get("env", {}).items():  # a step's own env, with the step outputs filled in
+        for key, out_value in (outputs or {}).items():
+            value = value.replace("${{ steps.pr.outputs." + key + " }}", out_value)
+        env[name] = "" if "${{" in value else value
     for key, value in (outputs or {}).items():
         script = script.replace("${{ steps.pr.outputs." + key + " }}", value)
     p = subprocess.run(["bash", "-e", "-c", script], cwd=tmp_path, env=env, capture_output=True, text=True)
@@ -141,7 +146,8 @@ def test_check_run_names_the_default_branch_and_the_fix(tmp_path):
 
 def test_receipt_says_it_in_plain_words():
     run = step("Post the receipt")["run"]
-    top = next(ln.strip().strip("'\"") for ln in run.splitlines() if "default line of work" in ln)
+    line = next(ln for ln in run.splitlines() if "default line of work" in ln)
+    top = line[line.index('"') + 1 : line.rindex('"')]
     assert lint("default-branch", top) == []
     assert "Settings" in top and "Default branch: main" in top
     assert "$OTHER_MAIN" in run or "steps.pr.outputs.other_main" in run

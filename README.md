@@ -26,8 +26,8 @@ You can follow these steps yourself, or give them to Claude Code word for word.
 
 ### What your repository needs
 
-- A GitHub repository with GitHub Actions switched on. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
-- Git. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git.
+- A GitHub repository with GitHub Actions switched on, with `main` as its default branch and a first commit already on it (your code and `requirements.txt`, below). AsBuild judges pull requests into `main` from branches of the same repository, not from forks. On a new, empty repository, push `main` first, before step 2: GitHub makes the first branch pushed the default branch.
+- Git. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git. Git also needs your name and email for commits; if it has none, set them with `git config` (`git config --global user.name "Your Name"` and `git config --global user.email you@example.com`).
 - The GitHub CLI (`gh`), logged in.
 - Python code whose tests run with pytest on Python 3.12 (the version AsBuild's check uses), and a `requirements.txt` at the repository root that lists pytest. The check installs your project from it.
 - The names AsBuild expects: stories in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), their locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json` at the root, and each build on a branch named `build/S<n>`. The story skill creates the first three for you.
@@ -91,7 +91,7 @@ Each pull request gets one of four verdicts, with a receipt in plain words on to
 - **PROVEN**: every check you approved failed before the change and passes after it, none was changed, and nothing that worked before broke. Read it, and merge it if you want it. Example: [demo #3](https://github.com/hevelius-ai/asbuild-demo/pull/3).
 - **NOT PROVEN**: a check still fails, or something that worked before broke. The receipt marks the line that fails, or says how many things broke; the technical report gives the failing check's ID, or names the tests that broke. Don't merge it yet; the agent fixes the code and pushes again. Example: [demo #4](https://github.com/hevelius-ai/asbuild-demo/pull/4).
 - **WAITING FOR YOU**: the decision is yours. There are new checks to approve, or a locked check or protected file was changed, or a check is missing, skipped or already passed before the change, or it failed before only because a part of the app did not exist yet, or the branch is behind a check that was added or changed on `main`, or no story covers the change. The receipt says which. Example, a weakened check: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
-- **UNRESOLVED**: AsBuild could not read the test results or compute a verdict, so nothing is claimed. Don't merge it yet; the receipt says what failed. If the cause is your test setup or `requirements.txt`, fix it in its own pull request, because AsBuild protects those files. Example: [demo #6](https://github.com/hevelius-ai/asbuild-demo/pull/6).
+- **UNRESOLVED**: AsBuild could not read the test results or compute a verdict, so nothing is claimed. This is also the verdict when `main` is not the default branch: the receipt says how to change it. Don't merge it yet; the receipt says what failed. If the cause is your test setup or `requirements.txt`, fix it in its own pull request, because AsBuild protects those files. Example: [demo #6](https://github.com/hevelius-ai/asbuild-demo/pull/6).
 
 A story pull request always gets WAITING FOR YOU: its receipt lists the new checks for you to approve by merging.
 
