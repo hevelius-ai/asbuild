@@ -27,14 +27,20 @@ You can follow these steps yourself, or give them to Claude Code word for word.
 ### What your repository needs
 
 - A GitHub repository with GitHub Actions switched on, with `main` as its default branch and a first commit already on it (your code and `requirements.txt`, below). AsBuild judges pull requests into `main` from branches of the same repository, not from forks. On a new, empty repository, push `main` first, before step 2: GitHub makes the first branch pushed the default branch.
-- Git. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git. Git also needs your name and email for commits; if it has none, set them with `git config` (`git config --global user.name "Your Name"` and `git config --global user.email you@example.com`).
+- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git refuses to commit until it knows who you are. If it has no name or email yet, set them once with `git config` (leave out `--global` to set them for one repository only):
+
+  ```bash
+  git config --global user.name "Your Name"
+  git config --global user.email you@example.com
+  ```
+
 - The GitHub CLI (`gh`), logged in.
 - Python code whose tests run with pytest on Python 3.12 (the version AsBuild's check uses), and a `requirements.txt` at the repository root that lists pytest. The check installs your project from it.
 - The names AsBuild expects: stories in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), their locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json` at the root, and each build on a branch named `build/S<n>`. The story skill creates the first three for you.
 
 ### 1. Install the plugin
 
-In Claude Code, run:
+In Claude Code in a terminal, type these two commands, one at a time:
 
 ```
 /plugin marketplace add hevelius-ai/asbuild
@@ -42,6 +48,8 @@ In Claude Code, run:
 ```
 
 The second command opens AsBuild's page in the plugin panel: choose to install it. Then run `/reload-plugins`, or start Claude Code again.
+
+In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then add AsBuild from the plugin list, and start a new session. To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
 
 From a script, from CI, or from Claude's own shell, add the marketplace first, then install:
 
@@ -52,7 +60,7 @@ claude plugin install asbuild@hevelius-ai
 
 ### 2. Add the two workflow files in a pull request
 
-From your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git):
+From your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git; in Windows PowerShell, type `curl.exe` instead of `curl`, because there `curl` is a different command):
 
 ```bash
 git switch -c asbuild-setup
