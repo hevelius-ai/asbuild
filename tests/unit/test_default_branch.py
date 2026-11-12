@@ -187,7 +187,7 @@ def test_receipt_is_unchanged_when_main_is_the_default_branch(tmp_path):
 
 def test_readme_names_the_default_branch_and_a_git_identity():
     page = (ROOT / "README.md").read_text(encoding="utf-8")
-    needs = page[page.index("### What your repository needs") : page.index("### 1. Install the plugin")]
+    needs = page[page.index("### Before you start") : page.index("### 1. Add the plugin")]
     assert "`main` as its default branch" in needs
     assert "push `main` first" in needs
     assert "`git config`" in needs

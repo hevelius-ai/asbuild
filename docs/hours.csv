@@ -21,3 +21,8 @@ date,story,kind,hours,note
 2026-11-12,S4,owner,0.3,"decisions 19A and finish Core, the README review, the app screenshots (estimated)"
 2026-11-12,S4,agent,0.7,"review rounds 1 and 2 and the re-check of #13, the fixes, the away protocol, the done report (estimated)"
 2026-11-12,S4,owner,0.1,"the merge of #13, the icon (estimated)"
+2026-11-12,S5,agent,1.0,"the reply checked, D39, plan, tests, script, skill, README, PR #15, review round 1 and triage, fixes (estimated)"
+2026-11-12,S5,owner,0.5,"the install finding with the reviewer, choices V3, the desktop check, deleting four repositories (estimated)"
+2026-11-12,S5,agent,0.4,"review round 2 and triage, the fixes, the Git proof (estimated)"
+2026-11-12,S5,agent,0.3,"review round 3, the one page, the round 3 fixes (estimated)"
+2026-11-12,S5,owner,0.1,"decision V3-5A (estimated)"
