@@ -48,31 +48,39 @@ jobs:
       - name: Find the pull request whose head is this commit
         id: pr
         run: |
-          gh api "repos/$REPO/commits/$HEAD_SHA/pulls" \
-            | jq --arg repo "$REPO" --arg sha "$HEAD_SHA" --arg main "$MAIN" \
+          gh api "repos/$REPO/commits/$HEAD_SHA/pulls" > pulls.json
+          into() {
+            jq --arg repo "$REPO" --arg sha "$HEAD_SHA" --arg main "$1" \
               '[.[] | select(.head.repo.full_name == $repo and .head.sha == $sha and .base.ref == $main
-                              and .state == "open")][0]' > pr.json
-          if [ "$(cat pr.json)" = "null" ]; then
+                              and .state == "open")][0]' pulls.json
+          }
+          into "$MAIN" > pr.json
+          if [ "$(cat pr.json)" != "null" ]; then
+            echo "number=$(jq -r .number pr.json)" >> "$GITHUB_OUTPUT"
+          elif [ "$MAIN" != "main" ] && [ "$(into main)" != "null" ]; then
+            # asbuild-test judges pull requests into main, but main is not the default branch: say so, judge nothing.
+            echo "The default branch is $MAIN, not main: AsBuild cannot judge this pull request into main."
+            echo "number=$(into main | jq -r .number)" >> "$GITHUB_OUTPUT"
+            echo "other_main=$MAIN" >> "$GITHUB_OUTPUT"
+          else
             echo "No open pull request into $MAIN has $HEAD_SHA as its head: nothing to judge."
             echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "number=$(jq -r .number pr.json)" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         with:
           python-version: "3.12"
 
       - name: Fetch AsBuild (from hevelius-ai/asbuild, never from this repository)
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         run: |
-          git clone --quiet --depth 1 --branch v0.2.0 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          git clone --quiet --depth 1 --branch v0.2.1 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
           echo "ASBUILD=$RUNNER_TEMP/asbuild" >> "$GITHUB_ENV"
           python -m pip install --quiet defusedxml==0.7.1
 
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         continue-on-error: true # no results is a verdict too: UNRESOLVED
         with:
           name: asbuild-evidence
@@ -81,7 +89,7 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Compute the verdict
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         env:
           RECEIPT: out/receipt.md
         run: |
@@ -91,11 +99,18 @@ jobs:
 
       - name: Post the check run
         if: always() && steps.pr.outputs.skip != 'true'
+        env:
+          OTHER_MAIN: ${{ steps.pr.outputs.other_main }}
         run: |
           mkdir -p out
           if [ ! -s out/verdict.json ]; then
             echo '{"verdict": "UNRESOLVED"}' > out/verdict.json
             echo "AsBuild could not compute the verdict. Nothing is claimed. Verdict run: $RUN_URL" > out/summary.md
+            if [ -n "$OTHER_MAIN" ]; then
+              echo "AsBuild judges pull requests into main, but this repository's default branch is $OTHER_MAIN." \
+                "To fix it: make main the default branch (Settings, General, Default branch), then push again." \
+                >> out/summary.md
+            fi
           fi
           verdict=$(jq -r .verdict out/verdict.json)
           case "$verdict" in
@@ -111,13 +126,19 @@ jobs:
 
       - name: Post the receipt (one comment, edited in place)
         if: always() && steps.pr.outputs.number != ''
+        env:
+          OTHER_MAIN: ${{ steps.pr.outputs.other_main }}
         run: |
           n="${{ steps.pr.outputs.number }}"
+          top="Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked."
+          tech="AsBuild: UNRESOLVED. Verdict run: $RUN_URL"
+          if [ -n "$OTHER_MAIN" ]; then
+            tech="AsBuild: UNRESOLVED. Default branch: $OTHER_MAIN, not main. Verdict run: $RUN_URL"
+            top="Stop. Don't accept it. AsBuild checked nothing: on GitHub, this project's default line of work is not the one AsBuild checks. To fix it, open Settings on GitHub, then General, and change the default to the one AsBuild checks (Default branch: main). Then send the change again."
+          fi
           if [ ! -s out/receipt.md ]; then
-            printf '%s\n%s\n\n%s\n\n```\n%s\n```\n%s\n' '<!-- asbuild-receipt -->' \
-              "Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked." \
-              '<details><summary>Technical report</summary>' "AsBuild: UNRESOLVED. Verdict run: $RUN_URL" \
-              '</details>' > out/receipt.md
+            printf '%s\n%s\n\n%s\n\n```\n%s\n```\n%s\n' '<!-- asbuild-receipt -->' "$top" \
+              '<details><summary>Technical report</summary>' "$tech" '</details>' > out/receipt.md
           fi
           id=$(gh api "repos/$REPO/issues/$n/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- asbuild-receipt -->"))) | .id' \
