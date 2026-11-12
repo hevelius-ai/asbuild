@@ -59,6 +59,9 @@ def fake_gh(tmp_path, pulls):
         'case "$*" in\n'
         f'  *"/pulls"*) cat "{data.as_posix()}" ;;\n'
         f'  *"check-runs"*) cat > "{(tmp_path / "posted.json").as_posix()}" ;;\n'
+        '  *"-X POST"*"/comments"*) for a in "$@"; do case "$a" in body=@*)'
+        f' cp "${{a#body=@}}" "{(tmp_path / "posted_receipt.md").as_posix()}" ;; esac; done ;;\n'
+        '  *"/comments"*) ;;\n'  # no earlier receipt to edit
         "esac\n",
         encoding="utf-8",
         newline="\n",
@@ -145,13 +148,40 @@ def test_check_run_names_the_default_branch_and_the_fix(tmp_path):
     assert "make main the default branch" in summary
 
 
-def test_receipt_says_it_in_plain_words():
-    run = step("Post the receipt")["run"]
-    line = next(ln for ln in run.splitlines() if "default line of work" in ln)
-    top = line[line.index('"') + 1 : line.rindex('"')]
+@needs_shell
+def test_check_run_is_unchanged_when_main_is_the_default_branch(tmp_path):
+    run_step(tmp_path, "Post the check run", [], main="main", outputs={"number": "7", "other_main": ""})
+    posted = json.loads((tmp_path / "posted.json").read_text(encoding="utf-8"))
+    assert posted["output"]["title"] == "AsBuild: UNRESOLVED"
+    assert posted["output"]["summary"] == (
+        "AsBuild could not compute the verdict. Nothing is claimed. Verdict run: https://example.invalid/run/1\n"
+    )
+
+
+def receipt(tmp_path, main, other_main):
+    run_step(tmp_path, "Post the receipt", [], main=main, outputs={"number": "7", "other_main": other_main})
+    return (tmp_path / "posted_receipt.md").read_text(encoding="utf-8")
+
+
+@needs_shell
+def test_receipt_says_it_in_plain_words(tmp_path):
+    text = receipt(tmp_path, "asbuild-setup", "asbuild-setup")
+    top = text.splitlines()[1]
+    assert top.startswith("Stop. Don't accept it. AsBuild checked nothing:")
+    assert "open Settings on GitHub, then General" in top and "(Default branch: main)" in top
     assert lint("default-branch", top) == []
-    assert "Settings" in top and "Default branch: main" in top
-    assert "$OTHER_MAIN" in run or "steps.pr.outputs.other_main" in run
+    assert "AsBuild: UNRESOLVED. Default branch: asbuild-setup, not main. Verdict run:" in text
+
+
+@needs_shell
+def test_receipt_is_unchanged_when_main_is_the_default_branch(tmp_path):
+    assert receipt(tmp_path, "main", "") == (
+        "<!-- asbuild-receipt -->\n"
+        "Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked.\n\n"
+        "<details><summary>Technical report</summary>\n\n"
+        "```\nAsBuild: UNRESOLVED. Verdict run: https://example.invalid/run/1\n```\n"
+        "</details>\n"
+    )
 
 
 def test_readme_names_the_default_branch_and_a_git_identity():

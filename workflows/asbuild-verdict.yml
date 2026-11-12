@@ -131,14 +131,14 @@ jobs:
         run: |
           n="${{ steps.pr.outputs.number }}"
           top="Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked."
+          tech="AsBuild: UNRESOLVED. Verdict run: $RUN_URL"
           if [ -n "$OTHER_MAIN" ]; then
+            tech="AsBuild: UNRESOLVED. Default branch: $OTHER_MAIN, not main. Verdict run: $RUN_URL"
             top="Stop. Don't accept it. AsBuild checked nothing: on GitHub, this project's default line of work is not the one AsBuild checks. To fix it, open Settings on GitHub, then General, and change the default to the one AsBuild checks (Default branch: main). Then send the change again."
           fi
           if [ ! -s out/receipt.md ]; then
             printf '%s\n%s\n\n%s\n\n```\n%s\n```\n%s\n' '<!-- asbuild-receipt -->' "$top" \
-              '<details><summary>Technical report</summary>' \
-              "AsBuild: UNRESOLVED. Default branch: ${OTHER_MAIN:-main}. Verdict run: $RUN_URL" \
-              '</details>' > out/receipt.md
+              '<details><summary>Technical report</summary>' "$tech" '</details>' > out/receipt.md
           fi
           id=$(gh api "repos/$REPO/issues/$n/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- asbuild-receipt -->"))) | .id' \
