@@ -50,13 +50,14 @@ def pull(number, base, head_repo=REPO, sha=SHA, state="open"):
 
 def fake_gh(tmp_path, pulls):
     """A `gh` that answers the pulls lookup and records what is posted."""
-    (tmp_path / "pulls.json").write_text(json.dumps(pulls), encoding="utf-8")
-    gh = tmp_path / "bin" / "gh"
+    gh = tmp_path / "bin" / "gh"  # its data sits apart from the step's own files in the working folder
     gh.parent.mkdir()
+    data = gh.parent / "github_pulls.json"
+    data.write_text(json.dumps(pulls), encoding="utf-8")
     gh.write_text(
         "#!/usr/bin/env bash\n"
         'case "$*" in\n'
-        f'  *"/pulls"*) cat "{(tmp_path / "pulls.json").as_posix()}" ;;\n'
+        f'  *"/pulls"*) cat "{data.as_posix()}" ;;\n'
         f'  *"check-runs"*) cat > "{(tmp_path / "posted.json").as_posix()}" ;;\n'
         "esac\n",
         encoding="utf-8",
