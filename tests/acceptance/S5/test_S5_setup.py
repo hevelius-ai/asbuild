@@ -116,6 +116,7 @@ def setup(work: Path, capsys, *extra: str) -> tuple[int, str]:
 
 def test_S5_C1_not_a_repository_no_origin_not_github(world, tmp_path, capsys):
     work, hub = world
+    before = snapshot(work)
     plain = tmp_path / "plain folder"
     plain.mkdir()
     code, out = setup(plain, capsys)
@@ -132,7 +133,7 @@ def test_S5_C1_not_a_repository_no_origin_not_github(world, tmp_path, capsys):
     assert "This repository's origin does not look like a github.com address: https://gitlab.com/someone/project.git" in out
     assert "s3cret-token" not in out
     assert "git remote set-url origin https://github.com/<owner>/<repository>.git" in out and AGAIN in out
-    assert hub_branches(hub) == set()
+    assert hub_branches(hub) == set() and snapshot(work) == before
 
 
 def test_S5_C2_git_has_no_name_or_email(world, capsys):
@@ -220,6 +221,19 @@ def test_S5_C5_default_branch_not_main_stops(world, capsys):
     assert hub_branches(hub) == {"main", "other"} and snapshot(work) == before
 
 
+def test_S5_C5_no_main_on_github_names_the_rename(world, capsys):
+    work, hub = world
+    seed(work, hub, {"requirements.txt": b"pytest\n"})
+    git(work, "push", "--quiet", "origin", "main:master")
+    git(hub, "symbolic-ref", "HEAD", "refs/heads/master")
+    git(hub, "branch", "-D", "main")
+    code, out = setup(work, capsys)
+    assert code == 1
+    assert "GitHub's default branch for this repository is master, and it has no branch named main." in out
+    assert "rename the default branch master to main" in out and AGAIN in out
+    assert hub_branches(hub) == {"master"}
+
+
 def test_S5_C6_first_setup_pushes_the_two_files_and_names_the_page(world, capsys):
     work, hub = world
     seed(work, hub, {"app.py": b"x = 1\n", "requirements.txt": b"requests==2.32.3\n"})
@@ -302,12 +316,31 @@ def test_S5_C9_an_older_setup_branch_is_replaced_by_one_on_main(world, capsys):
     git(work, "add", "-A")
     git(work, "commit", "--quiet", "-m", "later work")
     git(work, "push", "--quiet", "origin", "main")
+    before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 0, out
-    assert "An older asbuild-setup branch, from an earlier setup, was on GitHub; setup replaced it." in out
+    assert "An older asbuild-setup branch, made by setup, was on GitHub; setup replaced it" in out
+    assert snapshot(work) == before
     assert git(hub, "rev-parse", "asbuild-setup^") == git(hub, "rev-parse", "main")
     for name in FILES:
         assert hub_file(hub, "asbuild-setup", name) == plugin_copy(Path(name).name)
+
+
+def test_S5_C9_a_setup_branch_with_someone_elses_commits_is_left_alone(world, capsys):
+    work, hub = world
+    seed(work, hub, {"requirements.txt": b"pytest\n"})
+    git(work, "switch", "--quiet", "-c", "asbuild-setup")
+    (work / "requirements.txt").write_bytes(b"pytest==8.4.2\n")
+    git(work, "commit", "--quiet", "-am", "Add AsBuild's workflow files")  # made by hand, as the README's By hand
+    git(work, "push", "--quiet", "origin", "asbuild-setup")
+    git(work, "switch", "--quiet", "main")
+    theirs = git(hub, "rev-parse", "asbuild-setup")
+    before = snapshot(work)
+    code, out = setup(work, capsys)
+    assert code == 1
+    assert "The branch asbuild-setup on GitHub holds commits that setup did not make, so setup leaves it alone." in out
+    assert AGAIN in out
+    assert git(hub, "rev-parse", "asbuild-setup") == theirs and snapshot(work) == before
 
 
 def test_S5_C10_push_refused_for_the_workflow_scope(world, capsys):

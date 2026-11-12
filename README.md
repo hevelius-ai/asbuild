@@ -60,7 +60,7 @@ Your repository needs:
 
 ### 1. Add the plugin
 
-In the Claude desktop app, use its menus: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
+In the Claude desktop app, use its menus: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list. If the app says a marketplace with the same name already exists, AsBuild's marketplace was added before, for example with the terminal commands below: open **Add**, then **Manage marketplaces**, remove `hevelius-ai`, and add it again.
 
 In Claude Code in a terminal, type these two commands, one at a time:
 
@@ -140,10 +140,10 @@ Each of setup's messages names its own fix. The most common ones:
 | You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
 | Git could not reach the repository on GitHub | Check that you are online; if `gh` is signed in, run `gh auth setup-git` so that Git uses the same sign-in |
 | The repository on GitHub is empty, but this folder already has commits | Run `git push -u origin HEAD:main` |
-| GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main` |
+| GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main`, or rename the default branch to `main` when there is none |
+| The branch asbuild-setup on GitHub holds commits that setup did not make | On GitHub, merge or close its pull request and delete the branch |
 | GitHub refused the two workflow files | Run `gh auth refresh -h github.com -s workflow`; if it still refuses, `gh auth setup-git` as well |
 | Git is not installed, or the GitHub CLI is not installed | Install it, then close and reopen Claude |
-| The desktop app says a marketplace with the same name already exists | It was added before, for example with the terminal commands. In Settings, Customize, Plugins, open **Add**, then **Manage marketplaces**, remove `hevelius-ai`, and add it again |
 
 Then run `/asbuild:setup` again. It is safe to run any number of times.
 

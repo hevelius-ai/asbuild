@@ -78,8 +78,17 @@ def test_pytest_is_added_only_when_requirements_lack_it(given, expected):
 
 
 def test_requirements_that_cannot_be_read_stop_with_a_step():
-    with pytest.raises(asbuild_setup.Stop, match="Save it as UTF-8"):
+    with pytest.raises(asbuild_setup.Stop, match="requirements.txt on main: .* upload it to main"):
         asbuild_setup.with_pytest(b"requests\xff\n")
+    with pytest.raises(asbuild_setup.Stop, match="this folder's requirements.txt: .*pytest\\.$"):
+        asbuild_setup.with_pytest(b"requests\xff\n", "folder")
+
+
+def test_a_password_with_an_at_sign_is_never_echoed(repo, capsys):
+    git(repo[0], "remote", "set-url", "origin", "https://pat:p@ss@gitlab.com/someone/project.git")
+    assert asbuild_setup.main(["--repo", str(repo[0]), "--no-open"]) == 1
+    out = capsys.readouterr().out
+    assert "https://gitlab.com/someone/project.git" in out and "p@ss" not in out and "pat" not in out
 
 
 @pytest.mark.parametrize(
@@ -149,7 +158,7 @@ def test_git_plumbing_fails(repo, capsys, monkeypatch):
 
 def test_other_push_refusal_is_passed_on(repo, capsys):
     hook = repo[1] / "hooks" / "pre-receive"
-    hook.write_text("#!/bin/sh\necho 'protected branch' >&2\nexit 1\n", encoding="utf-8")
+    hook.write_bytes(b"#!/bin/sh\necho 'protected branch' >&2\nexit 1\n")
     hook.chmod(0o755)
     assert asbuild_setup.main(["--repo", str(repo[0]), "--no-open"]) == 1
     out = capsys.readouterr().out
@@ -199,7 +208,22 @@ def test_the_empty_repository_message_is_kept_when_a_later_step_stops(tmp_path, 
     assert "GitHub refused the upload." in out
 
 
-def test_a_changed_setup_branch_gets_one_more_commit(repo, capsys):
+def test_only_the_test_workflow_on_main_is_a_first_setup_with_no_verdict(repo, capsys):
+    work, hub = repo
+    (work / ".github" / "workflows").mkdir(parents=True)
+    (work / ".github" / "workflows" / "asbuild-test.yml").write_bytes(
+        asbuild_setup.wanted()[".github/workflows/asbuild-test.yml"]
+    )
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "half wired")
+    git(work, "push", "--quiet", "origin", "main")
+    assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
+    out = capsys.readouterr().out
+    assert "This pull request gets no verdict" in out and "WAITING FOR YOU" not in out
+    assert "&title=Add%20AsBuild&" in out
+
+
+def test_a_changed_setup_branch_is_replaced_by_one_on_main(repo, capsys):
     work, hub = repo
     assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
     first = git(hub, "rev-parse", "asbuild-setup").strip()

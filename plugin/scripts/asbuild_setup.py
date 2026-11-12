@@ -91,16 +91,23 @@ NOT_MAIN = (
     "GitHub's default branch for this repository is {branch}, not main. AsBuild judges pull requests into main."
     " On GitHub, open the repository's Settings, then General, and set Default branch to main."
 )
+NO_MAIN = (
+    "GitHub's default branch for this repository is {branch}, and it has no branch named main. AsBuild judges pull"
+    " requests into main. On GitHub, open the repository's Settings, then General, and rename the default branch"
+    " {branch} to main with the pencil button next to it."
+)
 SCOPE = (
     "GitHub refused the two workflow files: your GitHub sign-in is not allowed to change workflow files yet."
     " Run this once to allow it:\n  gh auth refresh -h github.com -s workflow\n"
     "If GitHub still refuses after that, Git is using another sign-in than gh: run gh auth setup-git as well."
 )
 REFUSED = "GitHub refused the upload. " + GIT_SIGN_IN + "\nGit said:\n{detail}"
-BAD_REQS = (
-    "Setup cannot read requirements.txt on main: it is not saved as UTF-8 or UTF-16 text. Save it as UTF-8, add a"
-    " line with pytest, and upload it to main."
-)
+BAD_REQS = {
+    "main": "Setup cannot read requirements.txt on main: it is not saved as UTF-8 or UTF-16 text. Save it as UTF-8,"
+    " with a line that says pytest, and upload it to main.",
+    "folder": "Setup cannot read this folder's requirements.txt: it is not saved as UTF-8 or UTF-16 text. Save it as"
+    " UTF-8, with a line that says pytest.",
+}
 ALREADY = (
     "AsBuild is already set up here: the two workflow files on main are this plugin's."
     " Next, say what you want with /asbuild:story."
@@ -114,7 +121,13 @@ EMPTY_NEW = (
     " uploaded it to GitHub as main."
 )
 SAME = "The branch asbuild-setup is already on GitHub with these files, so nothing new was uploaded."
-REPLACED = "An older asbuild-setup branch, from an earlier setup, was on GitHub; setup replaced it."
+REPLACED = (
+    "An older asbuild-setup branch, made by setup, was on GitHub; setup replaced it with one made from today's main."
+)
+FOREIGN = (
+    "The branch asbuild-setup on GitHub holds commits that setup did not make, so setup leaves it alone. On GitHub,"
+    " merge or close its pull request and delete the branch."
+)
 READY = (
     "Setup prepared AsBuild's two workflow files on the branch asbuild-setup. Create the pull request on this page,"
     " then merge it:\n  {link}"
@@ -195,7 +208,7 @@ def wanted() -> dict[str, bytes]:
     return {f".github/workflows/{n}": (WORKFLOWS / n).read_bytes().replace(b"\r\n", b"\n") for n in FILES}
 
 
-def with_pytest(reqs: bytes | None) -> bytes | None:
+def with_pytest(reqs: bytes | None, where: str = "main") -> bytes | None:
     """requirements.txt with a pytest line added, in its own encoding and line endings; None when it lists pytest."""
     if reqs is None:
         return b"pytest\n"
@@ -203,7 +216,7 @@ def with_pytest(reqs: bytes | None) -> bytes | None:
     try:
         listed = reqs[len(bom) :].decode(encoding)
     except UnicodeDecodeError:
-        raise Stop(BAD_REQS) from None
+        raise Stop(BAD_REQS[where]) from None
     if PYTEST.search(listed):
         return None
     newline = "\r\n" if "\r\n" in listed else "\n"
@@ -234,13 +247,19 @@ def remote_state(repo: Repo) -> tuple[dict[str, str], str | None]:
     return heads, default
 
 
+def setup_made(repo: Repo, main: str, old: str) -> bool:
+    """Every commit on the old setup branch that main does not hold is one of setup's own."""
+    p = repo.run("log", "--format=%s", f"{main}..{old}")
+    return p.returncode == 0 and all(s in TITLE.values() for s in text(p.stdout).splitlines())
+
+
 def first_commit(repo: Repo) -> str:
     """On an empty repository whose folder has no commits either: requirements.txt, uploaded as main (D39)."""
     if repo.run("rev-parse", "--verify", "--quiet", "HEAD").returncode == 0:
         raise Stop(LOCAL_ONLY)
     own_file = repo.top / "requirements.txt"
     own = own_file.read_bytes() if own_file.is_file() else None
-    added = with_pytest(own)
+    added = with_pytest(own, "folder")
     sha = repo.commit(None, {"requirements.txt": added or own or b""}, "Add requirements.txt for AsBuild")
     repo.push(sha, "main")
     if own is None:
@@ -264,7 +283,7 @@ def setup(start: Path, open_page: bool) -> None:
     url = text(origin.stdout)
     found = GITHUB.match(url)
     if not found:
-        raise Stop(NOT_GITHUB.format(url=re.sub(r"(://)[^@/]*@", r"\1", url)))  # never echo a token in the URL
+        raise Stop(NOT_GITHUB.format(url=re.sub(r"(://)[^/]*@", r"\1", url)))  # never echo a token in the URL
     owner, name = found.group(1), found.group(2).removesuffix(".git")
     if not (text(repo.run("config", "user.name").stdout) and text(repo.run("config", "user.email").stdout)):
         raise Stop(NO_IDENTITY)
@@ -278,7 +297,7 @@ def setup(start: Path, open_page: bool) -> None:
     if not heads:
         heads, default = {"main": first_commit(repo)}, "main"
     if default != "main":
-        raise Stop(NOT_MAIN.format(branch=default or "unknown"))
+        raise Stop((NOT_MAIN if "main" in heads else NO_MAIN).format(branch=default or "unknown"))
     fetch = [f"refs/heads/{b}" for b in ("main", BRANCH) if b in heads]
     fetched = repo.run("fetch", "--quiet", "--no-tags", "origin", *fetch)
     if fetched.returncode != 0:
@@ -290,7 +309,7 @@ def setup(start: Path, open_page: bool) -> None:
     if on_main == files:
         say(ALREADY)
         return
-    update = any(on_main.values())
+    update = on_main[".github/workflows/asbuild-verdict.yml"] is not None  # only then is there a verdict
     reqs = with_pytest(repo.show(main, "requirements.txt"))
     if reqs is not None:
         files["requirements.txt"] = reqs
@@ -299,6 +318,8 @@ def setup(start: Path, open_page: bool) -> None:
     if old and repo.parent_of(old) == main and all(repo.show(old, path) == data for path, data in files.items()):
         say(SAME)
     else:
+        if old and not setup_made(repo, main, old):
+            raise Stop(FOREIGN)
         repo.push(repo.commit(main, files, TITLE[update]), BRANCH, replacing=old)
         if old:
             say(REPLACED)
