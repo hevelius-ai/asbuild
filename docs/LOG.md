@@ -90,3 +90,8 @@ Append-only. UTC.
 - 2026-11-12T02:04Z hevelius-ai/asbuild#7 (records) merged by chrisz-glitch (23fdfa0); `records/after-install` deleted on both sides.
 - 2026-11-12T02:06Z Decision 14 (the release tag's name) laid out; the owner decides on 12 Nov and compacts the session. No job running.
 - 2026-11-12T15:16Z Decision 14 answered 14A: the release tag is `v0.2.0` (D32). Both workflow templates now clone `--branch v0.2.0`; the release PR goes from `records/release`.
+- 2026-11-12T15:24Z hevelius-ai/asbuild#8 (the release: both workflow templates pinned to `v0.2.0`, with the records and hours) merged by chrisz-glitch (4b5ba03); `records/release` deleted on both sides.
+- 2026-11-12T15:26Z The owner published the release `v0.2.0` (tag on 4b5ba03; not a draft or pre-release).
+- 2026-11-12T15:27Z Pin PRs opened: hevelius-ai/asbuild-demo#10 (f4c4471) and hevelius-ai/auto-job-search#15 (80efb3d), one line per workflow file. Verdicts WAITING FOR YOU as expected (PROTECTED_CHANGED for both workflow files, NO_STORY); 3 and 241 other tests, 0 broken; auto-job-search's gate green on Linux and Windows.
+- 2026-11-12T15:32Z asbuild-demo#10 (c0ce45b) and auto-job-search#15 (abbbd43) merged by chrisz-glitch; `release/pin-v0.2.0` deleted on both sides in both repositories.
+- 2026-11-12T15:36Z Fresh verdict after the pin: the test run on auto-job-search#14 (build S4) re-run; the verdict run 43249553548 (workflow_run, main at abbbd43) cloned AsBuild with `--branch v0.2.0` and posted NOT PROVEN again. Records written 2026-11-12T15:37Z.
