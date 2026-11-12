@@ -21,6 +21,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 - Decision log: `docs/DECISIONS.md`. Parking list: `docs/PARKING.md`.
 - Known issues: `docs/KNOWN-ISSUES.md`. Hours: `docs/hours.csv`.
 - Acceptance tests (locked after the owner merges a story): `tests/acceptance/`, with their hashes in `locks.json`.
+- Before a story's checks are locked: a check asserts what reached the person or the service (the key used, the words shown), never how a library carries it (a header name) unless the owner approved that form; and it is run once against a throwaway build that uses the dependencies the real build will use, with any decision those depend on settled first (on 11 Nov, S3-C1 asserted `x-api-key`, which Anthropic's current libraries no longer send).
 
 ## Budget
 
@@ -45,13 +46,13 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 - https://claude.ai/artifact/2iCLD7UuDC4pVZuvPZ6Vhi. Page source: `board/asbuild-board.html` in the kit folder (not committed).
 - Data: collection `cards` (title, milestone M0/S1/S2/S3/S4/DONE, column todo/doing/waiting/done, order, owner, note, verdict, updated in UTC) and the document `meta/status` (story, next, agentHours, ownerHours, workingDay, week, updated).
 - The board only mirrors the build. The build session is its source of truth and makes every decision; the board keeper never decides anything.
-- The keeper is a separate Haiku session, "AsBuild board keeper (Haiku)". Every time something is done, a stage changes or a 🔴 block goes out, the build session sends it the exact fields to write, with the time copied from a `date -u` run in the step just before the message, never typed (twice on 10 Nov a typed time was wrong). It applies one pinned batch and reads it back. Before saying the board is current, read back every card the batch touched and compare each field sent, not only the keeper's report (on 10 Nov a column change was missed this way).
+- The keeper is a separate Haiku session, "AsBuild board keeper (Haiku)". Every time something is done, a stage changes or a 🔴 block goes out, the build session sends it the exact fields to write, with the time copied from a `date -u` run in the step just before the message, never typed (twice on 10 Nov a typed time was wrong, and three times on 11 Nov one was typed). A script that writes a time to a record takes it from the clock as it runs (`datetime.now(timezone.utc)`), never from a string in the script; a message copies the output of a `date -u` run in the same step. It applies one pinned batch and reads it back. Before saying the board is current, read back every card the batch touched and compare each field sent, not only the keeper's report (on 10 Nov a column change was missed this way).
 
 ## The owner
 
 - Time zone: America/New_York; times shown as "3:04 PM".
 - Machine: Windows; shell Windows PowerShell 5.1 (no `&&`, no `<` redirection, `'""'` for an empty argument), Git Bash available.
-- Night protocol, machine specifics: start the keep-awake hold (it stops only idle sleep); remind the owner once not to press the power button or choose Sleep unless the button is set to do nothing when plugged in; each morning check the system log for standby and report it; re-create the heartbeat if it is missing.
+- Away protocol, machine specifics: start the keep-awake hold (it stops only idle sleep); remind the owner once not to press the power button or choose Sleep unless the button is set to do nothing when plugged in; each morning check the system log for standby and report it; re-create the heartbeat if it is missing.
 
 ## Status block (ends every report)
 

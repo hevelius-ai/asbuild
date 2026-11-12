@@ -34,3 +34,4 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - The story skill says a checklist has 2 to 5 lines; the story-time checks accept 1 to 5. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
 - The story-time checks' `--keep` option, which the skill never uses, writes pytest's result file to a folder the caller names. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
 - A story-time run stopped part-way leaves the temporary copy and git's record of it behind (S2's code). Graded PARKED in the S4 directory review, round 3 (2026-11-11).
+- The lock and the story-time checks read test names line by line (`TEST_DEF`), so a line starting `def test_` inside a text string in a locked test file is taken for a locked test that never runs; S4's planted check had to be written on one line. Reading names with `ast` would fix it. Found in auto-job-search story S4 (2026-11-12).
