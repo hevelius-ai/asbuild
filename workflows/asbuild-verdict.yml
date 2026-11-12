@@ -75,7 +75,7 @@ jobs:
       - name: Fetch AsBuild (from hevelius-ai/asbuild, never from this repository)
         if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         run: |
-          git clone --quiet --depth 1 --branch v0.2.1 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          git clone --quiet --depth 1 --branch v0.3.0 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
           echo "ASBUILD=$RUNNER_TEMP/asbuild" >> "$GITHUB_ENV"
           python -m pip install --quiet defusedxml==0.7.1
 

@@ -22,11 +22,26 @@ How it works, in four steps:
 
 ## Install
 
-You can follow these steps yourself, or give them to Claude Code word for word.
+Three steps, once Git, the GitHub CLI and Python are on your computer.
 
-### What your repository needs
+1. Add the plugin to Claude.
+2. In your project, type `/asbuild:setup`. Claude checks what is missing, prepares AsBuild's two check files and opens a pull request page. Create the pull request and merge it.
+3. Say what you want with `/asbuild:story`.
 
-- A GitHub repository with GitHub Actions switched on, with `main` as its default branch and a first commit already on it (your code and `requirements.txt`, below). AsBuild judges pull requests into `main` from branches of the same repository, not from forks. On a new, empty repository, push `main` first, before step 2: GitHub makes the first branch pushed the default branch.
+Something missing? "Before you start" lists what to install, one line each. You can follow these steps yourself, or give them to Claude Code word for word.
+
+### Before you start
+
+Your computer needs three programs; setup tells you which ones are missing. On Windows, install them in PowerShell, one line each:
+
+```powershell
+winget install --id Git.Git
+winget install --id GitHub.cli
+winget install --id Python.Python.3.12
+```
+
+On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and https://www.python.org.
+
 - Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git needs a name and email for its commits (on many computers, Windows ones among them, it refuses to commit without them). If it has no name or email yet, set them once with `git config` (leave out `--global` to set them for one repository only):
 
   ```bash
@@ -34,11 +49,18 @@ You can follow these steps yourself, or give them to Claude Code word for word.
   git config --global user.email you@example.com
   ```
 
-- The GitHub CLI (`gh`), logged in.
-- Python code whose tests run with pytest on Python 3.12 (the version AsBuild's check uses), and a `requirements.txt` at the repository root that lists pytest. The check installs your project from it.
+- The GitHub CLI (`gh`), signed in. Run `gh auth login` once, in a terminal, and choose GitHub.com, HTTPS, and sign in with your browser. Claude never handles your password.
+- Python 3.12, the version AsBuild's check uses.
+
+Your repository needs:
+
+- A GitHub repository with GitHub Actions switched on, with `main` as its default branch. It may be new and empty: setup then makes its first commit, a `requirements.txt` that lists pytest, and uploads it as `main`. If you set up a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
+- Python code whose tests run with pytest on Python 3.12, and a `requirements.txt` at the repository root that lists pytest (setup adds pytest when it is missing). The check installs your project from it.
 - The names AsBuild expects: stories in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), their locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json` at the root, and each build on a branch named `build/S<n>`. The story skill creates the first three for you.
 
-### 1. Install the plugin
+### 1. Add the plugin
+
+In the Claude desktop app, use its menus: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
 
 In Claude Code in a terminal, type these two commands, one at a time:
 
@@ -49,8 +71,6 @@ In Claude Code in a terminal, type these two commands, one at a time:
 
 The second command opens AsBuild's page in the plugin panel: choose to install it. Then run `/reload-plugins`, or start Claude Code again.
 
-In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
-
 From a script, from CI, or from Claude's own shell, add the marketplace first, then install:
 
 ```bash
@@ -58,9 +78,37 @@ claude plugin marketplace add hevelius-ai/asbuild
 claude plugin install asbuild@hevelius-ai
 ```
 
-### 2. Add the two workflow files in a pull request
+### 2. Set it up
 
-From your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git; in Windows PowerShell, type `curl.exe` instead of `curl`, because there `curl` is a different command):
+Open your project's folder in Claude Code (in the desktop app: the Code tab, then your folder) and type:
+
+```
+/asbuild:setup
+```
+
+Claude runs AsBuild's setup. It checks Git, your GitHub sign-in and the repository. If something is missing, it says what and the one thing to do; then run `/asbuild:setup` again. It changes nothing in your folder: your files, your current branch and any unsaved work stay as they are.
+
+When everything is in place, it uploads AsBuild's two workflow files, `.github/workflows/asbuild-test.yml` and `.github/workflows/asbuild-verdict.yml`, on a branch named `asbuild-setup`, and opens GitHub's pull request page in your browser. Click **Create pull request**, then **Merge pull request**, and tell Claude it is merged.
+
+- A first setup's pull request gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
+- On a repository that already uses AsBuild, setup brings the two files up to this version. That pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
+- If setup says AsBuild is already set up here, there is nothing to merge.
+
+Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`.
+
+### 3. Agree your first story
+
+In Claude Code, run `/asbuild:story` and say what you want, in your own words. It agrees a short checklist with you, writes one test per line, and opens a story pull request. AsBuild's verdict on a story pull request is always WAITING FOR YOU: merging it approves the checks, and from then on they are locked.
+
+The story pull request also adds one line to `.claude/settings.json`, Claude Code's own deny rule for that story's tests, such as `Edit(/tests/acceptance/S1/**)`. Each story adds its own line, in the form `Edit(/tests/acceptance/S<n>/**)`. From the next session on, Claude Code's file tools, and the file commands it recognises in its shell, can't change those tests. It is on by default; to turn it off for a story, delete that line from the story pull request before you merge it. What it does not cover: a script that opens a file itself is not blocked. CI is the check: whatever changes a locked test, AsBuild's verdict says so. AsBuild does not check `.claude/settings.json` itself, so a pull request could remove the line; the tests stay locked either way.
+
+### 4. Get the verdict after each push
+
+AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request (except the one that adds the workflow files, which gets no verdict), Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
+
+### By hand
+
+Setup does the following for you. To do it yourself instead, from your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git; in Windows PowerShell, type `curl.exe` instead of `curl`, because there `curl` is a different command):
 
 ```bash
 git switch -c asbuild-setup
@@ -78,19 +126,22 @@ git push -u origin asbuild-setup
 gh pr create --base main --title "Add AsBuild" --body "Adds AsBuild's two workflow files."
 ```
 
-Merge this pull request yourself. It gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
+Merge this pull request yourself. Like setup's, it gets no verdict on a first setup.
 
-Pushing workflow files needs a GitHub login with the `workflow` scope. If the push is refused for that reason, run `gh auth refresh -h github.com -s workflow` and push again.
+### If something goes wrong
 
-### 3. Agree your first story
+Each of setup's messages names its own fix. The most common ones:
 
-In Claude Code, run `/asbuild:story` and say what you want, in your own words. It agrees a short checklist with you, writes one test per line, and opens a story pull request. AsBuild's verdict on a story pull request is always WAITING FOR YOU: merging it approves the checks, and from then on they are locked.
+| Setup says | What to do |
+| --- | --- |
+| This folder is not a Git repository | Open your project's own folder, the one linked to GitHub |
+| Git has no name or email for its commits yet | Run the two `git config` commands it shows, with your own name and email |
+| The GitHub CLI (gh) is not installed | Install it: `winget install --id GitHub.cli` on Windows, or from https://cli.github.com |
+| You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
+| GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main` |
+| GitHub refused the two workflow files | Run `gh auth refresh -h github.com -s workflow` |
 
-The story pull request also adds one line to `.claude/settings.json`, Claude Code's own deny rule for that story's tests, such as `Edit(/tests/acceptance/S1/**)`. Each story adds its own line, in the form `Edit(/tests/acceptance/S<n>/**)`. From the next session on, Claude Code's file tools, and the file commands it recognises in its shell, can't change those tests. It is on by default; to turn it off for a story, delete that line from the story pull request before you merge it. What it does not cover: a script that opens a file itself is not blocked. CI is the check: whatever changes a locked test, AsBuild's verdict says so. AsBuild does not check `.claude/settings.json` itself, so a pull request could remove the line; the tests stay locked either way.
-
-### 4. Get the verdict after each push
-
-AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request (except the one that adds the workflow files, which gets no verdict), Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
+Then run `/asbuild:setup` again. It is safe to run any number of times.
 
 ## The receipts
 
