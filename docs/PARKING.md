@@ -41,3 +41,4 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Setup with `--repo` naming a folder that does not exist ends in a traceback, not a message (S5 review round 1, P2). The skill never passes `--repo`.
 - The story skill's `git switch -c story/S<n> origin/main` meets Git's refusal over an untracked file left by an empty-repository setup when setup's step 3 did not switch (S5 review round 3); Git's own message names the step.
 - Setup tells its own commits by their titles alone, so a hand-made commit titled exactly "Add AsBuild" or "Update AsBuild" on the setup branch would be replaced (S5 review round 3, not verified).
+- Whether Claude counts an untracked file as unsaved work at setup's step 3 (switch only with no unsaved work), which decides whether the empty-repository case reaches the move-aside step (S5 review round 3, PARKED).
