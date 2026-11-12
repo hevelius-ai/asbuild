@@ -95,3 +95,6 @@ Append-only. UTC.
 - 2026-11-12T15:27Z Pin PRs opened: hevelius-ai/asbuild-demo#10 (f4c4471) and hevelius-ai/auto-job-search#15 (80efb3d), one line per workflow file. Verdicts WAITING FOR YOU as expected (PROTECTED_CHANGED for both workflow files, NO_STORY); 3 and 241 other tests, 0 broken; auto-job-search's gate green on Linux and Windows.
 - 2026-11-12T15:32Z asbuild-demo#10 (c0ce45b) and auto-job-search#15 (abbbd43) merged by chrisz-glitch; `release/pin-v0.2.0` deleted on both sides in both repositories.
 - 2026-11-12T15:36Z Fresh verdict after the pin: the test run on auto-job-search#14 (build S4) re-run; the verdict run 43249553548 (workflow_run, main at abbbd43) cloned AsBuild with `--branch v0.2.0` and posted NOT PROVEN again. Records written 2026-11-12T15:37Z.
+- 2026-11-12T15:41Z hevelius-ai/asbuild#9 (release records) merged by chrisz-glitch (b006f6c); `records/after-release` deleted on both sides.
+- 2026-11-12T15:47Z (loaded between 15:42Z and 15:47Z) The engineering skills and `user-walkthrough-qa` re-loaded from the synced folder (D27); the kit's `skills-update` copies are equal to them.
+- 2026-11-12T15:47Z Decisions 15B and 16A (D33, D34): two walkthrough runs in two repositories; the walker merges in them only.
