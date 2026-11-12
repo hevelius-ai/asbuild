@@ -4,7 +4,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- AsBuild Core is done (2026-11-12T21:26Z): all three done lines met (the done check below; line 3 by D37). Records merged as hevelius-ai/asbuild#14 (e55ee5d, 21:30Z). Building stops, except the install redesign (D38), within Core's budget: story S5, `/asbuild:setup`, release `v0.3.0` (D39, plan `docs/plans/S5.md`). Draft pull request hevelius-ai/asbuild#15 from `build/S5`: tests seen failing first (537e0b2, 13 failed); b69e6ad's checks green (check, clean install on Ubuntu and Windows); review round 1 BLOCK (1 HIGH, 11 MEDIUM, all confirmed by triage), fixed in 3dcdc49 (checks green); round 2 BLOCK (8 MEDIUM, all confirmed by triage), fixed on the branch; round 3, the last full round, next. Estimate 6 to 9 agent hours; D38's report line is 24 agent hours or 6.4 owner hours in all.
+- AsBuild Core is done (2026-11-12T21:26Z): all three done lines met (the done check below; line 3 by D37). Records merged as hevelius-ai/asbuild#14 (e55ee5d, 21:30Z). Building stops, except the install redesign (D38), within Core's budget: story S5, `/asbuild:setup`, release `v0.3.0` (D39, plan `docs/plans/S5.md`). Draft pull request hevelius-ai/asbuild#15 from `build/S5`: tests seen failing first (537e0b2, 13 failed); b69e6ad's checks green (check, clean install on Ubuntu and Windows); review round 1 BLOCK (1 HIGH, 11 MEDIUM, all confirmed by triage), fixed in 3dcdc49 (checks green); round 2 BLOCK (8 MEDIUM, all confirmed by triage), fixed in 3dcda76 (checks green); round 3, the last full round, BLOCK (3 MEDIUM, 1 LOW: documents and one test left behind; no HIGH); the build stopped and the owner chose V3-5A: fix them, then a confirm-only re-check. Estimate 6 to 9 agent hours; D38's report line is 24 agent hours or 6.4 owner hours in all.
 - Branches in `hevelius-ai/asbuild`: `main`; `build/S5`.
 - Release `v0.2.1` (D36): the F2 and F1 fix, hevelius-ai/asbuild#10, merged by chrisz-glitch at 17:15Z (f47ad6d), two review rounds and APPROVE; the owner published `v0.2.1` on it at 17:16Z; pin PRs asbuild-demo#11 (88e2943) and auto-job-search#16 (acf6a98) merged 17:21Z and 17:22Z; a fresh verdict on auto-job-search#14 cloned `v0.2.1` and posted NOT PROVEN again (17:25Z, run 43269233590).
 - Walkthrough (D27, D31, D33 to D36): S1, S2 repeat (`asbuild-walkthrough-1b`): INCOMPLETE, 15 PASS, LOW 5. Run 2 (S3, S4, `asbuild-walkthrough-2`): BLOCKER FOUND, F2 HIGH and F1 MEDIUM; the re-check of its failed rows on `v0.2.1` (`asbuild-walkthrough-2r`, 17:18Z to 17:24Z): INCOMPLETE, 3 PASS, 1 NOT CHECKED (the `/plugin` slash route, not operable headless), F1 and F2 no longer reproduce, LOW 1 (F5). No HIGH or MEDIUM open. Run 1 (`asbuild-walkthrough`) was stopped by the setup (D35). The four test repositories were deleted by the owner (gone at 2026-11-12T22:15Z); the reports stay in the walkthrough folders on the owner's computer, outside the repositories (never committed).
@@ -16,7 +16,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-Merge now: nothing. hevelius-ai/asbuild#15 stays a draft until review round 2 approves. auto-job-search#14 stays open, never merged.
+Merge now: nothing. hevelius-ai/asbuild#15 stays a draft until the confirm-only re-check of the round 3 fixes approves. auto-job-search#14 stays open, never merged.
 
 ## Running jobs
 
@@ -33,6 +33,6 @@ None to answer now. The install design is decided (D39). The desktop check (S5 p
 
 ## Next steps
 
-1. S5 (D39): review round 3 on the round 2 fixes; at a third BLOCK the build stops and the owner gets one page (playbook 2.5). Then #15 ready for the owner.
+1. S5 (D39): the confirm-only re-check of the round 3 fixes; then #15 ready for the owner.
 2. The directory step (D17): the icon is in the plugin folder (the owner's, 1024 px; the portal takes it once, at the first save); Anthropic's pre-submission checklist and the platform check; then the owner's submission and the recording.
 3. Owner steps: the desktop check above; the recording (D17).

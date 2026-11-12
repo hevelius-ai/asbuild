@@ -227,11 +227,12 @@ def test_S5_C5_no_main_on_github_names_the_rename(world, capsys):
     git(work, "push", "--quiet", "origin", "main:master")
     git(hub, "symbolic-ref", "HEAD", "refs/heads/master")
     git(hub, "branch", "-D", "main")
+    before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 1
     assert "GitHub's default branch for this repository is master, and it has no branch named main." in out
     assert "rename the default branch master to main" in out and AGAIN in out
-    assert hub_branches(hub) == {"master"}
+    assert hub_branches(hub) == {"master"} and snapshot(work) == before
 
 
 def test_S5_C6_first_setup_pushes_the_two_files_and_names_the_page(world, capsys):
@@ -319,7 +320,7 @@ def test_S5_C9_an_older_setup_branch_is_replaced_by_one_on_main(world, capsys):
     before = snapshot(work)
     code, out = setup(work, capsys)
     assert code == 0, out
-    assert "An older asbuild-setup branch, made by setup, was on GitHub; setup replaced it" in out
+    assert "An older asbuild-setup branch was on GitHub with nothing but setup's own commits" in out
     assert snapshot(work) == before
     assert git(hub, "rev-parse", "asbuild-setup^") == git(hub, "rev-parse", "main")
     for name in FILES:

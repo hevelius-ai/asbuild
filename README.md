@@ -94,7 +94,7 @@ When everything is in place, it uploads AsBuild's two workflow files, `.github/w
 - On a repository that already uses AsBuild, setup brings the two files up to this version. That pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
 - If setup says AsBuild is already set up here, there is nothing to merge.
 
-Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`. If an earlier `asbuild-setup` branch is still on GitHub, setup replaces it with one made from today's `main`.
+Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`. If an earlier `asbuild-setup` branch is still on GitHub, setup replaces it with one made from today's `main`, but only when every commit on it that `main` lacks is one setup made; otherwise it leaves the branch alone and tells you.
 
 ### 3. Agree your first story
 

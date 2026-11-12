@@ -122,7 +122,8 @@ EMPTY_NEW = (
 )
 SAME = "The branch asbuild-setup is already on GitHub with these files, so nothing new was uploaded."
 REPLACED = (
-    "An older asbuild-setup branch, made by setup, was on GitHub; setup replaced it with one made from today's main."
+    "An older asbuild-setup branch was on GitHub with nothing but setup's own commits or commits already on"
+    " main; setup replaced it with one made from today's main."
 )
 FOREIGN = (
     "The branch asbuild-setup on GitHub holds commits that setup did not make, so setup leaves it alone. On GitHub,"
