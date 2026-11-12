@@ -27,7 +27,7 @@ You can follow these steps yourself, or give them to Claude Code word for word.
 ### What your repository needs
 
 - A GitHub repository with GitHub Actions switched on, with `main` as its default branch and a first commit already on it (your code and `requirements.txt`, below). AsBuild judges pull requests into `main` from branches of the same repository, not from forks. On a new, empty repository, push `main` first, before step 2: GitHub makes the first branch pushed the default branch.
-- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git refuses to commit until it knows who you are. If it has no name or email yet, set them once with `git config` (leave out `--global` to set them for one repository only):
+- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git needs a name and email for its commits (on many computers, Windows ones among them, it refuses to commit without them). If it has no name or email yet, set them once with `git config` (leave out `--global` to set them for one repository only):
 
   ```bash
   git config --global user.name "Your Name"
@@ -49,7 +49,7 @@ In Claude Code in a terminal, type these two commands, one at a time:
 
 The second command opens AsBuild's page in the plugin panel: choose to install it. Then run `/reload-plugins`, or start Claude Code again.
 
-In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then add AsBuild from the plugin list, and start a new session. To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
+In the Claude desktop app, use its menus instead: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open the **Discover** tab, select AsBuild and click **Add**. It reaches your Code sessions the next time you start one ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, in a new session click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list.
 
 From a script, from CI, or from Claude's own shell, add the marketplace first, then install:
 

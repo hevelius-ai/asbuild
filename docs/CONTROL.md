@@ -24,7 +24,7 @@ None.
 
 ## Open decisions
 
-None. Decision 19 was answered 19A (D37); decision 20 (the install design) waits for the install redesign (D38), with the owner's independent proposal.
+None to answer now. Decision 20 (the install design) waits for the install redesign (D38) and the owner's independent proposal.
 
 ## QUALITY RISK
 
@@ -34,4 +34,5 @@ None. Decision 19 was answered 19A (D37); decision 20 (the install design) waits
 ## Next steps
 
 1. The owner merges `docs/readme-d37`; then the done report (HANDOVER section 5), and building stops except the install redesign (D38).
-2. The directory step (D17): the owner's icon (a square PNG, 512 to 2048 px, under 2 MB, set once at the first save in the developer portal), Anthropic's pre-submission checklist and the platform check, then the owner's submission and the recording.
+2. The directory step (D17): the icon is in the plugin folder (the owner's, 1024 px; the portal takes it once, at the first save); Anthropic's pre-submission checklist and the platform check; then the owner's submission and the recording.
+3. The install redesign (D38), from the owner's independent proposal; report at 80% of either budget line.
