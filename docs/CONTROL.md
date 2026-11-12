@@ -20,7 +20,7 @@ None.
 
 ## Open decisions
 
-None.
+14 (laid out 2026-11-12, the owner decides on 12 Nov): the release tag's name. 14A `v0.2.0`, the plugin's own version (recommended); 14B `v1.0.0`, which also needs the plugin's version raised. The release order (D18): (1) an asbuild PR moves both workflow templates from `--branch main` to the tag, with the hours; the owner merges; (2) the owner creates the tag on that merge commit; (3) one pin PR each in asbuild-demo and auto-job-search (WAITING FOR YOU, protected files, expected); the owner merges; (4) a fresh verdict is checked to fetch the tag, and the done evidence is collected; (5) the walkthrough (D31), the owner's try, the directory submission.
 
 ## QUALITY RISK
 
