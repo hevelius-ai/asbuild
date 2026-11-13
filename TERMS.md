@@ -14,7 +14,7 @@ To the fullest extent permitted by law, Hevelius AI Group LLC, its owners, membe
 
 ## Your responsibility
 
-You use AsBuild at your own risk, and only as intended: to help you check pull requests written by an AI agent in your own GitHub repositories. You remain responsible for your repositories, for your GitHub account and its settings, for every change you merge, and for checking AsBuild's results yourself. AsBuild's verdict is an aid to your own review, not a guarantee that a change is correct, complete, safe or fit for any purpose; and AsBuild blocks nothing: any pull request can still be merged.
+AsBuild is intended to help people check pull requests written by an AI agent in GitHub repositories. You use AsBuild at your own risk, for that purpose or any other. You remain responsible for your repositories, for your GitHub account and its settings, for every change you merge, and for checking AsBuild's results yourself. AsBuild's verdict is an aid to your own review, not a guarantee that a change is correct, complete, safe or fit for any purpose; and AsBuild blocks nothing: any pull request can still be merged.
 
 ## Other services
 
@@ -22,4 +22,4 @@ AsBuild works with Claude Code, GitHub, GitHub Actions and the Python Package In
 
 ## Changes
 
-Hevelius AI Group LLC may change these terms; the version in this repository is the one that applies. Questions: open an issue at https://github.com/hevelius-ai/asbuild/issues.
+Hevelius AI Group LLC may change these terms in a later release; each release of AsBuild comes with the terms in that release's copy of this file. Questions: open an issue at https://github.com/hevelius-ai/asbuild/issues.

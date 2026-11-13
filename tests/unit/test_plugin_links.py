@@ -32,11 +32,14 @@ def test_terms_disclaim_warranty_and_liability_where_people_read():
     assert 'provided "as is"' in terms and "without warranty of any kind" in terms
     assert "To the fullest extent permitted by law" in terms and "are not liable for any claim" in terms
     assert "You use AsBuild at your own risk" in terms and "not a guarantee" in terms
+    # the MIT licence grants use without restriction: the terms describe the purpose, they do not limit use
+    assert "only as intended" not in terms and "your own GitHub repositories" not in terms
     # the short form, on the privacy page and in the README's licence section, points at the terms
     privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
     licence = (ROOT / "README.md").read_text(encoding="utf-8").split("## Licence", 1)[1]
     for page in (privacy, licence):
-        assert "without warranty of any kind" in page and "you use it at your own risk" in page
+        assert "created by Hevelius AI Group LLC" in page and "without warranty of any kind" in page
+        assert "is not liable for any damage or loss" in page and "you use it at your own risk" in page
         assert "(TERMS.md)" in page
 
 
