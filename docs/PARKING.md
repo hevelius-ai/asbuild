@@ -47,3 +47,4 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - An identity given only by environment variables (`GIT_AUTHOR_NAME`) is reported as missing by setup (#18 review round 1, PARKED; older behaviour).
 - Setup names the `--global` fix when an example identity sits in a third place (a worktree's own config, an included file), where that fix does not reach (#18 review round 2, PARKED).
 - The WAITING FOR YOU receipt does not say how to get the lines judged after a protected file changed (add it in its own pull request first) (#19 review round 1, PARKED).
+- The directory will later accept scripts and files outside its allowed types only from Verified organizations, and Hevelius AI isn't one; AsBuild's setup, story checks and verdict wait are Python scripts (the portal's notice on `v0.3.1`, 13 Nov 2026; not refused yet). Reopen before the rule starts: verify the organization, or change how the scripts ship.

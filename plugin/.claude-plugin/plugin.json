@@ -1,13 +1,17 @@
 {
   "name": "asbuild",
   "displayName": "AsBuild",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A maker-checker record for pull requests written by an AI agent: agree the checks with the person before the build, then CI checks that each agreed test failed before the change and passes after it, and posts a plain receipt. For Claude Code in a GitHub repository with Python and pytest.",
   "author": {
     "name": "Hevelius AI Group LLC"
   },
   "homepage": "https://github.com/hevelius-ai/asbuild",
   "repository": "https://github.com/hevelius-ai/asbuild",
+  "documentationUrl": "https://github.com/hevelius-ai/asbuild#install",
+  "supportUrl": "https://github.com/hevelius-ai/asbuild/issues",
+  "privacyPolicyUrl": "https://github.com/hevelius-ai/asbuild/blob/main/PRIVACY.md",
+  "termsOfServiceUrl": "https://github.com/hevelius-ai/asbuild/blob/main/LICENSE",
   "license": "MIT",
   "keywords": ["pull-requests", "acceptance-tests", "pytest", "github-actions", "review"]
 }
