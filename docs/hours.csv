@@ -35,3 +35,5 @@ date,story,kind,hours,note
 2026-11-13,S5,agent,0.4,"#18 round 2, #19 round 1 and its fix, records (estimated)"
 2026-11-13,S5,agent,0.4,"after #18 and #19: branches, setup in two repositories, verdicts, records (estimated)"
 2026-11-13,S5,owner,0.1,"merges of #17, #18, #19 and the v0.3.1 release (estimated)"
+2026-11-13,S5,agent,1.0,"records, the README GIF (three recordings), D43, the install rewrite and its review (estimated)"
+2026-11-13,S5,owner,0.3,"recording choices, account switch, install request, merges of #21 to #25 (estimated)"
