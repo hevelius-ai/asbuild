@@ -24,8 +24,8 @@ How it works, in four steps:
 
 Three steps, once Git, the GitHub CLI and Python are on your computer.
 
-1. Add the plugin to Claude.
-2. In your project, type `/asbuild:setup`. Claude checks what is missing, prepares AsBuild's two check files and opens a pull request page. Create the pull request and merge it.
+1. Add the plugin to Claude. In the desktop app: Settings, Customize, Plugins, **Add**, **Add marketplace**, **Add from a repository**, enter `hevelius-ai/asbuild`; then **Discover**, AsBuild, **Add**. In a terminal, use the two commands under "1. Add the plugin" below.
+2. In your project, type `/asbuild:setup`. Use your project's folder on your computer (a new repository: copy it with `git clone` first, see "2. Set it up"). Claude checks what is missing, prepares AsBuild's two check files and opens a pull request page. Create the pull request and merge it.
 3. Say what you want with `/asbuild:story`.
 
 Something missing? "Before you start" lists what to install, one line each. You can follow these steps yourself, or give them to Claude Code word for word.
@@ -42,7 +42,7 @@ winget install --id Python.Python.3.12
 
 On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and https://www.python.org.
 
-- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git needs a name and email for its commits (on many computers, Windows ones among them, it refuses to commit without them). If it has no name or email yet, set them once with `git config` (leave out `--global` to set them for one repository only):
+- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git needs a name and email for its commits (on many computers, Windows ones among them, it refuses to commit without them). If it has no name or email yet, set them once with `git config`, with your own name and email in place of the examples (leave out `--global` to set them for one repository only; Claude can also set them for you):
 
   ```bash
   git config --global user.name "Your Name"
@@ -80,7 +80,13 @@ claude plugin install asbuild@hevelius-ai
 
 ### 2. Set it up
 
-Open your project's folder in Claude Code (in the desktop app: the Code tab, then your folder) and type:
+Your project's folder must be on your computer. A new repository has none yet: copy it first, in a terminal (Git warns that the repository is empty; that is fine):
+
+```bash
+git clone https://github.com/<owner>/<repository>.git
+```
+
+Open that folder on your computer in Claude Code (in the desktop app: the Code tab, then your folder, not the GitHub repository: a session that runs in the cloud does not have the plugin) and type:
 
 ```
 /asbuild:setup

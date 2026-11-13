@@ -62,10 +62,17 @@ NOT_GITHUB = (
     "AsBuild works with repositories on github.com. If this one is on github.com, set origin to its web address:\n"
     "  git remote set-url origin https://github.com/<owner>/<repository>.git"
 )
-NO_IDENTITY = (
-    "Git has no name or email for its commits yet. Set them once with these two commands, with your own name and"
-    ' email:\n  git config --global user.name "Your Name"\n  git config --global user.email you@example.com'
+SET_IDENTITY = (
+    "Tell Claude the name and email to use, and it sets them for you. Or run these two commands once, with your own"
+    ' name and email in place of the examples:\n  git config --global user.name "Your Name"\n'
+    "  git config --global user.email you@example.com"
 )
+NO_IDENTITY = f"Git has no name or email for its commits yet. {SET_IDENTITY}"
+EXAMPLE_IDENTITY = (
+    'Git\'s name or email is still the example ("Your Name" or you@example.com), so your commits would carry it.'
+    f" {SET_IDENTITY}"
+)
+EXAMPLES = ("Your Name", "you@example.com")  # the README's and NO_IDENTITY's examples (D40, T2)
 NO_GH = (
     "The GitHub CLI (gh) is not installed. Install it from https://cli.github.com"
     f" (on Windows: winget install --id GitHub.cli). {REOPEN}"
@@ -286,8 +293,11 @@ def setup(start: Path, open_page: bool) -> None:
     if not found:
         raise Stop(NOT_GITHUB.format(url=re.sub(r"(://)[^/]*@", r"\1", url)))  # never echo a token in the URL
     owner, name = found.group(1), found.group(2).removesuffix(".git")
-    if not (text(repo.run("config", "user.name").stdout) and text(repo.run("config", "user.email").stdout)):
+    identity = (text(repo.run("config", "user.name").stdout), text(repo.run("config", "user.email").stdout))
+    if not all(identity):
         raise Stop(NO_IDENTITY)
+    if any(value in EXAMPLES for value in identity):
+        raise Stop(EXAMPLE_IDENTITY)
     gh = shutil.which("gh")
     if not gh:
         raise Stop(NO_GH)
