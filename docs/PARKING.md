@@ -45,3 +45,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Setup reports an invalid `GH_TOKEN` (the CLI present, its sign-in bad) through "Git could not reach the repository", not "not signed in"; a real signed-out machine was not tried (S5 walkthrough run 3, PARKED-1).
 - Setup's example-identity check matches only the exact examples; near-copies ("your name") pass (#18 review round 1, PARKED).
 - An identity given only by environment variables (`GIT_AUTHOR_NAME`) is reported as missing by setup (#18 review round 1, PARKED; older behaviour).
+- Setup names the `--global` fix when an example identity sits in a third place (a worktree's own config, an included file), where that fix does not reach (#18 review round 2, PARKED).
+- The WAITING FOR YOU receipt does not say how to get the lines judged after a protected file changed (add it in its own pull request first) (#19 review round 1, PARKED).

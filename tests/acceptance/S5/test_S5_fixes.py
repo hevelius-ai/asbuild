@@ -46,7 +46,7 @@ CLAUDE_SETS = "Tell Claude the name and email to use, and it sets them for you"
 
 
 def test_S5_T2_example_identity_counts_as_not_set(world, capsys):
-    """T2 as it happened: the examples in the global settings; then in the repository's own; each named fix works."""
+    """T2 as it happened: the examples in the global settings; each fix the message names lets setup carry on."""
     work, hub = world
     s5.git(work, "config", "--unset", "user.name")
     s5.git(work, "config", "--unset", "user.email")
