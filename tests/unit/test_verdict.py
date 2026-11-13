@@ -454,3 +454,12 @@ def test_K1_no_line_is_judged_whatever_the_results(tmp_path, evidence):
     assert [i["status"] for i in v["items"]] == ["file_changed", "file_changed"]
     assert "✓" not in r["top"] and "✗" not in r["top"]
     assert not any(c["code"] in ("CHECK_FAILS", "LOCK_TEST_SKIPPED") and "check" in c["params"] for c in v["codes"])
+
+
+def test_K1_no_results_under_a_changed_protected_file_reads_not_checked(tmp_path):
+    """K1 re-check (LOW): with no readable results, every line reads "not checked this time", as the plan says."""
+    v = judge(facts(tmp_path, changed=["app/count.py", "requirements.txt"], evidence=False))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert [i["status"] for i in v["items"]] == ["not_checked", "not_checked"]
+    assert r["top"].count("? not checked this time") == 2 and "✓" not in r["top"]
