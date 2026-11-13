@@ -435,3 +435,22 @@ def test_K1_changed_protected_file_leaves_every_line_unjudged(tmp_path, path):
     assert r["top"].count("? not judged: the AI changed a file only you may change") == 2
     assert "checked only the lines" not in r["top"]  # nothing was judged, so the footer claims nothing
     assert lint("2", r["top"]) == []
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        {"acc": [(*A1, "pass"), (*A2, "assert")], "pr": [(*UNIT, "pass"), (*A1, "pass"), (*A2, "assert")]},
+        {"acc": [(*A1, "pass"), (*A2, "skip")], "pr": [(*UNIT, "pass"), (*A1, "pass"), (*A2, "skip")]},
+        {"acc": [(*A1, "pass")], "pr": [(*UNIT, "pass"), (*A1, "pass")]},
+    ],
+    ids=["a check still fails", "a check skipped", "a check missing"],
+)
+def test_K1_no_line_is_judged_whatever_the_results(tmp_path, evidence):
+    """K1 review round 1: under a changed requirements.txt, a failing, skipped or missing check is not judged either."""
+    v = judge(facts(tmp_path, changed=["app/count.py", "requirements.txt"], **evidence))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert [i["status"] for i in v["items"]] == ["file_changed", "file_changed"]
+    assert "✓" not in r["top"] and "✗" not in r["top"]
+    assert not any(c["code"] in ("CHECK_FAILS", "LOCK_TEST_SKIPPED") and "check" in c["params"] for c in v["codes"])
