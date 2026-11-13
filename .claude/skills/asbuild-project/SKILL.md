@@ -41,6 +41,11 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 - Each review record names the model from the JSON result's `modelUsage` → `canonicalModel`. The CLI's `unrecognized_model` warning for the Fable ID is expected; the record is what counts.
 - An empty call costs about $0.87, because the session loads the full plugin and tool set.
 
+## Walkthroughs (decisions D31, D42)
+
+- Walker: a fresh headless run on `claude-sonnet-5-5`, high effort, in a new folder outside the repositories, with deny rules on reading the repositories and the installed plugin.
+- After every walker run, before reporting it: check the test repository's default branch and settings (`gh api repos/<owner>/<repository>`) and the AsBuild version installed on this computer (`claude plugin list`). Any change beyond the brief and the README's install steps is a QUALITY RISK item.
+
 ## Progress board (decision D23)
 
 - https://claude.ai/artifact/2iCLD7UuDC4pVZuvPZ6Vhi. Page source: `board/asbuild-board.html` in the kit folder (not committed).
