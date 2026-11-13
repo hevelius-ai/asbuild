@@ -20,7 +20,7 @@ How it works, in four steps:
 3. The agent builds the change on a branch named `build/S<n>` and opens a pull request.
 4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads it with `/asbuild:verdict`. You decide whether to merge.
 
-Here it is catching a weakened check, in three screens: the AI changed an agreed test so that it would pass, and AsBuild stopped and asked for the person. The pull request is real, and you can open it: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
+Here it is catching a weakened check, in three numbered steps: the AI changed an agreed test so that it would pass, and AsBuild stopped and asked for the person. The pull request is real, and you can open it: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
 
 ![The demo pull request: the AI's change to an agreed test, then AsBuild's receipt, "Stop. This needs you."](docs/media/asbuild-catches-a-weakened-test.gif)
 
