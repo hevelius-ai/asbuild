@@ -64,13 +64,18 @@ NOT_GITHUB = (
 )
 SET_IDENTITY = (
     "Tell Claude the name and email to use, and it sets them for you. Or run these two commands once, with your own"
-    ' name and email in place of the examples:\n  git config --global user.name "Your Name"\n'
-    "  git config --global user.email you@example.com"
+    ' name and email in place of the examples:\n  git config{flag} user.name "Your Name"\n'
+    "  git config{flag} user.email you@example.com"
 )
-NO_IDENTITY = f"Git has no name or email for its commits yet. {SET_IDENTITY}"
+NO_IDENTITY = "Git has no name or email for its commits yet. " + SET_IDENTITY.format(flag=" --global")
 EXAMPLE_IDENTITY = (
     'Git\'s name or email is still the example ("Your Name" or you@example.com), so your commits would carry it.'
-    f" {SET_IDENTITY}"
+    " {where}"
+)
+EXAMPLE_GLOBAL = EXAMPLE_IDENTITY.format(where=SET_IDENTITY.format(flag=" --global"))
+EXAMPLE_LOCAL = EXAMPLE_IDENTITY.format(
+    where="It is set in this repository's own settings, so the commands leave out --global (run them in this"
+    " folder). " + SET_IDENTITY.format(flag="")
 )
 EXAMPLES = ("Your Name", "you@example.com")  # the README's and NO_IDENTITY's examples (D40, T2)
 NO_GH = (
@@ -296,8 +301,9 @@ def setup(start: Path, open_page: bool) -> None:
     identity = (text(repo.run("config", "user.name").stdout), text(repo.run("config", "user.email").stdout))
     if not all(identity):
         raise Stop(NO_IDENTITY)
-    if any(value in EXAMPLES for value in identity):
-        raise Stop(EXAMPLE_IDENTITY)
+    if any(value in EXAMPLES for value in identity):  # name the scope that holds it, or the fix changes nothing
+        local = (text(repo.run("config", "--local", key).stdout) for key in ("user.name", "user.email"))
+        raise Stop(EXAMPLE_LOCAL if any(value in EXAMPLES for value in local) else EXAMPLE_GLOBAL)
     gh = shutil.which("gh")
     if not gh:
         raise Stop(NO_GH)

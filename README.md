@@ -80,7 +80,7 @@ claude plugin install asbuild@hevelius-ai
 
 ### 2. Set it up
 
-Your project's folder must be on your computer. A new repository has none yet: copy it first, in a terminal (Git warns that the repository is empty; that is fine):
+Your project's folder must be on your computer. A new repository has none yet: copy it first, in a terminal (if Git warns that the repository is empty, that is fine):
 
 ```bash
 git clone https://github.com/<owner>/<repository>.git

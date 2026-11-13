@@ -41,33 +41,60 @@ def test_S5_T1_install_says_the_folder_is_on_your_computer():
     assert "a session that runs in the cloud does not have the plugin" in section
 
 
+EXAMPLE = """Git's name or email is still the example ("Your Name" or you@example.com)"""
+CLAUDE_SETS = "Tell Claude the name and email to use, and it sets them for you"
+
+
 def test_S5_T2_example_identity_counts_as_not_set(world, capsys):
+    """T2 as it happened: the examples in the global settings; then in the repository's own; each named fix works."""
     work, hub = world
-    s5.git(work, "config", "user.name", "Your Name")
+    s5.git(work, "config", "--unset", "user.name")
+    s5.git(work, "config", "--unset", "user.email")
+    s5.git(work, "config", "--global", "user.name", "Your Name")
+    s5.git(work, "config", "--global", "user.email", "you@example.com")
     before = s5.snapshot(work)
     code, out = s5.setup(work, capsys)
     assert code == 1
-    assert 'Git\'s name or email is still the example ("Your Name" or you@example.com)' in out
-    assert "Tell Claude the name and email to use, and it sets them for you" in out and s5.AGAIN in out
+    assert EXAMPLE in out and CLAUDE_SETS in out and s5.AGAIN in out
+    assert 'git config --global user.name "Your Name"' in out and "leave out --global" not in out
     assert s5.snapshot(work) == before and s5.hub_branches(hub) == set()
-    s5.git(work, "config", "user.name", "Pat Example")
-    s5.git(work, "config", "user.email", "you@example.com")
+    s5.git(work, "config", "--global", "user.name", "Pat Example")  # the fix the message names
+    code, out = s5.setup(work, capsys)
+    assert code == 1 and EXAMPLE in out  # the email is still the example
+    assert s5.snapshot(work) == before and s5.hub_branches(hub) == set()
+    s5.git(work, "config", "--global", "user.email", "pat@example.com")
+    code, out = s5.setup(work, capsys)
+    assert code == 0 and "main" in s5.hub_branches(hub)
+
+
+def test_S5_T2_example_identity_in_the_repository_names_the_local_fix(world, capsys):
+    work, hub = world
+    s5.git(work, "config", "--global", "user.name", "Pat Global")
+    s5.git(work, "config", "user.name", "Your Name")  # README: "leave out --global ... for one repository only"
+    before = s5.snapshot(work)
     code, out = s5.setup(work, capsys)
     assert code == 1
-    assert 'Git\'s name or email is still the example ("Your Name" or you@example.com)' in out
-    assert s5.hub_branches(hub) == set()
+    assert EXAMPLE in out and "It is set in this repository's own settings" in out
+    assert '  git config user.name "Your Name"' in out.splitlines() and "git config --global" not in out
+    assert s5.snapshot(work) == before and s5.hub_branches(hub) == set()
+    s5.git(work, "config", "user.name", "Pat Example")  # the fix the message names
+    code, out = s5.setup(work, capsys)
+    assert code == 0 and "main" in s5.hub_branches(hub)
+
+
+def test_S5_T2_missing_identity_says_claude_can_set_it(world, capsys):
+    work, _ = world
     s5.git(work, "config", "--unset", "user.email")
     code, out = s5.setup(work, capsys)
     assert code == 1
     assert "Git has no name or email for its commits yet." in out
-    assert "your own name and email in place of the examples" in out
-    assert "Tell Claude the name and email to use, and it sets them for you" in out
+    assert "your own name and email in place of the examples" in out and CLAUDE_SETS in out
 
 
 def test_S5_T2_skill_asks_for_the_name_and_email():
     text = (ROOT / "plugin" / "skills" / "setup" / "SKILL.md").read_text(encoding="utf-8")
     assert "ask the person for the name and email to use" in text
-    assert "run the two `git config --global` commands with their answer" in text
+    assert "run the two `git config` commands the message names, with `--global` or without it" in text
     assert 'never with the examples "Your Name" or `you@example.com`' in text
     assert len(text.splitlines()) < 60
 

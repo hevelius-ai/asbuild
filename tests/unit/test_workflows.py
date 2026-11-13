@@ -111,3 +111,15 @@ def test_all_actions_pinned_by_commit():
         for s in steps(name):
             if "uses" in s:
                 assert re.fullmatch(r"actions/[\w-]+@[0-9a-f]{40}", s["uses"]), s["uses"]
+
+
+def test_plugin_and_every_workflow_clone_one_version():
+    """D32: the plugin's version and the AsBuild tag every workflow file clones are one number."""
+    import json
+
+    version = json.loads((ROOT / "plugin" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"]
+    names = ("asbuild-test.yml", "asbuild-verdict.yml")
+    files = [ROOT / d / n for d in ("workflows", "plugin/workflows") for n in names]
+    for f in files:
+        tags = re.findall(r"--branch (\S+) https://github\.com/hevelius-ai/asbuild", f.read_text(encoding="utf-8"))
+        assert tags == [f"v{version}"], (f, tags, version)

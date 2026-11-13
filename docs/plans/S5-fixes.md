@@ -14,20 +14,25 @@ The locked S5 checks stay unchanged: C2 still finds the two commands with the ex
 
 ## Tests first, seen failing
 
-`tests/acceptance/S5/test_S5_fixes.py`, new:
+Seen failing on 13 Nov, before the fix, each by its assertion: T1 `'folder on your computer' in "2. In your project, type ..."`; T2 `assert 0 == 1` (setup accepted "Your Name" and pushed); the skill test `'ask the person for the name and email to use' in '---...'`; T3 `'Settings' in '1. Add the plugin to Claude.'`. The round 1 test for the repository's own settings failed on the first fix (no "It is set in this repository's own settings"), and the version test failed with one workflow file set back to `v0.3.0`.
+
+`tests/acceptance/S5/test_S5_fixes.py`, new (with `test_S5_T2_missing_identity_says_claude_can_set_it` for the missing-identity message):
 
 - `test_S5_T1_install_says_the_folder_is_on_your_computer`: the opening list's step 2 and section 2 name a folder on your computer, `git clone https://github.com/`, and that a cloud session does not have the plugin.
 - `test_S5_T2_example_identity_counts_as_not_set`: with `user.name` "Your Name" (or `user.email` `you@example.com`), setup exits 1 with the example-values message, pushes nothing and changes nothing; the missing-identity message says to use your own name and email and that Claude can set them.
 - `test_S5_T2_skill_asks_for_the_name_and_email`: the setup skill tells Claude to ask for the name and email, to run the two commands with the person's answer, and never to use the example values.
 - `test_S5_T3_step_one_says_how`: the opening list's step 1 names Settings, Customize, Plugins, Add marketplace and `hevelius-ai/asbuild`, then Discover.
 
-Version `0.3.1` (D32): `plugin.json` and the four `--branch` lines; the existing version tests cover them.
+- `test_S5_T2_example_identity_in_the_repository_names_the_local_fix` (review round 1, M1): the example in the repository's own settings gets the commands without `--global`, and that fix works.
+
+Version `0.3.1` (D32): `plugin.json` and the four `--branch` lines, held on one number by `tests/unit/test_workflows.py::test_plugin_and_every_workflow_clone_one_version` (review round 1, M2; before it, nothing tested it).
 
 ## Premortem: how it could fail
 
 1. The new README words break a locked S3, S4 or S5 string. Test: the full suite runs the locked checks.
-2. The example-value check stops a real person whose name is literally "Your Name". Stated limit: it is the README's example; anyone so named sets another email or a local name.
-3. Claude runs `git config --global` with a name it guessed. Test: the skill line says to ask and to use the person's answer; the skill never names a value.
+2. The example-value check stops a real person whose name is literally "Your Name" (the name alone stops setup, whatever the email). Stated limit: it is the README's example; such a person sets their name in another form, for example with an initial.
+3. Claude runs `git config` with a name it guessed. Test: the skill line says to ask and to use the person's answer; the only values it names are the examples, as values never to use.
+5. The examples sit in the repository's own settings (the README allows leaving out `--global`), so a `--global` fix would change nothing (review round 1, M1). Test: setup names the commands without `--global` when the repository's own settings hold an example, and each named fix lets setup carry on, for both places.
 4. The cloud-session line goes stale if the desktop app later carries local plugins into cloud sessions. Stated limit: the line says what happens today.
 
 ## Release after the merge

@@ -21,7 +21,7 @@ The script changes nothing in the person's folder: no branch is switched and uns
 
 - **0:** pass on the script's message as it is, with the link. On GitHub's pull request page (open in the browser when the message says so, else from the link) the person clicks **Create pull request**, then **Merge pull request**. If the message says AsBuild is already set up, offer `/asbuild:story`.
 - **1:** the person must do one thing first, and the message names it. Pass it on as it is. Never enter a password, key or token, and never run a sign-in for them: `gh auth login` and `gh auth refresh` are the person's to run, in their own terminal. When they say it is done, run the script again.
-- **1, about Git's name and email:** ask the person for the name and email to use for their commits, then run the two `git config --global` commands with their answer, never with the examples "Your Name" or `you@example.com`, and run the script again.
+- **1, about Git's name and email:** ask the person for the name and email to use for their commits, then run the two `git config` commands the message names, with `--global` or without it as the message says, with their answer, never with the examples "Your Name" or `you@example.com`, and run the script again.
 - **2:** setup could not run. Tell the person what the message says.
 
 Never write the workflow files by hand or change them, and never merge the pull request: the merge is the person's approval.
