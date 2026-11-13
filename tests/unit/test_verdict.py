@@ -422,3 +422,16 @@ def test_story_pr_with_a_check_missing_its_plain_sentence(tmp_path, second_row):
     assert {"code": "NEW_CHECKS_UNDESCRIBED", "params": {"paths": ["dev-docs/stories/S2/story.md"]}} in v["codes"]
     r = render(v)
     assert "Don't approve these yet" in r["top"] and "If every line says what you asked for" not in r["top"]
+
+
+@pytest.mark.parametrize("path", ["pytest.ini", "pyproject.toml", "requirements.txt", ".github/workflows/x.yml"])
+def test_K1_changed_protected_file_leaves_every_line_unjudged(tmp_path, path):
+    """K1 (D41): a file only the person may change can change how the checks run, so no line reads "works"."""
+    v = judge(facts(tmp_path, changed=["app/count.py", path]))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert {i["status"] for i in v["items"]} == {"file_changed"}
+    assert "✓" not in r["top"] and "✗" not in r["top"]
+    assert r["top"].count("? not judged: the AI changed a file only you may change") == 2
+    assert "checked only the lines" not in r["top"]  # nothing was judged, so the footer claims nothing
+    assert lint("2", r["top"]) == []
