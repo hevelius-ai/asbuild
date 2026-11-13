@@ -20,8 +20,24 @@ def test_listing_links_point_at_this_repository():
     assert "## Install" in (ROOT / "README.md").read_text(encoding="utf-8").splitlines()
     assert m["privacyPolicyUrl"] == f"{REPO}/blob/main/PRIVACY.md"
     assert (ROOT / "PRIVACY.md").is_file()
-    assert m["termsOfServiceUrl"] == f"{REPO}/blob/main/LICENSE"
+    assert m["termsOfServiceUrl"] == f"{REPO}/blob/main/TERMS.md"
     assert (ROOT / "LICENSE").read_text(encoding="utf-8").startswith("MIT License")
+
+
+def test_terms_disclaim_warranty_and_liability_where_people_read():
+    terms = (ROOT / "TERMS.md").read_text(encoding="utf-8")
+    assert "created by Hevelius AI Group LLC" in terms and "MIT License" in terms
+    for heading in ("## No warranty", "## No liability", "## Your responsibility"):
+        assert heading in terms, heading
+    assert 'provided "as is"' in terms and "without warranty of any kind" in terms
+    assert "To the fullest extent permitted by law" in terms and "are not liable for any claim" in terms
+    assert "You use AsBuild at your own risk" in terms and "not a guarantee" in terms
+    # the short form, on the privacy page and in the README's licence section, points at the terms
+    privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
+    licence = (ROOT / "README.md").read_text(encoding="utf-8").split("## Licence", 1)[1]
+    for page in (privacy, licence):
+        assert "without warranty of any kind" in page and "you use it at your own risk" in page
+        assert "(TERMS.md)" in page
 
 
 def test_privacy_page_says_what_asbuild_collects_and_sends():

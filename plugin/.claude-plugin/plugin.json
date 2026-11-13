@@ -11,7 +11,7 @@
   "documentationUrl": "https://github.com/hevelius-ai/asbuild#install",
   "supportUrl": "https://github.com/hevelius-ai/asbuild/issues",
   "privacyPolicyUrl": "https://github.com/hevelius-ai/asbuild/blob/main/PRIVACY.md",
-  "termsOfServiceUrl": "https://github.com/hevelius-ai/asbuild/blob/main/LICENSE",
+  "termsOfServiceUrl": "https://github.com/hevelius-ai/asbuild/blob/main/TERMS.md",
   "license": "MIT",
   "keywords": ["pull-requests", "acceptance-tests", "pytest", "github-actions", "review"]
 }

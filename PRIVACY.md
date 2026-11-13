@@ -14,6 +14,10 @@ AsBuild collects no personal data. Hevelius AI Group LLC runs no server for AsBu
 - **The two workflow files** run in your own repository's GitHub Actions. They run your tests, then post a check and a comment on your pull request, inside your repository. They use no repository secrets. AsBuild's own steps contact only GitHub and the Python Package Index (PyPI), to install your `requirements.txt` and one package AsBuild uses (`defusedxml`). Your project's own code and tests, which these workflows run, contact whatever they are written to contact.
 - **Claude Code, GitHub, PyPI and Anthropic** handle your data under their own policies.
 
+## No warranty, no liability
+
+AsBuild is created by Hevelius AI Group LLC and provided free of charge, "as is", without warranty of any kind. To the fullest extent permitted by law, Hevelius AI Group LLC is not liable for any damage or loss arising from AsBuild or its use; you use it at your own risk and remain responsible for what you merge. The full terms are in [TERMS.md](TERMS.md).
+
 ## Questions
 
 Open an issue at https://github.com/hevelius-ai/asbuild/issues.
