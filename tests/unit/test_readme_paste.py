@@ -55,9 +55,14 @@ def test_paste_block_hands_over_to_setup_and_keeps_sign_in_with_the_person():
     assert block.index("/reload-plugins") < block.index("/asbuild:setup")
     assert "Never ask for, type or handle a password, key or token" in block
     assert "tell me to run gh auth login in a terminal myself" in block  # the person signs in, never Claude
-    assert block.index("gh auth status") < block.index("git clone")  # signed in before a private clone
-    assert "Only if this folder is empty and is not a Git repository" in block  # never a clone over work
+    assert "Only if this folder is empty" in block and "is not a Git repository" in block  # never a clone over work
     assert "setup checks the folder itself" in block and "Git's name and email" in block  # left to setup
+    assert "git config" not in block  # the identity, with its --global or not, is setup's
+    assert "gh auth setup-git" in block  # Git uses the sign-in gh has, for a private clone
+    # the tools first, any Python 3.12 or newer, under each name setup tries
+    assert block.index("git --version") < block.index("gh auth status") < block.index("git clone")
+    assert "Python 3.12 or newer" in block
+    assert all(name in block for name in ("python --version", "python3 --version", "py --version"))
     assert "Ask me before installing anything" in block
     assert "winget install --id Git.Git" in block and "winget install --id GitHub.cli" in block
     assert "winget install --id Python.Python.3.12" in block
