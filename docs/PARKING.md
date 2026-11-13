@@ -43,3 +43,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Setup tells its own commits by their titles alone, so a hand-made commit titled exactly "Add AsBuild" or "Update AsBuild" on the setup branch would be replaced (S5 review round 3, not verified).
 - Whether Claude counts an untracked file as unsaved work at setup's step 3 (switch only with no unsaved work), which decides whether the empty-repository case reaches the move-aside step (S5 review round 3, PARKED).
 - Setup reports an invalid `GH_TOKEN` (the CLI present, its sign-in bad) through "Git could not reach the repository", not "not signed in"; a real signed-out machine was not tried (S5 walkthrough run 3, PARKED-1).
+- Setup's example-identity check matches only the exact examples; near-copies ("your name") pass (#18 review round 1, PARKED).
+- An identity given only by environment variables (`GIT_AUTHOR_NAME`) is reported as missing by setup (#18 review round 1, PARKED; older behaviour).
