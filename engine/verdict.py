@@ -228,6 +228,9 @@ def judge(f: Facts) -> dict:
         and c["params"]["path"].startswith("tests/acceptance/")
         for c in codes
     )
+    # Decision D41 (K1): any other file only the person may change (a settings file such as pytest.ini, the
+    # requirements, the workflows) can change how the checks run, so no line is judged either.
+    changed_own = any(c["code"] in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for c in codes)
 
     pr_res, acc, c3 = load_evidence(f.evidence)
     items = [dict(c, status="not_checked") for c in checks]
@@ -258,6 +261,8 @@ def judge(f: Facts) -> dict:
             without = [before(c3, k) for k in with_]
             if changed_acc:
                 item["status"] = "check_changed"
+            elif changed_own:
+                item["status"] = "file_changed"
             elif not with_:
                 item["status"] = "not_checked"
                 codes.append(code("LOCK_TEST_MISSING", check=item["id"]))

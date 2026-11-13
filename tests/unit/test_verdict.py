@@ -422,3 +422,44 @@ def test_story_pr_with_a_check_missing_its_plain_sentence(tmp_path, second_row):
     assert {"code": "NEW_CHECKS_UNDESCRIBED", "params": {"paths": ["dev-docs/stories/S2/story.md"]}} in v["codes"]
     r = render(v)
     assert "Don't approve these yet" in r["top"] and "If every line says what you asked for" not in r["top"]
+
+
+@pytest.mark.parametrize("path", ["pytest.ini", "pyproject.toml", "requirements.txt", ".github/workflows/x.yml"])
+def test_K1_changed_protected_file_leaves_every_line_unjudged(tmp_path, path):
+    """K1 (D41): a file only the person may change can change how the checks run, so no line reads "works"."""
+    v = judge(facts(tmp_path, changed=["app/count.py", path]))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert {i["status"] for i in v["items"]} == {"file_changed"}
+    assert "✓" not in r["top"] and "✗" not in r["top"]
+    assert r["top"].count("? not judged: the AI changed a file only you may change") == 2
+    assert "checked only the lines" not in r["top"]  # nothing was judged, so the footer claims nothing
+    assert lint("2", r["top"]) == []
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        {"acc": [(*A1, "pass"), (*A2, "assert")], "pr": [(*UNIT, "pass"), (*A1, "pass"), (*A2, "assert")]},
+        {"acc": [(*A1, "pass"), (*A2, "skip")], "pr": [(*UNIT, "pass"), (*A1, "pass"), (*A2, "skip")]},
+        {"acc": [(*A1, "pass")], "pr": [(*UNIT, "pass"), (*A1, "pass")]},
+    ],
+    ids=["a check still fails", "a check skipped", "a check missing"],
+)
+def test_K1_no_line_is_judged_whatever_the_results(tmp_path, evidence):
+    """K1 review round 1: under a changed requirements.txt, a failing, skipped or missing check is not judged either."""
+    v = judge(facts(tmp_path, changed=["app/count.py", "requirements.txt"], **evidence))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert [i["status"] for i in v["items"]] == ["file_changed", "file_changed"]
+    assert "✓" not in r["top"] and "✗" not in r["top"]
+    assert not any(c["code"] in ("CHECK_FAILS", "LOCK_TEST_SKIPPED") and "check" in c["params"] for c in v["codes"])
+
+
+def test_K1_no_results_under_a_changed_protected_file_reads_not_checked(tmp_path):
+    """K1 re-check (LOW): with no readable results, every line reads "not checked this time", as the plan says."""
+    v = judge(facts(tmp_path, changed=["app/count.py", "requirements.txt"], evidence=False))
+    r = render(v)
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert [i["status"] for i in v["items"]] == ["not_checked", "not_checked"]
+    assert r["top"].count("? not checked this time") == 2 and "✓" not in r["top"]

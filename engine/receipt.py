@@ -54,11 +54,13 @@ STATUS = {
     "works": "✓ works",
     "fails": "✗ doesn't work yet",
     "check_changed": "? not judged: the AI changed one of your agreed checks",
+    "file_changed": "? not judged: the AI changed a file only you may change",  # D41 (K1)
     "not_checked": "? not checked this time",
     "already_passed": "? not shown yet: this was already true before the AI started",
     "exists_only": "? not shown yet: it failed before only because a part of the app didn't exist",
     "new": "• new, for you to approve",
 }
+UNJUDGED = ("not_checked", "check_changed", "file_changed")  # no line was judged
 
 
 def plain_file(path: str) -> str:
@@ -211,7 +213,7 @@ def render(v: dict) -> dict:
             "Good to know: AsBuild hasn't checked anything yet. Once you approve these lines, it checks the AI's "
             "work against them, on GitHub, separately from the AI.",
         ]
-    elif n == 6 or all(i["status"] in ("not_checked", "check_changed") for i in v["items"]):  # nothing judged
+    elif n == 6 or all(i["status"] in UNJUDGED for i in v["items"]):  # nothing judged
         top += ["", "Good to know: AsBuild runs on GitHub, separately from the AI."]
     else:
         top += [
