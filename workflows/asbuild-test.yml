@@ -37,7 +37,7 @@ jobs:
 
       - name: Fetch AsBuild (from hevelius-ai/asbuild, never from this repository)
         run: |
-          git clone --quiet --depth 1 --branch v0.3.1 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          git clone --quiet --depth 1 --branch v0.3.2 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
           echo "ASBUILD=$RUNNER_TEMP/asbuild" >> "$GITHUB_ENV"
           mkdir -p out
 

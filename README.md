@@ -206,3 +206,5 @@ AsBuild uses no repository secrets: its two workflows use only the token GitHub 
 ## Licence
 
 MIT licence. Copyright (c) 2026 Hevelius AI Group LLC.
+
+AsBuild is created by Hevelius AI Group LLC and provided free of charge, "as is", without warranty of any kind. To the fullest extent permitted by law, Hevelius AI Group LLC is not liable for any damage or loss arising from AsBuild or its use; you use it at your own risk and remain responsible for what you merge. See the [terms of use](TERMS.md) and the [privacy policy](PRIVACY.md).

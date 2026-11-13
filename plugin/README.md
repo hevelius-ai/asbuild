@@ -2,6 +2,12 @@
 
 AsBuild checks an AI agent's pull request against tests a person approved, and records the result in a plain receipt. This plugin is the part that runs in Claude Code. The checking itself runs in GitHub Actions, from two workflow files you add to your repository. How to install it, what each verdict means and what AsBuild does not prove: [AsBuild's README](https://github.com/hevelius-ai/asbuild#readme).
 
+To install it in one step, run this in a terminal:
+
+```
+claude plugin install asbuild --marketplace hevelius-ai/asbuild
+```
+
 It is for Claude Code working in a GitHub repository that has Python, pytest, git and the GitHub CLI (`gh`). On claude.ai or in Cowork, with no repository to work in, it cannot do its job.
 
 ## What it contains
