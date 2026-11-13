@@ -26,3 +26,5 @@ date,story,kind,hours,note
 2026-11-12,S5,agent,0.4,"review round 2 and triage, the fixes, the Git proof (estimated)"
 2026-11-12,S5,agent,0.3,"review round 3, the one page, the round 3 fixes (estimated)"
 2026-11-12,S5,owner,0.1,"decision V3-5A (estimated)"
+2026-11-12,S5,agent,0.3,"the re-check, #15 ready, after the merge, setup in two repositories, records (estimated)"
+2026-11-12,S5,owner,0.1,"the merge of #15 and the v0.3.0 release (estimated)"
