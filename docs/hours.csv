@@ -29,3 +29,5 @@ date,story,kind,hours,note
 2026-11-12,S5,agent,0.3,"the re-check, #15 ready, after the merge, setup in two repositories, records (estimated)"
 2026-11-12,S5,owner,0.1,"the merge of #15 and the v0.3.0 release (estimated)"
 2026-11-13,S5,agent,0.4,"the walkthrough re-check: setup, the run, the form check, records (estimated)"
+2026-11-13,S5,agent,0.3,"the owner's try: support, checks, root causes, records (estimated)"
+2026-11-13,S5,owner,0.4,"the owner's try from the new README, about 25 minutes (estimated)"

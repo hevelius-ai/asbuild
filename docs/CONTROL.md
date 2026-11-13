@@ -4,8 +4,8 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 
-- AsBuild Core is done (2026-11-12T21:26Z): all three done lines met (the done check below; line 3 by D37). The install redesign (D38, D39), story S5: `/asbuild:setup` and the new install page, hevelius-ai/asbuild#15, merged 2026-11-12T23:53Z (0522b67); release `v0.3.0` published on it at 23:54Z. Setup's update pull requests hevelius-ai/asbuild-demo#12 (0d71d09) and hevelius-ai/auto-job-search#17 (6afdabb), both WAITING FOR YOU as expected, and the records hevelius-ai/asbuild#16 (94d6193) merged by chrisz-glitch on 2026-11-13 at 13:33Z; both judged repositories now clone `v0.3.0`. The walkthrough re-check of the install rows (owner's 1A, 2A, 3A; run 3, `hevelius-ai/asbuild-walkthrough-3`, 2026-11-13T14:36Z to 14:43Z): INCOMPLETE, 10 PASS, 0 FAIL, 8 NOT CHECKED, 2 NOT VISIBLE; no HIGH, MEDIUM or LOW; 2 PARKED. Left of S5: the owner's try from the new README (done line 3 of the redesign). D38's report line is 24 agent hours or 6.4 owner hours in all (18.0 and 3.7 used).
-- Branches in `hevelius-ai/asbuild`: `main`; `records/s5-next` (these records, a draft pull request that collects the owner's try's records too).
+- AsBuild Core is done (2026-11-12T21:26Z): all three done lines met (the done check below; line 3 by D37). The install redesign (D38, D39), story S5: `/asbuild:setup` and the new install page, hevelius-ai/asbuild#15, merged 2026-11-12T23:53Z (0522b67); release `v0.3.0` published on it at 23:54Z. Setup's update pull requests hevelius-ai/asbuild-demo#12 (0d71d09) and hevelius-ai/auto-job-search#17 (6afdabb), both WAITING FOR YOU as expected, and the records hevelius-ai/asbuild#16 (94d6193) merged by chrisz-glitch on 2026-11-13 at 13:33Z; both judged repositories now clone `v0.3.0`. The walkthrough re-check of the install rows (owner's 1A, 2A, 3A; run 3, `hevelius-ai/asbuild-walkthrough-3`, 2026-11-13T14:36Z to 14:43Z): INCOMPLETE, 10 PASS, 0 FAIL, 8 NOT CHECKED, 2 NOT VISIBLE; no HIGH, MEDIUM or LOW; 2 PARKED. The owner's try from the new README (`hevelius-ai/asbuild-owner-try2`, created 14:50:17Z): setup #1, story S1 #2 (WAITING FOR YOU), build #3 PROVEN at 15:13:19Z, 23 minutes, all merged by chrisz-glitch; the owner: "all works as expected". Done line 3 of the redesign is met. Two findings from it wait for decision S5-1. D38's report line is 24 agent hours or 6.4 owner hours in all (18.3 and 4.1 used).
+- Branches in `hevelius-ai/asbuild`: `main`; `records/s5-next` (the walkthrough re-check's and the owner's try's records, hevelius-ai/asbuild#17).
 - Release `v0.2.1` (D36): the F2 and F1 fix, hevelius-ai/asbuild#10, merged by chrisz-glitch at 17:15Z (f47ad6d), two review rounds and APPROVE; the owner published `v0.2.1` on it at 17:16Z; pin PRs asbuild-demo#11 (88e2943) and auto-job-search#16 (acf6a98) merged 17:21Z and 17:22Z; a fresh verdict on auto-job-search#14 cloned `v0.2.1` and posted NOT PROVEN again (17:25Z, run 43269233590).
 - Walkthrough (D27, D31, D33 to D36): S1, S2 repeat (`asbuild-walkthrough-1b`): INCOMPLETE, 15 PASS, LOW 5. Run 2 (S3, S4, `asbuild-walkthrough-2`): BLOCKER FOUND, F2 HIGH and F1 MEDIUM; the re-check of its failed rows on `v0.2.1` (`asbuild-walkthrough-2r`, 17:18Z to 17:24Z): INCOMPLETE, 3 PASS, 1 NOT CHECKED (the `/plugin` slash route, not operable headless), F1 and F2 no longer reproduce, LOW 1 (F5). No HIGH or MEDIUM open. Run 1 (`asbuild-walkthrough`) was stopped by the setup (D35). The four test repositories were deleted by the owner (gone at 2026-11-12T22:15Z); the reports stay in the walkthrough folders on the owner's computer, outside the repositories (never committed).
 - The owner's own try (D27): 2026-11-12, in a new, empty, private repository, `hevelius-ai/asbuild-owner-try`, from the README through Claude's step-by-step list of it: wiring #1, story S1 #2 (WAITING FOR YOU), build #3 PROVEN at 19:01Z, 31 minutes after the repository was created (18:30Z). The owner: "It worked". Two stuck points, neither in the product: the plugin panel's source field took a whole line of Claude's list, and `curl` in Windows PowerShell (the README says Git Bash). The try repository stays the owner's; deleting it is the owner's step.
@@ -16,7 +16,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-Merge now: nothing yet; `records/s5-next` waits for the owner's try's records. auto-job-search#14 stays open, never merged.
+Merge now: hevelius-ai/asbuild#17 (records only). auto-job-search#14 stays open, never merged.
 
 ## Running jobs
 
@@ -24,7 +24,9 @@ None.
 
 ## Open decisions
 
-None to answer now. The install design is decided (D39). The desktop check (S5 premortem 1): on the owner's app, `/asbuild` lists `asbuild:story` and `asbuild:verdict` with no `/reload-plugins`, from the copy installed through the terminal. The new user's path: after the plugin was uninstalled, `hevelius-ai` was still in Claude Code's list and the app's "Add from a repository" refused ("A marketplace with the same name as this repository already exists"); removing it under Add, Manage marketplaces, then adding it again worked (the owner, 22:38Z): Claude Code then listed `asbuild@hevelius-ai` 0.2.1, user scope, enabled. The README's step 1 names that fix. Left for the owner's final try: `/asbuild` in a session right after a fresh add.
+- S5-1 (laid out to the owner 2026-11-13): the two findings of the owner's try. T1: the README's step 2 assumes the project's folder is on the computer; with a new repository there is none, and choosing the GitHub repository in the desktop app's Code tab starts a cloud session, which does not have the plugin. T2: setup's "no name or email" message shows `git config --global` commands with the placeholders "Your Name" and `you@example.com`; run as shown, they set this computer's global Git identity to the placeholders, and setup then accepted them. Options: fix both in release `v0.3.1`; fix the README only; or park both.
+
+The install design is decided (D39). None other to answer now.
 
 ## QUALITY RISK
 
@@ -32,6 +34,6 @@ None to answer now. The install design is decided (D39). The desktop check (S5 p
 
 ## Next steps
 
-1. S5 (D39): the owner's try from the new README, starting by removing AsBuild (this computer has 0.3.0 at user scope, from the walker's run); it covers the rows the walker could not: the pull request page, the merge, then `/asbuild:setup` again ("already set up") and a first story.
+1. S5 (D39): the owner's decision S5-1; then the owner merges hevelius-ai/asbuild#17.
 2. The directory step (D17): the icon is in the plugin folder (the owner's, 1024 px; the portal takes it once, at the first save); Anthropic's pre-submission checklist and the platform check; then the owner's submission and the recording.
 3. Owner steps: the desktop check above; the recording (D17).
