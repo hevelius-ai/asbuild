@@ -26,47 +26,57 @@ Here it is catching a weakened check, in about 40 seconds: the AI changed an agr
 
 ## Install
 
-Three steps, once Git, the GitHub CLI and Python are on your computer.
+Three steps. Each one is set out below, in order, with everything it needs: start at "Before you start" and work down. You can follow them yourself, or give them to Claude Code word for word.
 
-1. Add the plugin to Claude. In the desktop app: Settings, Customize, Plugins, **Add**, **Add marketplace**, **Add from a repository**, enter `hevelius-ai/asbuild`; then **Discover**, AsBuild, **Add**. In a terminal, use the two commands under "1. Add the plugin" below.
-2. In your project, type `/asbuild:setup`. Use your project's folder on your computer (a new repository: copy it with `git clone` first, see "2. Set it up"). Claude checks what is missing, prepares AsBuild's two check files and opens a pull request page. Create the pull request and merge it.
+1. Add the plugin to Claude. In the desktop app: Settings, Customize, Plugins, **Add**, **Add marketplace**, **Add from a repository**, enter `hevelius-ai/asbuild`; then **Discover**, AsBuild, **Add**. In a terminal: `/plugin marketplace add hevelius-ai/asbuild`, then `/plugin install asbuild@hevelius-ai`.
+2. In your project, type `/asbuild:setup`. Claude runs it in your project's folder on your computer.
 3. Say what you want with `/asbuild:story`.
-
-Something missing? "Before you start" lists what to install, one line each. You can follow these steps yourself, or give them to Claude Code word for word.
 
 ### Before you start
 
-Your computer needs three programs; setup tells you which ones are missing. On Windows, install them in PowerShell, one line each, then close and reopen Claude so that it finds them:
+Do these once. Skip any that is already done.
 
-```powershell
-winget install --id Git.Git
-winget install --id GitHub.cli
-winget install --id Python.Python.3.12
-```
+1. **Install Git, the GitHub CLI and Python 3.12.** On Windows, in PowerShell, one line at a time:
 
-On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and https://www.python.org.
+   ```powershell
+   winget install --id Git.Git
+   winget install --id GitHub.cli
+   winget install --id Python.Python.3.12
+   ```
 
-- Git, with your name and email set. Git is needed: Claude Code adds the plugin marketplace by cloning it with Git, and Git needs a name and email for its commits (on many computers, Windows ones among them, it refuses to commit without them). If it has no name or email yet, set them once with `git config`, with your own name and email in place of the examples (leave out `--global` to set them for one repository only; Claude can also set them for you):
+   On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and https://www.python.org. Then close and reopen Claude, so that it finds them.
 
-  ```bash
-  git config --global user.name "Your Name"
-  git config --global user.email you@example.com
-  ```
+2. **Give Git your name and email.** Git is needed: Claude Code adds the plugin's marketplace by cloning it with Git, and on many computers Git refuses to commit without a name and email. Set them once with `git config`, in a terminal, with your own name and email in place of the examples (or ask Claude to set them for you):
 
-- The GitHub CLI (`gh`), signed in. Run `gh auth login` once, in a terminal, and choose GitHub.com, HTTPS, Yes to signing in Git with your GitHub credentials, and sign in with your browser. Claude never handles your password.
-- Python 3.12, the version AsBuild's check uses.
+   ```bash
+   git config --global user.name "Your Name"
+   git config --global user.email you@example.com
+   ```
 
-Your repository needs:
+3. **Sign in to GitHub.** In a terminal, run `gh auth login`. Choose GitHub.com, then HTTPS, then Yes to signing in Git with your GitHub credentials, and sign in with your browser. Claude never handles your password.
 
-- A GitHub repository with GitHub Actions switched on, with `main` as its default branch. It may be new and empty: if your folder has no commits either, setup makes the first commit, your folder's `requirements.txt` as it is on disk (saved or not) with pytest added, or a new one that lists pytest, and uploads it as `main`. If your folder already has commits, setup asks you to upload them first. If you set up a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
-- Python code whose tests run with pytest on Python 3.12, and a `requirements.txt` at the repository root that lists pytest (setup adds pytest when it is missing). The check installs your project from it.
-- The names AsBuild expects: stories in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), their locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json` at the root, and each build on a branch named `build/S<n>`. The story skill creates the first three for you.
+4. **Have a GitHub repository for your project**, with:
+   - GitHub Actions switched on, and `main` as its default branch;
+   - Python code whose tests run with pytest on Python 3.12;
+   - a `requirements.txt` at its root that lists pytest. AsBuild's check installs your project from it. Setup adds pytest when it is missing.
+
+   A new, empty repository is fine: setup makes its first commit for you. If you fill a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
 
 ### 1. Add the plugin
 
-In the Claude desktop app, use its menus: open Settings, then Customize, then the Plugins tab. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`. Then open **Discover**, select AsBuild and click **Add**. It downloads to Claude Code the next time you start a session; run `/reload-plugins` in that session, or start another, to load it ([Anthropic's plugin guide](https://claude.com/docs/plugins/overview)). To check, click **+** next to the prompt box, then **Plugins**: AsBuild should be in the list. If the app says a marketplace with the same name already exists, AsBuild's marketplace was added before, for example with the terminal commands below: open **Add**, then **Manage marketplaces**, remove `hevelius-ai`, and add it again.
+Use one of these three ways.
 
-In Claude Code in a terminal, type these two commands, one at a time:
+**In the Claude desktop app:**
+
+1. Open Settings, then Customize, then the Plugins tab.
+2. Click **Add**, then **Add marketplace**, then **Add from a repository**, and enter `hevelius-ai/asbuild`.
+3. Open **Discover**, select AsBuild and click **Add**.
+4. Start a new session in Claude Code: the plugin downloads then. Run `/reload-plugins` in that session, or start one more, to load it.
+5. To check, click **+** next to the prompt box, then **Plugins**: AsBuild is in the list.
+
+If the app says a marketplace with the same name already exists, AsBuild's marketplace was added before: open **Add**, then **Manage marketplaces**, remove `hevelius-ai`, and add it again.
+
+**In Claude Code in a terminal**, type these two commands, one at a time:
 
 ```
 /plugin marketplace add hevelius-ai/asbuild
@@ -75,7 +85,7 @@ In Claude Code in a terminal, type these two commands, one at a time:
 
 The second command opens AsBuild's page in the plugin panel: choose to install it. Then run `/reload-plugins`, or start Claude Code again.
 
-From a script, from CI, or from Claude's own shell, add the marketplace first, then install:
+**From a script, from CI, or from Claude's own shell**, add the marketplace first, then install:
 
 ```bash
 claude plugin marketplace add hevelius-ai/asbuild
@@ -84,41 +94,54 @@ claude plugin install asbuild@hevelius-ai
 
 ### 2. Set it up
 
-Your project's folder must be on your computer. A new repository has none yet: copy it first, in a terminal (if Git warns that the repository is empty, that is fine):
+1. **Get your project's folder on your computer.** If you already work on the project on this computer, use that folder. A new repository has no folder yet: copy it, in a terminal (if Git warns that the repository is empty, that is fine):
 
-```bash
-git clone https://github.com/<owner>/<repository>.git
-```
+   ```bash
+   git clone https://github.com/<owner>/<repository>.git
+   ```
 
-Open that folder on your computer in Claude Code (in the desktop app: the Code tab, then your folder, not the GitHub repository: a session that runs in the cloud does not have the plugin) and type:
+2. **Open that folder in Claude Code.** In the desktop app: the Code tab, then your folder, not the GitHub repository: a session that runs in the cloud does not have the plugin.
 
-```
-/asbuild:setup
-```
+3. **Type `/asbuild:setup`.** Claude checks Git, your GitHub sign-in and the repository. It changes nothing in your folder: your files, your current branch and any unsaved work stay as they are.
 
-Claude runs AsBuild's setup. It checks Git, your GitHub sign-in and the repository. If something is missing, it says what and the one thing to do; then run `/asbuild:setup` again. It changes nothing in your folder: your files, your current branch and any unsaved work stay as they are.
+4. **If setup stops, do the one thing it says, then type `/asbuild:setup` again.** It is safe to run any number of times. The most common messages:
 
-When everything is in place, it uploads AsBuild's two workflow files, `.github/workflows/asbuild-test.yml` and `.github/workflows/asbuild-verdict.yml`, on a branch named `asbuild-setup`, and opens GitHub's pull request page in your browser. Click **Create pull request**, then **Merge pull request**, and tell Claude it is merged.
+   | Setup says | What to do |
+   | --- | --- |
+   | This folder is not a Git repository | Open your project's own folder, the one linked to GitHub |
+   | Git has no name or email for its commits yet | Run the two `git config` commands it shows, with your own name and email |
+   | Git is not installed, or the GitHub CLI is not installed | Install it (`winget install --id GitHub.cli` on Windows, or from https://cli.github.com), then close and reopen Claude |
+   | You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
+   | Git could not reach the repository on GitHub | Check that you are online; if `gh` is signed in, run `gh auth setup-git` so that Git uses the same sign-in |
+   | The repository on GitHub is empty, but this folder already has commits | Run `git push -u origin HEAD:main` |
+   | GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main`, or rename the default branch to `main` when there is none |
+   | The branch asbuild-setup on GitHub holds commits that setup did not make | On GitHub, merge or close its pull request and delete the branch |
+   | GitHub refused the two workflow files | Uploading workflow files needs a GitHub sign-in with the `workflow` scope: run `gh auth refresh -h github.com -s workflow`; if it still refuses, `gh auth setup-git` as well |
 
-- A first setup's pull request gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
-- On a repository that already uses AsBuild, setup brings the two files up to this version. That pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
-- If setup says AsBuild is already set up here, there is nothing to merge.
+5. **Merge the pull request it opens.** When everything is in place, setup uploads AsBuild's two workflow files, `.github/workflows/asbuild-test.yml` and `.github/workflows/asbuild-verdict.yml`, on a branch named `asbuild-setup`, and opens GitHub's pull request page in your browser. Click **Create pull request**, then **Merge pull request**, and tell Claude it is merged. This first pull request gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
 
-Uploading workflow files needs a GitHub login with the `workflow` scope. If GitHub refuses for that reason, setup gives you the one command to run: `gh auth refresh -h github.com -s workflow`. If an earlier `asbuild-setup` branch is still on GitHub, setup replaces it with one made from today's `main`, but only when every commit on it that `main` lacks is one setup made; otherwise it leaves the branch alone and tells you.
+Two other things setup may say:
+
+- **AsBuild is already set up here:** there is nothing to merge.
+- **It updates AsBuild's files**, on a repository that already uses an older version: that pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
 
 ### 3. Agree your first story
 
-In Claude Code, run `/asbuild:story` and say what you want, in your own words. It agrees a short checklist with you, writes one test per line, and opens a story pull request. AsBuild's verdict on a story pull request is always WAITING FOR YOU: merging it approves the checks, and from then on they are locked.
+1. In Claude Code, type `/asbuild:story` and say what you want, in your own words.
+2. Answer its questions and approve the short checklist it proposes, with exact examples. It writes one test per line and opens a story pull request.
+3. Read the checklist on the pull request, and merge it if it is right. AsBuild's verdict on a story pull request is always WAITING FOR YOU: merging it approves the checks, and from then on they are locked.
 
-The story pull request also adds one line to `.claude/settings.json`, Claude Code's own deny rule for that story's tests, such as `Edit(/tests/acceptance/S1/**)`. Each story adds its own line, in the form `Edit(/tests/acceptance/S<n>/**)`. From the next session on, Claude Code's file tools, and the file commands it recognises in its shell, can't change those tests. It is on by default; to turn it off for a story, delete that line from the story pull request before you merge it. What it does not cover: a script that opens a file itself is not blocked. CI is the check: whatever changes a locked test, AsBuild's verdict says so. AsBuild does not check `.claude/settings.json` itself, so a pull request could remove the line; the tests stay locked either way.
+What the story pull request adds to your repository: the story in `dev-docs/stories/` (one folder per story, `S1`, `S2` and so on), its locked tests in `tests/acceptance/`, the tests' fingerprints in `locks.json`, and one line in `.claude/settings.json`, such as `Edit(/tests/acceptance/S1/**)`. Each story adds its own line, in the form `Edit(/tests/acceptance/S<n>/**)`: from the next session on, Claude Code's file tools, and the file commands it recognises in its shell, can't change those tests. To turn it off for a story, delete that line from the story pull request before you merge it. What it does not cover: a script that opens a file itself is not blocked. CI is the check: whatever changes a locked test, AsBuild's verdict says so. AsBuild does not check `.claude/settings.json` itself, so a pull request could remove the line; the tests stay locked either way.
 
 ### 4. Get the verdict after each push
 
-AsBuild posts its verdict as a check named "AsBuild", a little after the tests finish. `gh pr checks --watch` is not enough: it returns when the tests finish, before the verdict is posted. After each push to a pull request (except the one that adds the workflow files, which gets no verdict), Claude Code should run `/asbuild:verdict`, which waits for the AsBuild check and prints the verdict. If it doesn't, ask it to.
+1. Claude builds the change on a branch named `build/S<n>` and opens a pull request.
+2. After each push, Claude Code runs `/asbuild:verdict`, which waits for the check named "AsBuild" and prints its verdict. If it doesn't, ask it to. (`gh pr checks --watch` is not enough: it returns when the tests finish, a little before the verdict is posted.)
+3. Read the receipt on the pull request, and decide whether to merge.
 
 ### By hand
 
-Setup does the following for you. To do it yourself instead, from your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git; in Windows PowerShell, type `curl.exe` instead of `curl`, because there `curl` is a different command):
+Instead of typing `/asbuild:setup`, you can add the two workflow files yourself. From your repository's root, in a Bash shell (on Windows, Git Bash, which comes with Git; in Windows PowerShell, type `curl.exe` instead of `curl`, because there `curl` is a different command):
 
 ```bash
 git switch -c asbuild-setup
@@ -137,25 +160,6 @@ gh pr create --base main --title "Add AsBuild" --body "Adds AsBuild's two workfl
 ```
 
 Merge this pull request yourself. Like setup's, it gets no verdict on a first setup.
-
-### If something goes wrong
-
-Each of setup's messages names its own fix. The most common ones:
-
-| Setup says | What to do |
-| --- | --- |
-| This folder is not a Git repository | Open your project's own folder, the one linked to GitHub |
-| Git has no name or email for its commits yet | Run the two `git config` commands it shows, with your own name and email |
-| The GitHub CLI (gh) is not installed | Install it: `winget install --id GitHub.cli` on Windows, or from https://cli.github.com |
-| You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
-| Git could not reach the repository on GitHub | Check that you are online; if `gh` is signed in, run `gh auth setup-git` so that Git uses the same sign-in |
-| The repository on GitHub is empty, but this folder already has commits | Run `git push -u origin HEAD:main` |
-| GitHub's default branch for this repository is … | On GitHub: Settings, then General, set Default branch to `main`, or rename the default branch to `main` when there is none |
-| The branch asbuild-setup on GitHub holds commits that setup did not make | On GitHub, merge or close its pull request and delete the branch |
-| GitHub refused the two workflow files | Run `gh auth refresh -h github.com -s workflow`; if it still refuses, `gh auth setup-git` as well |
-| Git is not installed, or the GitHub CLI is not installed | Install it, then close and reopen Claude |
-
-Then run `/asbuild:setup` again. It is safe to run any number of times.
 
 ## The receipts
 
