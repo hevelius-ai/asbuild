@@ -29,11 +29,27 @@ def test_privacy_page_says_what_asbuild_collects_and_sends():
     assert "Hevelius AI Group LLC" in text
     assert "collects no personal data" in text
     assert "no server" in text and "no analytics" in text
-    assert "your own `git` and `gh`" in text
+    assert "GitHub's own count of how often the AsBuild repository is copied" in text  # the clone count, anonymous
+    assert "It sends data only to GitHub, through your own `git` and `gh`" in text
+    # every upload the plugin makes is named: setup's branches, the story pull request, the builds
+    for upload in ("`asbuild-setup`", "first uploads `main`", "story pull request", "The AI's builds"):
+        assert upload.lower() in text.lower(), upload
     assert "no repository secrets" in text
+    assert "only GitHub and the Python Package Index (PyPI)" in text and "`defusedxml`" in text
+    # review round 1: the two absolute claims that were false stay out
+    assert "Nothing else leaves your computer" not in text
+    assert "nothing outside GitHub" not in text
     assert f"{REPO}/issues" in text
+
+
+def test_privacy_page_names_every_package_the_workflows_install():
+    for name in ("asbuild-test.yml", "asbuild-verdict.yml"):
+        flow = (ROOT / "workflows" / name).read_text(encoding="utf-8")
+        for line in (x.strip() for x in flow.splitlines() if "pip install" in x):
+            assert line.endswith("-r requirements.txt") or line.endswith("defusedxml==0.7.1"), line
 
 
 def test_plugin_readme_installs_in_one_step():
     text = (ROOT / "plugin" / "README.md").read_text(encoding="utf-8")
-    assert "/plugin install asbuild --marketplace hevelius-ai/asbuild" in text
+    # the shell form, which `claude plugin install --help` documents (--marketplace <source>)
+    assert "claude plugin install asbuild --marketplace hevelius-ai/asbuild" in text
