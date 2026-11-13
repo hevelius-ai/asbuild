@@ -26,11 +26,27 @@ Here it is catching a weakened check, in three numbered steps: the AI changed an
 
 ## Install
 
-Three steps. Each one is set out below, in order, with everything it needs: start at "Before you start" and work down. You can follow them yourself, or give them to Claude Code word for word.
+Three steps. Claude Code can do most of them for you with the message right after this list; or follow them yourself, from "Before you start" down, where each one is set out in order with everything it needs.
 
 1. Add the plugin to Claude. In the desktop app: Settings, Customize, Plugins, **Add**, **Add marketplace**, **Add from a repository**, enter `hevelius-ai/asbuild`; then **Discover**, AsBuild, **Add**. In a terminal: `/plugin marketplace add hevelius-ai/asbuild`, then `/plugin install asbuild@hevelius-ai`.
 2. In your project, type `/asbuild:setup`. Claude runs it in your project's folder on your computer.
 3. Say what you want with `/asbuild:story`.
+
+### Or let Claude Code do it
+
+Open Claude Code in your project's folder on your computer (in the desktop app: the Code tab, then your folder), copy this message, and paste it in. Claude does every step it can, and tells you exactly what to do for the rest, one step at a time. You sign in to GitHub yourself; Claude never handles your password.
+
+```text
+Set up AsBuild (https://github.com/hevelius-ai/asbuild) for my project. Follow these steps in order. Do every step you can yourself. When a step needs me, stop and tell me exactly what to do, one thing at a time, and wait until I say it is done. Never ask for, type or handle a password, key or token: I sign in myself. Ask me before installing anything.
+
+1. Check that this folder is a Git repository linked to GitHub (git remote get-url origin). If it is not, ask me for my GitHub repository's address, copy it with git clone next to this folder, then tell me to open the new folder in Claude Code and paste this message again, and stop.
+2. Check that Git, the GitHub CLI and Python 3.12 are installed (git --version, gh --version, and python --version or py -3.12 --version). For each one missing, tell me how to install it: on Windows, in PowerShell, winget install --id Git.Git, winget install --id GitHub.cli or winget install --id Python.Python.3.12; on a Mac or Linux, from https://git-scm.com, https://cli.github.com or https://www.python.org. Then tell me to close and reopen Claude and paste this message again, and stop.
+3. Check that Git has my name and email (git config user.name, git config user.email). If either is missing, or is still the example "Your Name" or you@example.com, ask me for the name and email to use for my commits and set them with git config --global.
+4. Check that I am signed in to GitHub (gh auth status). If I am not, tell me to run gh auth login in a terminal myself, choose GitHub.com, then HTTPS, then Yes to signing in Git with my GitHub credentials, and sign in with my browser. Wait until I say it is done, and check again.
+5. Add the AsBuild plugin. If the claude command works in your shell, run claude plugin marketplace add hevelius-ai/asbuild, then claude plugin install asbuild@hevelius-ai. If it does not, tell me to do it in the Claude desktop app: Settings, then Customize, then Plugins; click Add, then Add marketplace, then Add from a repository, and enter hevelius-ai/asbuild; then open Discover, select AsBuild and click Add.
+6. Tell me to type /reload-plugins (or start a new session in this folder), and then /asbuild:setup. Setup checks the rest itself and opens GitHub's pull request page, where I click Create pull request, then Merge pull request.
+7. End with a short list: what you did, and what I still have to do.
+```
 
 ### Before you start
 
