@@ -47,7 +47,7 @@ Set up AsBuild (https://github.com/hevelius-ai/asbuild) for my project. Follow t
 6. End with a short list: what you did, and what I still have to do.
 ```
 
-### Before you start
+### Before you start (Move to "3. Agree your first story" if you choose installation with Claude Code) 
 
 Do these once. Skip any that is already done.
 
