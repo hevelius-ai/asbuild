@@ -110,7 +110,8 @@ claude plugin install asbuild@hevelius-ai
    | --- | --- |
    | This folder is not a Git repository | Open your project's own folder, the one linked to GitHub |
    | Git has no name or email for its commits yet | Run the two `git config` commands it shows, with your own name and email |
-   | Git is not installed, or the GitHub CLI is not installed | Install it (`winget install --id GitHub.cli` on Windows, or from https://cli.github.com), then close and reopen Claude |
+   | Git is not installed | Install it (`winget install --id Git.Git` on Windows, or from https://git-scm.com), then close and reopen Claude |
+   | The GitHub CLI (gh) is not installed | Install it (`winget install --id GitHub.cli` on Windows, or from https://cli.github.com), then close and reopen Claude |
    | You are not signed in to GitHub | Run `gh auth login` in a terminal and sign in with your browser |
    | Git could not reach the repository on GitHub | Check that you are online; if `gh` is signed in, run `gh auth setup-git` so that Git uses the same sign-in |
    | The repository on GitHub is empty, but this folder already has commits | Run `git push -u origin HEAD:main` |
@@ -118,12 +119,12 @@ claude plugin install asbuild@hevelius-ai
    | The branch asbuild-setup on GitHub holds commits that setup did not make | On GitHub, merge or close its pull request and delete the branch |
    | GitHub refused the two workflow files | Uploading workflow files needs a GitHub sign-in with the `workflow` scope: run `gh auth refresh -h github.com -s workflow`; if it still refuses, `gh auth setup-git` as well |
 
-5. **Merge the pull request it opens.** When everything is in place, setup uploads AsBuild's two workflow files, `.github/workflows/asbuild-test.yml` and `.github/workflows/asbuild-verdict.yml`, on a branch named `asbuild-setup`, and opens GitHub's pull request page in your browser. Click **Create pull request**, then **Merge pull request**, and tell Claude it is merged. This first pull request gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
+5. **Create and merge the pull request.** When everything is in place, setup uploads AsBuild's two workflow files, `.github/workflows/asbuild-test.yml` and `.github/workflows/asbuild-verdict.yml`, on a branch named `asbuild-setup`, and opens GitHub's pull request page in your browser. Click **Create pull request**, then **Merge pull request**, and tell Claude it is merged. This first pull request gets no verdict, because the workflows are not on `main` yet: AsBuild judges the pull requests that come after it.
 
-Two other things setup may say:
+Two other ways setup can end:
 
 - **AsBuild is already set up here:** there is nothing to merge.
-- **It updates AsBuild's files**, on a repository that already uses an older version: that pull request changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
+- **On a repository that already uses an older version of AsBuild**, setup's pull request updates AsBuild's two files. It changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
 
 ### 3. Agree your first story
 
