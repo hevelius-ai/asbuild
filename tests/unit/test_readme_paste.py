@@ -43,6 +43,10 @@ def test_paste_block_names_this_marketplace_and_plugin():
     # the desktop path, for when the claude command is not in Claude's shell
     for words in ("Settings", "Customize", "Plugins", "Add marketplace", "Add from a repository", "Discover"):
         assert words in block, words
+    # and the slash commands, for a terminal session whose shell has no claude command
+    assert "/plugin marketplace add hevelius-ai/asbuild" in block and "/plugin install asbuild@hevelius-ai" in block
+    # after the desktop menus, the README's own order: a new session, then /reload-plugins in it
+    assert "start a new session in this folder, type /reload-plugins in it, then /asbuild:setup" in block
 
 
 def test_paste_block_hands_over_to_setup_and_keeps_sign_in_with_the_person():
@@ -50,8 +54,10 @@ def test_paste_block_hands_over_to_setup_and_keeps_sign_in_with_the_person():
     assert "/reload-plugins" in block and "/asbuild:setup" in block
     assert block.index("/reload-plugins") < block.index("/asbuild:setup")
     assert "Never ask for, type or handle a password, key or token" in block
-    assert "gh auth login" in block
-    assert "Your Name" in block and "you@example.com" in block  # the examples count as not set, as in setup
+    assert "tell me to run gh auth login in a terminal myself" in block  # the person signs in, never Claude
+    assert block.index("gh auth status") < block.index("git clone")  # signed in before a private clone
+    assert "Only if this folder is empty and is not a Git repository" in block  # never a clone over work
+    assert "setup checks the folder itself" in block and "Git's name and email" in block  # left to setup
     assert "Ask me before installing anything" in block
     assert "winget install --id Git.Git" in block and "winget install --id GitHub.cli" in block
     assert "winget install --id Python.Python.3.12" in block
