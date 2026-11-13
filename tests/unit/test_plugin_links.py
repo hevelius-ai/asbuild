@@ -29,7 +29,7 @@ def test_privacy_page_says_what_asbuild_collects_and_sends():
     assert "Hevelius AI Group LLC" in text
     assert "collects no personal data" in text
     assert "no server" in text and "no analytics" in text
-    assert "GitHub's own count of how often the AsBuild repository is copied" in text  # the clone count, anonymous
+    assert "counts of visits to the AsBuild repository and of how often it is copied" in text  # anonymous counts
     assert "It sends data only to GitHub, through your own `git` and `gh`" in text
     # every upload the plugin makes is named: setup's branches, the story pull request, the builds
     for upload in ("`asbuild-setup`", "first uploads `main`", "story pull request", "The AI's builds"):
