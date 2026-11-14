@@ -10,7 +10,7 @@ from pathlib import Path
 from engine.lint_plain import lint
 from engine.receipt import render
 from engine.verdict import judge
-from tests.acceptance.S1.test_S1_verdicts import A1, A2, UNIT, facts
+from tests.acceptance.S1.test_S1_verdicts import A1, A2, UNIT, facts, junit
 
 ROOT = Path(__file__).resolve().parents[2]
 NAMES = ("asbuild-test.yml", "asbuild-verdict.yml")
@@ -19,8 +19,10 @@ CLONE = "git clone --quiet --depth 1 --branch v"
 TREE_CHECK = re.compile(
     r'^ *test "\$\(git -C "\$RUNNER_TEMP/asbuild" rev-parse HEAD:engine\)" = "([0-9a-f]{40})"$', re.M
 )
+RUN = "$RUNNER_TEMP/asbuild-run"
 HASHED = (
-    'python -m pip install --quiet --require-hashes --only-binary=:all: --no-deps -r "$ASBUILD/engine/requirements.txt"'
+    "python -m pip install --quiet --require-hashes --only-binary=:all: --no-deps "
+    '-r "$RUNNER_TEMP/asbuild-run/engine/requirements.txt"'
 )
 
 
@@ -51,6 +53,18 @@ def test_receipts_say_only_what_was_measured_about_other_checks(tmp_path):
         assert lint("other-checks", top) == []
 
 
+# Review round 1, finding 3: another story's unbuilt checks fail in the run too, and the receipt says so.
+def test_receipt_names_the_unbuilt_stories_checks(tmp_path):
+    other = ("tests.acceptance.S2.test_S2_greet", "test_S2_C1_greets")
+    f = facts(tmp_path, pr=[(*UNIT, "pass"), (*A1, "pass"), (*A2, "pass"), (*other, "assert")])
+    (tmp_path / "evidence" / "c3" / "s2.xml").write_text(junit([(*other, "assert")]))
+    v = judge(f)
+    assert v["verdict"] == "PROVEN" and v["pass_to_pass"] == {"total": 2, "broken": 0, "unbuilt": 1}
+    top = render(v)["top"]
+    assert "None of your app's other checks failed, apart from the checks of stories not built yet." in top
+    assert lint("unbuilt", top) == []
+
+
 def test_readme_says_what_nothing_that_worked_before_broke_covers():
     limits = read("README.md").split("## What AsBuild does not prove", 1)[1].split("\n## ", 1)[0]
     for words in (
@@ -69,22 +83,19 @@ def test_verdict_skill_never_has_the_agent_fix_a_test_the_change_did_not_touch()
 
 
 # Finding 3: the workflows run only the engine folder this release was built from, and install defusedxml by hash.
-def engine_tree() -> str:
-    """The Git tree id of engine/ as it is on disk now (committed or not), through a throwaway index."""
-    index = ROOT / ".git" / "asbuild-engine-index"
+def engine_tree(index: Path) -> str:
+    """The Git tree id of engine/ as it is on disk now (committed or not), through a throwaway index file
+    outside the repository (in a worktree, .git is a file, not a folder)."""
     env = {**os.environ, "GIT_INDEX_FILE": str(index)}
-    try:
-        subprocess.run(["git", "add", "--", "engine"], cwd=ROOT, env=env, check=True, capture_output=True)
-        out = subprocess.run(
-            ["git", "write-tree", "--prefix=engine/"], cwd=ROOT, env=env, check=True, capture_output=True, text=True
-        )
-    finally:
-        index.unlink(missing_ok=True)
+    subprocess.run(["git", "add", "--", "engine"], cwd=ROOT, env=env, check=True, capture_output=True)
+    out = subprocess.run(
+        ["git", "write-tree", "--prefix=engine/"], cwd=ROOT, env=env, check=True, capture_output=True, text=True
+    )
     return out.stdout.strip()
 
 
-def test_every_workflow_stops_unless_the_engine_is_this_release():
-    expected = engine_tree()
+def test_every_workflow_stops_unless_the_engine_is_this_release(tmp_path):
+    expected = engine_tree(tmp_path / "index")
     for f in WORKFLOWS:
         text = f.read_text(encoding="utf-8")
         ids = TREE_CHECK.findall(text)
@@ -107,6 +118,33 @@ def test_verdict_workflows_install_only_by_hash():
         assert "defusedxml==" not in text, f
         if f.name == "asbuild-verdict.yml":
             assert text.count(HASHED) == 1, f
+
+
+# Review round 1, finding 2: only the checked engine folder runs, copied alone, so nothing else in the download
+# can be imported ahead of the standard library.
+def test_workflows_run_only_a_copy_of_the_checked_engine_folder():
+    for f in WORKFLOWS:
+        lines = f.read_text(encoding="utf-8").splitlines()
+        clone = next(i for i, line in enumerate(lines) if CLONE in line)
+        step = [x.strip() for x in lines[clone + 2 : clone + 6] if not x.strip().startswith("#")][:3]
+        assert step == [
+            f'mkdir "{RUN}"',
+            f'cp -R "$RUNNER_TEMP/asbuild/engine" "{RUN}/engine"',
+            f'echo "ASBUILD={RUN}" >> "$GITHUB_ENV"',
+        ], (f, step)
+
+
+# Review round 1, finding 1: a value written to $GITHUB_ENV exists only in later steps, so no step reads $ASBUILD
+# in the step that sets it.
+def test_no_step_reads_asbuild_where_it_is_set():
+    import yaml
+
+    for f in WORKFLOWS:
+        for job in yaml.safe_load(f.read_text(encoding="utf-8"))["jobs"].values():
+            for s in job["steps"]:
+                run = s.get("run", "")
+                if "ASBUILD=" in run and "GITHUB_ENV" in run:
+                    assert "$ASBUILD" not in run.replace("ASBUILD=", ""), (f, s.get("name"))
 
 
 # Finding 4: the story skill says where the person's words go before saving them.

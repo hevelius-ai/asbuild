@@ -173,7 +173,7 @@ def test_other_story_failing_on_main_too_is_not_breakage(tmp_path):
     (tmp_path / "evidence" / "c3" / "s2.xml").write_text(junit([(*other, "assert")]))
     v = judge(f)
     assert v["verdict"] == "PROVEN"
-    assert v["pass_to_pass"] == {"total": 2, "broken": 0}
+    assert v["pass_to_pass"] == {"total": 2, "broken": 0, "unbuilt": 1}
 
 
 def test_proven_with_no_other_tests_claims_nothing_about_them(tmp_path):

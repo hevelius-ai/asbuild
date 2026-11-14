@@ -169,8 +169,13 @@ def render(v: dict) -> dict:
     actions: list[str] = []
     if n == 1:
         head.append("Done. Every line on your list works.")
-        if (v.get("pass_to_pass") or {}).get("total"):
-            head.append("None of your app's other checks failed.")
+        p2p = v.get("pass_to_pass") or {}
+        if p2p.get("total"):
+            head.append(
+                "None of your app's other checks failed, apart from the checks of stories not built yet."
+                if p2p.get("unbuilt")
+                else "None of your app's other checks failed."
+            )
         actions.append(f"Yes, one last step to add it to your app. Open [this change on GitHub]({v['pr_url']}).")
         actions.append(
             "If you want this change, press the green button there (Merge pull request). Every line on your "
@@ -196,7 +201,10 @@ def render(v: dict) -> dict:
     checklist = [f"{STATUS[i['status']]}: {i['plain']}" for i in v["items"]]
     broken = (v.get("pass_to_pass") or {}).get("broken", 0) if n == 5 else 0
     if broken:
-        checklist.append(f"✗ Other checks in your app that fail now: {broken}.")
+        besides = (
+            ", besides the checks of stories not built yet" if (v.get("pass_to_pass") or {}).get("unbuilt") else ""
+        )
+        checklist.append(f"✗ Other checks in your app that fail now: {broken}{besides}.")
     title = f" · {v['title']}" if v.get("title") else ""
     listed = (
         "The new lines for you to approve:"
