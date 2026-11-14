@@ -76,8 +76,8 @@ jobs:
         if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         run: |
           # Stop unless the engine folder is exactly the one this release was built from (its Git tree id).
-          git clone --quiet --depth 1 --branch v0.3.3 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
-          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "a726f45162234464590338dd837c2c56dd2a6ebd"
+          git clone --quiet --depth 1 --branch v0.3.4 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "f3b43680450f4bf63a1b259b9564f80f87b64b2f"
           # Run only the checked folder, copied alone, so nothing else in the download can be imported.
           mkdir "$RUNNER_TEMP/asbuild-run"
           cp -R "$RUNNER_TEMP/asbuild/engine" "$RUNNER_TEMP/asbuild-run/engine"
