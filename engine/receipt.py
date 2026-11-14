@@ -54,13 +54,14 @@ STATUS = {
     "works": "✓ works",
     "fails": "✗ doesn't work yet",
     "check_changed": "? not judged: the AI changed one of your agreed checks",
+    "check_removed": "? not judged: the AI removed one of your agreed checks",
     "file_changed": "? not judged: the AI changed a file only you may change",  # D41 (K1)
     "not_checked": "? not checked this time",
     "already_passed": "? not shown yet: this was already true before the AI started",
     "exists_only": "? not shown yet: it failed before only because a part of the app didn't exist",
-    "new": "• new, for you to approve",
+    "new": "new, for you to approve",
 }
-UNJUDGED = ("not_checked", "check_changed", "file_changed")  # no line was judged
+UNJUDGED = ("not_checked", "check_changed", "check_removed", "file_changed")  # no line was judged
 
 
 def plain_file(path: str) -> str:
@@ -104,14 +105,27 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
         ]
         actions[:] = ['Yes. Tell the AI: "Describe every new check in plain words in its story, then show it to me."']
     if any(n in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for n in names):
+        # Setup's own update (its branch, its workflow files only) is the expected case (README: read it, merge it).
+        own = v.get("branch") == "asbuild-setup" and all(p.startswith(".github/workflows/") for p in paths)
+        removed = set(paths) <= {c["params"].get("path", "") for c in v["codes"] if c["code"] == "LOCK_DELETED"}
         if not head:
-            head.append(
-                f"Stop. This needs you. Don't accept it yet. The AI changed {files}, which only you are "
-                "allowed to change, so AsBuild can't pass this without you."
-            )
-        actions.append(f'Yes. Most likely you didn\'t ask for this. Then tell the AI: "Undo your change to {files}."')
-        if "NEW_CHECKS" not in names:
-            actions.append("Only if you did ask for it, accept the change yourself after reading it.")
+            if own:
+                head.append(
+                    "This looks like AsBuild's own update from its setup. It changes "
+                    f"{files}, which only you are allowed to change, so AsBuild can't pass it without you."
+                )
+            else:
+                head.append(
+                    f"Stop. This needs you. Don't accept it yet. The AI {'removed' if removed else 'changed'} "
+                    f"{files}, which only you are allowed to change, so AsBuild can't pass this without you."
+                )
+        if own:
+            actions.append("Yes. If you ran AsBuild's setup, read the change and accept it yourself.")
+            actions.append(f'If you didn\'t, tell the AI: "Undo your change to {files}."')
+        else:
+            actions.append(f'Yes. If you didn\'t ask for this, tell the AI: "Undo your change to {files}."')
+            if "NEW_CHECKS" not in names:
+                actions.append("If you did ask for it, read the change and accept it yourself.")
     for n in [n for n in TEMPLATE_3 if n in names]:
         lead = not head
         if n == "OUT_OF_DATE":
@@ -152,6 +166,8 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
                 'check that fails because the answer is wrong, and show it to me."'
             )
         else:  # NO_STORY
+            if v.get("branch") == "asbuild-setup" and not lead:  # setup's own update: its lines above say what to do
+                continue
             if lead:
                 head.append("Stop. This needs you. No agreed check covers this change, so nothing could be checked.")
             actions.append(

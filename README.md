@@ -109,6 +109,8 @@ claude plugin marketplace add hevelius-ai/asbuild
 claude plugin install asbuild@hevelius-ai
 ```
 
+If Claude Code ran these commands in its own shell, type `/reload-plugins` in that session, or start Claude Code again, before `/asbuild:setup`.
+
 ### 2. Set it up
 
 1. **Get your project's folder on your computer.** If you already work on the project on this computer, use that folder. A new repository has no folder yet: copy it, in a terminal (if Git warns that the repository is empty, that is fine):
