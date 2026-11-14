@@ -7,7 +7,7 @@ anything?" and "Good to know". The technical report goes underneath, folded. Six
   3 WAITING FOR YOU: a check missing, skipped, already true before, failing before only because something did
     not exist yet, or no story covers the change
   4 NOT PROVEN: a check still fails
-  5 NOT PROVEN: something that worked before broke
+  5 NOT PROVEN: another test failed in the pull request's own run
   6 UNRESOLVED
 """
 
@@ -170,18 +170,18 @@ def render(v: dict) -> dict:
     if n == 1:
         head.append("Done. Every line on your list works.")
         if (v.get("pass_to_pass") or {}).get("total"):
-            head.append("Everything that worked before still works.")
+            head.append("None of your app's other checks failed.")
         actions.append(f"Yes, one last step to add it to your app. Open [this change on GitHub]({v['pr_url']}).")
         actions.append(
-            "Press the green button there (Merge pull request). It's safe to press, because every "
-            "line on your list works."
+            "If you want this change, press the green button there (Merge pull request). Every line on your "
+            "list works; that is all AsBuild checked."
         )
     elif n in (2, 3):
         _waiting(v, names, head, actions)
     elif n in (4, 5):
         head.append("Not done yet, so don't accept it. Nothing has been added to your app yet.")
         if n == 5:
-            head.append("Something that worked before has stopped working.")
+            head.append("Some of your app's other checks fail now.")
         actions.append("No, not yet. Wait: you'll get a new note when the AI has tried again.")
     elif "CRASH" in names:  # the tests may have run; AsBuild itself could not finish
         head.append("Stop. Don't accept it. AsBuild couldn't finish its check, so nothing was checked.")
@@ -196,7 +196,7 @@ def render(v: dict) -> dict:
     checklist = [f"{STATUS[i['status']]}: {i['plain']}" for i in v["items"]]
     broken = (v.get("pass_to_pass") or {}).get("broken", 0) if n == 5 else 0
     if broken:
-        checklist.append(f"✗ {broken} thing(s) that worked before are broken now.")
+        checklist.append(f"✗ Other checks in your app that fail now: {broken}.")
     title = f" · {v['title']}" if v.get("title") else ""
     listed = (
         "The new lines for you to approve:"

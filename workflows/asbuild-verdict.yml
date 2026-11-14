@@ -75,9 +75,11 @@ jobs:
       - name: Fetch AsBuild (from hevelius-ai/asbuild, never from this repository)
         if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''
         run: |
-          git clone --quiet --depth 1 --branch v0.3.2 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          # Stop unless the engine folder is exactly the one this release was built from (its Git tree id).
+          git clone --quiet --depth 1 --branch v0.3.3 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
+          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "06c81363078782d0c18b2986615bbbb7ce4259ce"
           echo "ASBUILD=$RUNNER_TEMP/asbuild" >> "$GITHUB_ENV"
-          python -m pip install --quiet defusedxml==0.7.1
+          python -m pip install --quiet --require-hashes --only-binary=:all: --no-deps -r "$ASBUILD/engine/requirements.txt"
 
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         if: steps.pr.outputs.number != '' && steps.pr.outputs.other_main == ''

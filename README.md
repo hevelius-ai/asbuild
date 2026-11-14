@@ -47,7 +47,9 @@ Set up AsBuild (https://github.com/hevelius-ai/asbuild) for my project. Follow t
 6. End with a short list: what you did, and what I still have to do.
 ```
 
-### Before you start OR move to "3. Agree your first story" if you let Claude Code make installation for you 
+### Before you start
+
+If Claude Code did the installation for you with the message above, go to "3. Agree your first story".
 
 Do these once. Skip any that is already done.
 
@@ -141,6 +143,8 @@ Two other ways setup can end:
 - **AsBuild is already set up here:** there is nothing to merge.
 - **On a repository that already uses an older version of AsBuild**, setup's pull request updates AsBuild's two files. It changes files AsBuild protects, so its verdict is WAITING FOR YOU. That is expected: read it, and merge it.
 
+To move to a newer AsBuild, update the plugin, then run `/asbuild:setup` again: setup writes the files from the plugin's own copy.
+
 ### 3. Agree your first story
 
 1. In Claude Code, type `/asbuild:story` and say what you want, in your own words.
@@ -194,6 +198,8 @@ A story pull request always gets WAITING FOR YOU: its receipt lists the new chec
 2. AsBuild blocks nothing: any pull request can still be merged.
 3. The test results come from a job that runs the pull request's own code, so AsBuild catches tests that were changed, skipped, weakened or never failed, not a deliberate forgery of results.
 4. AsBuild does not check who built a change and who merged it; GitHub's history shows that.
+
+Only the tests you approved are protected. For your other tests, "nothing that worked before broke" means none of them failed: AsBuild counts another test as broken only when it ran on the pull request and failed. So a test the agent deleted or skipped is not noticed, and a test that already fails on `main` counts as broken, so get `main` passing first.
 
 ## The pressure test
 

@@ -1,7 +1,7 @@
 {
   "name": "asbuild",
   "displayName": "AsBuild",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A maker-checker record for pull requests written by an AI agent: agree the checks with the person before the build, then CI checks that each agreed test failed before the change and passes after it, and posts a plain receipt. For Claude Code in a GitHub repository with Python and pytest.",
   "author": {
     "name": "Hevelius AI Group LLC"

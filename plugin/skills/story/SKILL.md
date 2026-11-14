@@ -10,7 +10,8 @@ AsBuild checks an AI's pull request against checks the person approved before th
 ## 1. Start the story and save the person's words, unchanged
 
 1. Run `git fetch origin`, then `git switch -c story/S<n> origin/main`. `S<n>` is one above the highest story folder in `dev-docs/stories/` (S1 if there is none).
-2. Create `dev-docs/stories/S<n>/story.md` at once. Put the person's request into it exactly as they wrote it: every character, line break and typo. Never correct, shorten or summarise it.
+2. First tell the person, once, in plain words: their words and the examples you agree are saved in their project on GitHub exactly as written, and anyone who can see the project can read them (everyone, if it is public); leave out passwords, keys and other people's private details, or say it again without them.
+3. Create `dev-docs/stories/S<n>/story.md`. Put the person's request into it exactly as they wrote it: every character, line break and typo. Never correct, shorten or summarise it.
 
 ## 2. Agree the checklist with the person
 

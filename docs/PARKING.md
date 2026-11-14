@@ -13,7 +13,7 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Entire CLI transcripts, Spec Kit and Superpowers adapters, Agent Trace, attestations
 - Checking a story pull request's `locks.json` entries against its test files (D11 check, 9 Nov 2026: a mismatch only makes later builds wait, never a false PROVEN)
 - Locking acceptance data files outside `tests/acceptance/` (D11 check, 9 Nov 2026: that folder is already protected whole)
-- Pinning the workflow templates' actions by commit SHA (D11 check, 9 Nov 2026)
+- Noticing an ordinary test (outside `tests/acceptance`) that a build deleted or skipped: the verdict counts only tests that ran and failed (D45, 14 Nov 2026; stated in the README; the actions themselves are pinned by commit since S1)
 - Verdicts for pull requests from forks (D11 check, 9 Nov 2026: the organization requires approval before fork workflows run)
 - The local check: `asbuild check` through uvx, and the Stop hook line (D15, 9 Nov 2026: never ran in the form specified; Claude Code's own hooks and deny rules cover the session)
 - Hardening against forged test results in the job that runs the pull request's code (9 Nov 2026 check: stated as a limit in the README, D16)

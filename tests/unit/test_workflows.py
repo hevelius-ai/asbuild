@@ -65,8 +65,9 @@ def test_every_step_runs_only_trusted_code():
         run = s.get("run", "")
         for target in re.findall(r"\bpython3?\s+(\S+(?:\s+\S+){0,3})", run):
             assert target.startswith('"$ASBUILD/engine/') or target == "-m pip install --quiet", target
-        for target in re.findall(r"\bgit\s+(\S+)", run):
-            assert target == "clone", target
+        # v0.3.3 (D45): besides the clone, only the read of the trusted clone's engine tree id
+        for target in re.findall(r"\bgit\s+(\S+(?:\s+\S+){0,2})", run):
+            assert target.split()[0] == "clone" or target == '-C "$RUNNER_TEMP/asbuild" rev-parse', target
         if "git clone" in run:
             assert "https://github.com/hevelius-ai/asbuild " in run
 
