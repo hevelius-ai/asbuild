@@ -31,10 +31,10 @@ The install design is decided (D39).
 
 ## QUALITY RISK
 
-⚠️ Open (14 Nov, 16:31Z): `v0.3.3` was published before the `v*` tags were protected. The repository has no tag ruleset (none listed, organization rulesets included) and the release reports `immutable: false`, so the tag every v0.3.3 workflow clones can still be moved by an account with write access; the engine tree check in the workflows stops a moved tag whose `engine/` differs, and only that. Closes when the owner adds the tag ruleset (restrict updates and deletions on `v*`, no bypass for heveliusai-dev), which covers existing tags at once.
+None open. The tag-protection item (opened 14 Nov, 16:31Z) closed at 16:38Z: the owner added tag ruleset 27269137, active on `refs/tags/v*`, restricting updates and deletions, with no bypass (the builder login: never).
 
 ## Next steps
 
 1. S5 (D39) and `v0.3.1` are done. No known issues open. D17's recording is done (the README GIF).
 2. The directory step (D17, D44) is closed: refused, and the owner chose no listing (4C). Parked: reopen if the organization becomes Verified or a real user asks.
-3. Owner steps: add the `v*` tag ruleset (the QUALITY RISK above); allow keeper 2's board writes (its first write was refused by a permission check in its session); the website drops "It's safe to press"; optionally withdraw the refused directory submission. Decide whether to run the release walkthrough on `v0.3.3` (a live verdict in a walkthrough test repository, D34/D35).
+3. Owner steps: allow keeper 2's board writes (its first write was refused by a permission check in its session); the website drops "It's safe to press"; optionally withdraw the refused directory submission. Decide whether to run the release walkthrough on `v0.3.3` (a live verdict in a walkthrough test repository, D34/D35).
