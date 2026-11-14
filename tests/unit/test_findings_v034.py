@@ -82,3 +82,66 @@ def test_setup_skill_shows_the_message_word_for_word():
     text = read("plugin/skills/setup/SKILL.md")
     assert text.count("word for word, in a text block") >= 3
     assert "pass on the script's message as it is" not in text
+
+
+# Review round 1 (v0.3.4): the boundaries of "setup's own update" and of "removed".
+SETUP_BOTH = [".github/workflows/asbuild-test.yml", ".github/workflows/asbuild-verdict.yml"]
+
+
+def setup_top(tmp_path, branch, changed):
+    return render(judge(facts(tmp_path, branch=branch, changed=changed)))["top"]
+
+
+def test_setup_update_is_setups_branch_and_its_two_files_only(tmp_path):
+    for i, (branch, changed, own) in enumerate(
+        [
+            ("asbuild-setup", SETUP_BOTH, True),
+            ("asbuild-setup", [SETUP_FILE], True),
+            ("build/S1", [SETUP_FILE], False),  # the workflow file on another branch
+            ("asbuild-setup", ["conftest.py"], False),  # a protected file that is not a workflow
+            ("asbuild-setup", [SETUP_FILE, "app/count.py"], False),  # a workflow file and app code
+            ("asbuild-setup", [".github/workflows/other.yml"], False),  # a workflow file that is not AsBuild's
+        ]
+    ):
+        (tmp_path / str(i)).mkdir()
+        top = setup_top(tmp_path / str(i), branch, changed)
+        assert ("This looks like AsBuild's own update from its setup." in top) is own, (branch, changed)
+        assert ("Stop. This needs you." in top) is not own, (branch, changed)
+        if branch == "asbuild-setup" and not own:
+            assert "Agree a list of checks" in top, changed
+        assert lint(str(i), top) == []
+
+
+def test_removed_only_when_every_touched_check_is_gone(tmp_path):
+    from tests.acceptance.S1.test_S1_verdicts import ACC, locks
+
+    helper = "tests/acceptance/S1/helper.py"
+    # one locked file deleted and another changed: changed, not removed
+    (tmp_path / "a").mkdir()
+    f = facts(tmp_path / "a", changed=["app/count.py", ACC_PATH, helper])
+    f.main_files[helper] = b"X = 1\n"
+    f.main_files["locks.json"] = locks({ACC_PATH: ACC, helper: b"X = 1\n"})
+    f.head_files["locks.json"] = f.main_files["locks.json"]
+    f.head_files[helper] = b"X = 2\n"
+    del f.head_files[ACC_PATH]
+    v = judge(f)
+    assert {i["status"] for i in v["items"]} == {"check_changed"}
+    assert "removed" not in render(v)["top"]
+    # a renamed locked test (old name gone, new name added): changed, not removed
+    (tmp_path / "b").mkdir()
+    new = "tests/acceptance/S1/test_S1_count_renamed.py"
+    f = facts(tmp_path / "b", changed=["app/count.py", ACC_PATH, new])
+    f.head_files[new] = f.head_files.pop(ACC_PATH)
+    v = judge(f)
+    assert {i["status"] for i in v["items"]} == {"check_changed"}
+    assert "removed" not in render(v)["top"]
+
+
+def test_an_oversized_locked_test_is_changed_not_removed(tmp_path):
+    f = facts(tmp_path, changed=["app/count.py", ACC_PATH])
+    del f.head_files[ACC_PATH]  # fetch_facts leaves out a file larger than it reads
+    f.unread = [ACC_PATH]
+    v = judge(f)
+    assert {"code": "LOCK_CHANGED", "params": {"path": ACC_PATH}} in v["codes"]
+    assert {i["status"] for i in v["items"]} == {"check_changed"}
+    assert "removed" not in render(v)["top"]
