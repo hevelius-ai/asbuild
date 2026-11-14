@@ -39,3 +39,5 @@ date,story,kind,hours,note
 2026-11-13,S5,owner,0.3,"recording choices, account switch, install request, merges of #21 to #25 (estimated)"
 2026-11-13,S5,agent,2.2,"GIF steps and palette, the paste-into-Claude install, release v0.3.2 and the terms, the directory submission with the owner (estimated)"
 2026-11-13,S5,owner,0.8,"GIF and install requests, merges, the release, the directory portal and Anthropic support (estimated)"
+2026-11-14,v0.3.3,agent,1.4,"The outside review, the three-view triage and reproductions, the plan, the build so far (estimated)"
+2026-11-14,v0.3.3,owner,0.2,"The review handed over, the triage request, decisions 1A and 2C (estimated)"

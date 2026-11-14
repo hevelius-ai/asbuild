@@ -8,9 +8,11 @@ Verdicts, in order of precedence:
                    a check missing, skipped, already passing before the change or failing before only because
                    something did not exist yet, or no merged story covers the change
   UNRESOLVED       no readable test results, or the verdict could not be computed; nothing is claimed
-  NOT PROVEN       a check still fails, or something that worked before broke
+  NOT PROVEN       a check still fails, or another test failed in the pull request's own run (another
+                   story's checks that fail on main too are unbuilt, not counted)
   PROVEN           every check of the story failed before the change by assertion and passes after it,
-                   no locked test changed, and nothing that worked before broke
+                   no locked test changed, and no other test failed in the pull request's own run, apart
+                   from another story's checks that fail on main too
 
 Usage: verdict.py --evidence evidence/ --head SHA --pr N --main . --out verdict.json --summary summary.md
                   --receipt receipt.md          (env: GH_TOKEN, REPO, RUN_URL)
@@ -286,15 +288,13 @@ def judge(f: Facts) -> dict:
             base["rows"].append(
                 {"id": item["id"], "with": {f"{c}::{n}": k for (c, n), k in with_.items()}, "without": without}
             )
-        # Nothing that worked before broke. Another story's acceptance test that fails on main too is an
-        # unbuilt story, not breakage: listed, not counted.
+        # No other test failed in the pull request's own run (a deleted or skipped one is not seen). Another
+        # story's acceptance test that fails on main too is an unbuilt story, not breakage: listed, not counted.
         others = {k: v for k, v in pr_res.items() if (k[0], k[1]) not in own}
-        broken = sorted(
-            k
-            for k, v in others.items()
-            if v in FAILED and not (story_of(k[0]) not in (None, story) and before(c3, k) in FAILED)
-        )
-        base["pass_to_pass"] = {"total": len(others), "broken": len(broken)}
+        failing = [k for k, v in others.items() if v in FAILED]
+        unbuilt = [k for k in failing if story_of(k[0]) not in (None, story) and before(c3, k) in FAILED]
+        broken = sorted(k for k in failing if k not in unbuilt)
+        base["pass_to_pass"] = {"total": len(others), "broken": len(broken), "unbuilt": len(unbuilt)}
         if broken:
             codes.append(code("PASS_TO_PASS_BROKEN", count=len(broken), tests=[f"{c}::{n}" for c, n in broken][:20]))
 

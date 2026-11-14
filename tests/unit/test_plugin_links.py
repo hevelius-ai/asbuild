@@ -65,7 +65,12 @@ def test_privacy_page_names_every_package_the_workflows_install():
     for name in ("asbuild-test.yml", "asbuild-verdict.yml"):
         flow = (ROOT / "workflows" / name).read_text(encoding="utf-8")
         for line in (x.strip() for x in flow.splitlines() if "pip install" in x):
-            assert line.endswith("-r requirements.txt") or line.endswith("defusedxml==0.7.1"), line
+            # v0.3.3: AsBuild's own package comes from its hashed file, which names only defusedxml
+            ok = line.endswith(" -r requirements.txt") or line.endswith(
+                '-r "$RUNNER_TEMP/asbuild-run/engine/requirements.txt"'
+            )
+            assert ok, line
+    assert (ROOT / "engine" / "requirements.txt").read_text(encoding="utf-8").startswith("defusedxml==0.7.1 ")
 
 
 def test_plugin_readme_installs_in_one_step():
