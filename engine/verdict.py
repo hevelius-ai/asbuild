@@ -70,6 +70,7 @@ PROTECTED_ROOT = ("locks.json",)
 PROTECTED_TREES = (".github/",)
 # Story trees: a path that exists on main is protected; a new one only a story pull request may add.
 STORY_TREES = ("tests/acceptance/", "dev-docs/requests/", "dev-docs/stories/")
+SETUP_FILES = {".github/workflows/asbuild-test.yml", ".github/workflows/asbuild-verdict.yml"}
 
 
 @dataclass
@@ -83,6 +84,7 @@ class Facts:
     head_files: dict[str, bytes] = field(default_factory=dict)  # the same paths at the head
     evidence: str = ""
     run_url: str = ""
+    unread: list[str] = field(default_factory=list)  # story-tree files too large to read at the head
 
 
 def protected(path: str, on_main: bool, story_pr: bool) -> bool:
@@ -171,6 +173,8 @@ def judge(f: Facts) -> dict:
         "pr_url": f.pr_url,
         "head_sha": f.head_sha,
         "branch": f.branch,
+        # Setup's own update: its branch, and nothing changed but AsBuild's two workflow files (wording only).
+        "setup_update": f.branch == "asbuild-setup" and bool(changed) and changed <= SETUP_FILES,
         "run_url": f.run_url,
         "pass_to_pass": {"total": 0, "broken": 0},
         "rows": [],
@@ -189,8 +193,8 @@ def judge(f: Facts) -> dict:
         if differs and p not in changed:
             stale.add(p)
             codes.append(code("OUT_OF_DATE", path=p))
-        elif raw is None:
-            codes.append(code("LOCK_DELETED", path=p))
+        elif raw is None:  # gone, unless it was only too large to read
+            codes.append(code("LOCK_CHANGED" if p in f.unread else "LOCK_DELETED", path=p))
         elif differs:
             codes.append(code("LOCK_CHANGED", path=p))
         elif head_locks.get(p) != rec:
@@ -377,9 +381,13 @@ def fetch_facts(a: argparse.Namespace, api: Callable = gh, paged: Callable = gh_
     for item in paged(f"repos/{repo}/pulls/{a.pr}/files"):
         files += [item["filename"]] + ([item["previous_filename"]] if item.get("previous_filename") else [])
     head: dict[str, bytes] = {}
+    unread: list[str] = []
     for e in (api(f"repos/{repo}/git/trees/{a.head}?recursive=1") or {}).get("tree", []):
         p = e["path"]
-        if e["type"] == "blob" and (p == "locks.json" or p.startswith(STORY_TREES)) and e.get("size", 0) <= MAX_BLOB:
+        if e["type"] == "blob" and (p == "locks.json" or p.startswith(STORY_TREES)):
+            if e.get("size", 0) > MAX_BLOB:
+                unread.append(p)
+                continue
             head[p] = base64.b64decode(api(f"repos/{repo}/git/blobs/{e['sha']}")["content"])
     return Facts(
         branch=pr["head"]["ref"],
@@ -389,6 +397,7 @@ def fetch_facts(a: argparse.Namespace, api: Callable = gh, paged: Callable = gh_
         files_changed=files,
         main_files=read_tree(a.main),
         head_files=head,
+        unread=unread,
         evidence=a.evidence,
         run_url=os.environ.get("RUN_URL", ""),
     )

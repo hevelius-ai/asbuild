@@ -253,6 +253,7 @@ def test_read_tree_and_fetch_facts(tmp_path, monkeypatch):
     f = vm.fetch_facts(a, api=api, paged=paged)
     assert f.branch == "build/S1" and f.files_changed == ["a.py", "b.py", "old.py"]
     assert f.head_files == {"locks.json": b"lock", "dev-docs/stories/S1/story.md": b"story"}
+    assert f.unread == ["tests/acceptance/big.bin"]  # too large to read: never taken for removed
     assert f.run_url == "https://run" and "locks.json" in f.main_files
 
     pr["changed_files"] = 3001
