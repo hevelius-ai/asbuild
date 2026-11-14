@@ -105,8 +105,8 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
         ]
         actions[:] = ['Yes. Tell the AI: "Describe every new check in plain words in its story, then show it to me."']
     if any(n in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for n in names):
-        # Setup's own update (its branch, its workflow files only) is the expected case (README: read it, merge it).
-        own = v.get("branch") == "asbuild-setup" and all(p.startswith(".github/workflows/") for p in paths)
+        # Setup's own update (its branch, AsBuild's two workflow files only) is expected (README: read it, merge it).
+        own = bool(v.get("setup_update"))
         removed = set(paths) <= {c["params"].get("path", "") for c in v["codes"] if c["code"] == "LOCK_DELETED"}
         if not head:
             if own:
@@ -166,7 +166,7 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
                 'check that fails because the answer is wrong, and show it to me."'
             )
         else:  # NO_STORY
-            if v.get("branch") == "asbuild-setup" and not lead:  # setup's own update: its lines above say what to do
+            if v.get("setup_update") and not lead:  # setup's own update: its lines above say what to do
                 continue
             if lead:
                 head.append("Stop. This needs you. No agreed check covers this change, so nothing could be checked.")
