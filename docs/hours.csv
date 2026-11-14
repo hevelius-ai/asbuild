@@ -48,3 +48,4 @@ date,story,kind,hours,note
 2026-11-14,v0.3.4,agent,0.6,"v0.3.4 review round 1, triage, the boundary fixes (estimated)"
 2026-11-14,v0.3.4,agent,0.6,"Review round 2, the records fix and re-check, heartbeats, the release check (estimated)"
 2026-11-14,v0.3.4,owner,0.2,"Merges of #34 and #35, the release (estimated)"
+2026-11-14,v0.3.4,agent,0.4,"The re-check walker: set-up, run, report check, records (estimated)"
