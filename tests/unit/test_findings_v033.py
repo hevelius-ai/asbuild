@@ -165,3 +165,15 @@ def test_readme_install_heading_and_update_line():
     skip = 'If Claude Code did the installation for you with the message above, go to "3. Agree your first story".'
     assert skip in text
     assert "To move to a newer AsBuild, update the plugin, then run `/asbuild:setup` again" in text
+
+
+# Review round 2 note: the NOT PROVEN count line names the unbuilt stories' checks too.
+def test_not_proven_count_line_names_the_unbuilt_stories_checks(tmp_path):
+    other = ("tests.acceptance.S2.test_S2_greet", "test_S2_C1_greets")
+    f = facts(tmp_path, pr=[(*UNIT, "assert"), (*A1, "pass"), (*A2, "pass"), (*other, "assert")])
+    (tmp_path / "evidence" / "c3" / "s2.xml").write_text(junit([(*other, "assert")]))
+    v = judge(f)
+    assert v["verdict"] == "NOT PROVEN" and v["pass_to_pass"] == {"total": 2, "broken": 1, "unbuilt": 1}
+    top = render(v)["top"]
+    assert "✗ Other checks in your app that fail now: 1, besides the checks of stories not built yet." in top
+    assert lint("unbuilt-5", top) == []
