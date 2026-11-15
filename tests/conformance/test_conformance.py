@@ -31,7 +31,7 @@ GOLDEN = HERE / "golden"
 JUDGED = [r for r in ROWS if r["level"] == "judge"]
 PYTHON = [r for r in JUDGED if r["lang"] == "python"]
 # The milestone whose engine this branch carries; rows due later are expected to fail until then.
-CURRENT = "M0"
+CURRENT = "M1"
 ORDER = ["M0", "M1", "M2", "M3", "M4"]
 
 

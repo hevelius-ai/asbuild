@@ -14,6 +14,9 @@ Verdicts, in order of precedence:
                    no locked test changed, and no other test failed in the pull request's own run, apart
                    from another story's checks that fail on main too
 
+Which result files are read, and by which rules, comes from the language rows (engine/langs.py, v0.4.0): Python's
+and JavaScript's. A language's results are required when main's lock holds a file it owns.
+
 Usage: verdict.py --evidence evidence/ --head SHA --pr N --main . --out verdict.json --summary summary.md
                   --receipt receipt.md          (env: GH_TOKEN, REPO, RUN_URL)
 """
@@ -34,7 +37,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from engine import lock_check  # noqa: E402
+from engine import langs, lock_check  # noqa: E402
 from engine.common import gh, gh_paged  # noqa: E402
 from engine.junit_classify import Key, load  # noqa: E402
 from engine.receipt import render, technical, write_receipt  # noqa: E402
@@ -42,13 +45,18 @@ from engine.receipt import render, technical, write_receipt  # noqa: E402
 CHECK_ID = re.compile(r"\bS\d+-C\d+\b")
 BUILD_BRANCH = re.compile(r"^build/(S\d+)(?:$|[-/])")
 STORY_DIR = re.compile(r"^tests/acceptance/(S\d+)/")
-FAILED = ("strong", "existence-only")
+FAILED = ("strong", "existence-only", "unreadable")
+# The npm error codes the test job may write to js-install.txt that get their own plain sentence (design §4.4).
+INSTALL_CODES = ("EBADPLATFORM", "ERESOLVE", "EUSAGE")
+# A JavaScript story's first tools: the only protected changes that STORY_ADDS_TOOLS covers (design §4.4).
+TOOL_FILES = {"package.json", "package-lock.json"}
 MAX_BLOB = 1024 * 1024
 MAX_FILES = 3000
 NO_PLAIN = "One of your checks has no plain sentence yet."
 
 # Protected files (HANDOVER section 3): fixed here, read from main's copy of this code, never from the
-# pull request. A name without "/" matches the file's own name anywhere in the repository.
+# pull request. A name without "/" matches the file's own name anywhere in the repository. Each language row adds its
+# own names (engine/langs.py), applied when main's or the pull request's lock lists a file it owns (L5 B).
 PROTECTED_NAMES = (
     "AGENTS.md",
     "CLAUDE.md",
@@ -87,9 +95,9 @@ class Facts:
     unread: list[str] = field(default_factory=list)  # story-tree files too large to read at the head
 
 
-def protected(path: str, on_main: bool, story_pr: bool) -> bool:
+def protected(path: str, on_main: bool, story_pr: bool, extra: tuple[str, ...] = ()) -> bool:
     name = path.rsplit("/", 1)[-1]
-    if any(fnmatch.fnmatch(name, pat) for pat in PROTECTED_NAMES):
+    if any(fnmatch.fnmatch(name, pat) for pat in PROTECTED_NAMES + extra):
         return True
     if path.startswith(PROTECTED_TREES):
         return True
@@ -122,42 +130,54 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
     return title, [{"id": i, "plain": plain.get(i, NO_PLAIN)} for i in ids]
 
 
-def matches(test_name: str, check: str) -> bool:
-    """True when the test's name carries the check ID as whole words: test_S1_C1_x carries S1-C1, not S1-C10."""
-    toks = test_name.split("[", 1)[0].lower().split("_")
-    want = check.lower().split("-")
-    return any(toks[i : i + len(want)] == want for i in range(len(toks)))
+# Python's rules, as in v0.3.4 (each language's are in engine/langs.py).
+matches = langs.PYTHON.matches
+story_of = langs.PYTHON.story_of
+before = langs.PYTHON.before
 
 
-def story_of(classname: str) -> str | None:
-    parts = classname.split(".")
-    return parts[2] if len(parts) > 3 and parts[:2] == ["tests", "acceptance"] else None
+@dataclass
+class Evidence:
+    pr: dict[Key, str] | None  # the full run; None when a language in play has no readable file
+    acc: dict[Key, str] | None  # the agreed checks, hardened
+    c3: dict[Key, str]  # fails before
+    lang_of: dict[Key, langs.Lang]  # the row whose file each result came from
 
 
-def load_evidence(ev: str) -> tuple[dict[Key, str] | None, dict[Key, str] | None, dict[Key, str]]:
-    pr_res = load(os.path.join(ev, "pr.xml"))
-    acc = load(os.path.join(ev, "acceptance.xml"))
+def load_evidence(ev: str, play: list[langs.Lang]) -> Evidence:
+    """Each row's result files, read by its own rules. A language in play must have both files; another language's
+    files are read too when present, so a test they show failing still counts as broken."""
+    pr: dict[Key, str] = {}
+    acc: dict[Key, str] = {}
+    lang_of: dict[Key, langs.Lang] = {}
+    have_pr = have_acc = True
+    for row in langs.ROWS:
+        p = load(os.path.join(ev, row.pr_file), row.classify)
+        a = load(os.path.join(ev, row.acc_file), row.classify)
+        if row in play:
+            have_pr = have_pr and p is not None
+            have_acc = have_acc and a is not None
+        for got, into in ((p, pr), (a, acc)):
+            into.update(got or {})
+            lang_of.update(dict.fromkeys(got or {}, row))
     c3: dict[Key, str] = {}
     for x in sorted(glob.glob(os.path.join(ev, "c3", "*.xml"))):
-        c3.update(load(x) or {})
-    return pr_res, acc, c3
+        c3.update(load(x, langs.for_c3(os.path.basename(x)).classify) or {})
+    return Evidence(pr if have_pr else None, acc if have_acc else None, c3, lang_of)
+
+
+def install_error(ev: str) -> str | None:
+    """The npm error code the untrusted job wrote, when it is one of the known three; never more than that."""
+    path = os.path.join(ev, "js-install.txt")
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read(64).strip()
+    return text if text in INSTALL_CODES else None
 
 
 def code(name: str, **params) -> dict:
     return {"code": name, "params": params}
-
-
-def before(c3: dict[Key, str], key: Key) -> str | None:
-    """How a test behaved laid over main. A collection error of its file (pytest records it with an empty
-    classname and the module's dotted path as the name) counts for every test in that file."""
-    if key in c3:
-        return c3[key]
-    parts = key[0].split(".")
-    for i in range(len(parts), 0, -1):
-        hit = c3.get(("", ".".join(parts[:i])))
-        if hit is not None:
-            return hit
-    return None
 
 
 def judge(f: Facts) -> dict:
@@ -167,6 +187,9 @@ def judge(f: Facts) -> dict:
     build = BUILD_BRANCH.match(f.branch)
     story_pr = bool(new_locks) and not build
     changed = set(f.files_changed)
+    # L5 B: a language's protected names apply when main's or the pull request's lock lists a file it owns. A pull
+    # request cannot change main's lock, so it can add names to the list but never take them away.
+    extra = tuple(n for row in langs.owners({**main_locks, **head_locks}) for n in row.protected)
     codes: list[dict] = []
     base: dict[str, Any] = {
         "pr": f.pr_number,
@@ -184,7 +207,7 @@ def judge(f: Facts) -> dict:
     # differs at the head although the pull request did not touch it means main moved on since the branch
     # started: the branch is out of date, which is not a change the AI made.
     for p in sorted(changed):
-        if protected(p, p in f.main_files, story_pr):
+        if protected(p, p in f.main_files, story_pr, extra):
             codes.append(code("PROTECTED_CHANGED", path=p))
     stale: set[str] = set()
     for p, rec in sorted(main_locks.items()):
@@ -215,6 +238,19 @@ def judge(f: Facts) -> dict:
         codes.insert(0, code("NEW_CHECKS", stories=sids, checks=[c["id"] for c in checks]))
         if undescribed:
             codes.append(code("NEW_CHECKS_UNDESCRIBED", paths=undescribed))
+        # A JavaScript story adds its test tools to package.json and package-lock.json (design §4.5). When those are
+        # the only protected changes, the receipt says so in one neutral line instead of asking to undo them.
+        owners = {langs.owner(p) for p in new_locks}
+        touched = [c for c in codes if c["code"] in ("PROTECTED_CHANGED", "LOCK_CHANGED", "LOCK_DELETED")]
+        tools = {c["params"]["path"] for c in touched}
+        if (
+            langs.JAVASCRIPT in owners
+            and langs.PYTHON not in owners
+            and tools
+            and tools <= TOOL_FILES
+            and all(c["code"] == "PROTECTED_CHANGED" for c in touched)
+        ):
+            codes = [c for c in codes if c not in touched] + [code("STORY_ADDS_TOOLS", paths=sorted(tools))]
         items = [dict(c, status="new") for c in checks]
         story_name = ", ".join(sids) or None
         return dict(
@@ -246,23 +282,28 @@ def judge(f: Facts) -> dict:
     }
     removed_acc = bool(acc_paths) and acc_paths <= {c["params"]["path"] for c in codes if c["code"] == "LOCK_DELETED"}
 
-    pr_res, acc, c3 = load_evidence(f.evidence)
+    play = langs.in_play(main_locks)  # main's lock only: a pull request cannot choose which results count
+    ev = load_evidence(f.evidence, play)
+    pr_res, acc, c3, lang_of = ev.pr, ev.acc, ev.c3, ev.lang_of
     items = [dict(c, status="not_checked") for c in checks]
     if pr_res is None or acc is None:
         codes.append(code("NO_RESULTS", pr_xml=pr_res is not None, acceptance_xml=acc is not None))
+        err = install_error(f.evidence) if langs.JAVASCRIPT in play else None
+        if err:
+            codes.append(code("INSTALL_FAILED", error=err))
     else:
-        # Every locked test must have run, and none may be skipped. A test is found by its file's name in any
-        # part of its class name (a test inside a class has the class as the last part).
+        # Every locked test must have run, and none may be skipped. Each language row says how a locked test is
+        # found in its results (Python: its file's name in any part of the class name; JavaScript: path and title).
         status: dict[tuple[str, str], str] = {}
-        for (cls, name), kind in acc.items():  # a parametrised test counts as skipped if any case is
-            for part in cls.split("."):
-                key = (part, name.split("[", 1)[0])
+        for k, kind in acc.items():  # a parametrised test counts as skipped if any case is
+            for key in lang_of[k].result_keys(*k):
                 status[key] = "skipped" if kind == "skipped" or status.get(key) == "skipped" else kind
         for p, rec in sorted(main_locks.items()):
             if p in stale:
                 continue
+            row = langs.for_path(p)
             for t in rec.get("tests", []):
-                st = status.get((p.rsplit("/", 1)[-1].removesuffix(".py"), t))
+                st = status.get(row.locked_key(p, t))
                 if st is None:
                     codes.append(code("LOCK_TEST_MISSING", path=p, test=t))
                 elif st == "skipped":
@@ -270,9 +311,9 @@ def judge(f: Facts) -> dict:
         # Fails before and passes after, per check of this story.
         own = set()
         for item in items:
-            with_ = {k: v for k, v in acc.items() if matches(k[1], item["id"])}
+            with_ = {k: v for k, v in acc.items() if lang_of[k].matches(k[1], item["id"])}
             own |= set(with_)
-            without = [before(c3, k) for k in with_]
+            without = [lang_of[k].before(c3, k) for k in with_]
             if changed_acc:
                 item["status"] = "check_removed" if removed_acc else "check_changed"
             elif changed_own:
@@ -302,11 +343,17 @@ def judge(f: Facts) -> dict:
             )
         # No other test failed in the pull request's own run (a deleted or skipped one is not seen). Another
         # story's acceptance test that fails on main too is an unbuilt story, not breakage: listed, not counted.
+        # Design §4.4 (round 3): where a row says so (JavaScript), another story's agreed check that fails in AsBuild's
+        # hardened run also counts, whatever the project's own run says, so a setup file cannot hide it.
         others = {k: v for k, v in pr_res.items() if (k[0], k[1]) not in own}
-        failing = [k for k, v in others.items() if v in FAILED]
-        unbuilt = [k for k in failing if story_of(k[0]) not in (None, story) and before(c3, k) in FAILED]
+        hardened = {k: v for k, v in acc.items() if k not in own and lang_of[k].hardened_p2p}
+        seen = list(others) + [k for k in hardened if k not in others]
+        failing = [k for k in seen if others.get(k) in FAILED or hardened.get(k) in FAILED]
+        unbuilt = [
+            k for k in failing if lang_of[k].story_of(k[0]) not in (None, story) and lang_of[k].before(c3, k) in FAILED
+        ]
         broken = sorted(k for k in failing if k not in unbuilt)
-        base["pass_to_pass"] = {"total": len(others), "broken": len(broken), "unbuilt": len(unbuilt)}
+        base["pass_to_pass"] = {"total": len(seen), "broken": len(broken), "unbuilt": len(unbuilt)}
         if broken:
             codes.append(code("PASS_TO_PASS_BROKEN", count=len(broken), tests=[f"{c}::{n}" for c, n in broken][:20]))
 
@@ -336,6 +383,7 @@ WAITING = {
     "ACCEPTANCE_PASSES_ON_MAIN",
     "EXISTENCE_ONLY",
     "NO_STORY",
+    "STORY_ADDS_TOOLS",
 }
 
 
