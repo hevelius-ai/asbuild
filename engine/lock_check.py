@@ -1,7 +1,9 @@
 """The test lock (ported from step 0's T21): a hash of each locked test file's normalised content.
 
 Normalised: CRLF and CR become LF, trailing spaces and tabs are stripped, exactly one trailing newline.
-Each entry also lists the test functions found in the file (`def test_*`).
+Each entry also lists the tests found in the file, by the rules of the language that owns it (engine/langs.py):
+for a Python file (and any file no language owns) the `def test_*` functions, as in v0.3.4; for a JavaScript or
+TypeScript file the literal titles of its top-level `test(` and `it(` calls (design §4.4).
 
 `python lock_check.py baseline --paths tests/acceptance --out locks.json` writes the lock file a story
 pull request adds. The verdict compares main's lock file with the pull request's files (engine/verdict.py).
@@ -12,11 +14,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
+import os
 import sys
 from pathlib import Path
 
-TEST_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(test_\w+)\s*\(", re.M)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from engine import langs  # noqa: E402
+from engine.langs import TEST_DEF  # noqa: E402,F401 - kept importable here (the plugin's story check mirrors it)
 
 
 def normalised(data: bytes) -> bytes:
@@ -28,10 +32,10 @@ def normalised(data: bytes) -> bytes:
     return ("\n".join(lines) + "\n").encode("utf-8", errors="surrogateescape")
 
 
-def entry(raw: bytes) -> dict:
+def entry(raw: bytes, path: str = "") -> dict:
     return {
         "sha256": hashlib.sha256(normalised(raw)).hexdigest(),
-        "tests": TEST_DEF.findall(raw.decode("utf-8", errors="replace")),
+        "tests": langs.for_path(path).lock_tests(raw.decode("utf-8", errors="replace")),
     }
 
 

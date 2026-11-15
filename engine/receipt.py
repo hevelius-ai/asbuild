@@ -18,7 +18,25 @@ import os
 import re
 
 MARKER = "<!-- asbuild-receipt -->"
-TEMPLATE_2 = ("NEW_CHECKS", "NEW_CHECKS_UNDESCRIBED", "LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED")
+TEMPLATE_2 = (
+    "NEW_CHECKS",
+    "NEW_CHECKS_UNDESCRIBED",
+    "LOCK_CHANGED",
+    "LOCK_DELETED",
+    "PROTECTED_CHANGED",
+    "STORY_ADDS_TOOLS",
+)
+# Design §4.4: a JavaScript story that adds its test tools, and the npm error codes the test job reports.
+STORY_ADDS_TOOLS = (
+    "It also changes the list of software your app installs; approving the checks approves that change too."
+)
+INSTALL = {
+    "EBADPLATFORM": "Your app's list of software includes parts that only work on another kind of computer, so GitHub "
+    "could not install it.",
+    "ERESOLVE": "Your app's list of software includes parts that don't work with each other, so GitHub could not "
+    "install it.",
+    "EUSAGE": "Your app's list of software doesn't match its list of exact versions, so GitHub could not install it.",
+}
 TEMPLATE_3 = (
     "OUT_OF_DATE",
     "LOCK_TEST_MISSING",
@@ -42,10 +60,20 @@ PLAIN_FILE = [
         ),
         "the settings for how your checks run",
     ),
+    (
+        re.compile(
+            r"(^|/)((vite|vitest)\.config\.[^/]*|vitest\.workspace\.[^/]*|tsconfig[^/]*\.json|jsconfig\.json"
+            r"|\.nvmrc|\.node-version)$"
+        ),
+        "the settings for how your checks run",
+    ),
     (re.compile(r"(^|/)pyproject\.toml$"), "the project's settings file"),
     (re.compile(r"(^|/)\.github/"), "the settings for the checks on GitHub"),
     (
-        re.compile(r"(^|/)requirements[^/]*$|\.lock$|(^|/)(package-lock\.json|pnpm-lock\.yaml)$"),
+        re.compile(
+            r"(^|/)requirements[^/]*$|\.lock$|(^|/)(package-lock\.json|pnpm-lock\.yaml|package\.json"
+            r"|npm-shrinkwrap\.json|bun\.lockb|pnpm-workspace\.yaml|\.npmrc|\.yarnrc[^/]*)$"
+        ),
         "the list of software your app installs",
     ),
 ]
@@ -104,6 +132,8 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             "you can't see what you would approve."
         ]
         actions[:] = ['Yes. Tell the AI: "Describe every new check in plain words in its story, then show it to me."']
+    elif "STORY_ADDS_TOOLS" in names:
+        head.append(STORY_ADDS_TOOLS)
     if any(n in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for n in names):
         # Setup's own update (its branch, AsBuild's two workflow files only) is expected (README: read it, merge it).
         own = bool(v.get("setup_update"))
@@ -209,6 +239,7 @@ def render(v: dict) -> dict:
         actions.append('Yes. Tell the AI: "Run the AsBuild check again." If it happens again, ask for help.')
     else:
         head.append("Stop. Don't accept it. The checks couldn't run, so nothing was checked.")
+        head += [INSTALL[c["params"]["error"]] for c in v["codes"] if c["code"] == "INSTALL_FAILED"][:1]
         actions.append(
             "Yes. Tell the AI: \"The checks didn't run. Fix the setup so they run, without changing "
             'them." If it happens again, ask for help.'
