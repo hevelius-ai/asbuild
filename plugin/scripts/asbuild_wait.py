@@ -77,7 +77,7 @@ def saved_verdict(repo: str, sha: str, run: Callable[..., str]) -> tuple[str, st
             summary = summary_path.read_text(encoding="utf-8").strip() if summary_path.is_file() else ""
         if not isinstance(doc, dict):  # AsBuild's newest verdict is unreadable: never fall back to an older one
             return "UNRESOLVED", summary
-        if doc.get("head_sha") not in (None, sha):
+        if doc.get("head_sha") != sha:  # not this commit's verdict
             continue
         return str(doc.get("verdict") or "UNRESOLVED"), summary
     return None

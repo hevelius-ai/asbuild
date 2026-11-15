@@ -13,7 +13,7 @@ After `git push`, from the repository root, on the commit you pushed, run:
 
 `python "${CLAUDE_PLUGIN_ROOT}/scripts/asbuild_wait.py"`
 
-It can wait up to 20 minutes, so run it in the background and read its output when it ends. It prints the verdict and its summary. It reads only the verdict that AsBuild's own verdict workflow saved, from its run on `main`; a check or comment named "AsBuild" from any other workflow does not count, and you never add or change a workflow to produce one.
+It can wait up to 20 minutes, so run it in the background and read its output when it ends. It prints the verdict and its summary. It reads only the verdict that AsBuild's own verdict workflow saved, from its run on the default branch (`main`); a check or comment named "AsBuild" from any other workflow does not count, and you never add or change a workflow to produce one.
 
 The pull request that adds AsBuild's two workflow files gets no verdict, because the workflows are not on `main` yet: don't wait for it.
 

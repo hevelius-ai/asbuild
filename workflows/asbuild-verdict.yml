@@ -141,6 +141,7 @@ jobs:
             out/verdict.json
             out/summary.md
           retention-days: 30
+          overwrite: true
 
       - name: Post the receipt (one comment, edited in place)
         if: always() && steps.pr.outputs.number != ''

@@ -34,6 +34,27 @@ def test_SF_C1_a_build_that_adds_one_waits_for_the_person(tmp_path):
         assert "the settings for how your checks run" in top and lint(name, top) == []
 
 
+def test_SF_C2_the_skill_and_both_readmes_say_which_verdict_counts():
+    """SF-C2's last sentence (Sonnet F2, F3): the words people read match what the script does."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    skill = (root / "plugin" / "skills" / "verdict" / "SKILL.md").read_text(encoding="utf-8")
+    assert "reads only the verdict that AsBuild's own verdict workflow saved" in skill
+    assert 'a check or comment named "AsBuild" from any other workflow does not count' in skill
+    assert "older than v0.4.0" in skill and "`/asbuild:setup`" in skill
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    assert "`/asbuild:verdict` ignores those and reads only the verdict AsBuild's verdict workflow saved" in readme
+    assert 'waits for the check named "AsBuild"' not in readme
+    plugin_readme = (root / "plugin" / "README.md").read_text(encoding="utf-8")
+    wait_line = next(line for line in plugin_readme.splitlines() if "scripts/asbuild_wait.py" in line)
+    assert "check-runs" not in wait_line
+    for call in ("actions/artifacts?name=asbuild-verdict-<commit>", "actions/runs/<id>", "gh run download"):
+        assert call in wait_line, call
+    assert "temporary folder" in wait_line
+    assert "for the AsBuild check on GitHub" not in plugin_readme
+
+
 def test_SF_C2_the_verdict_workflow_saves_its_verdict_for_the_skill_after_posting_it():
     from tests.unit.test_workflows import step, steps
 
@@ -45,3 +66,4 @@ def test_SF_C2_the_verdict_workflow_saves_its_verdict_for_the_skill_after_postin
         assert save["uses"].startswith("actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4")
         assert save["with"]["name"] == "asbuild-verdict-${{ github.event.workflow_run.head_sha }}"
         assert save["with"]["path"].split() == ["out/verdict.json", "out/summary.md"]
+        assert save["with"]["overwrite"] is True  # a re-run of the same verdict run replaces its own file

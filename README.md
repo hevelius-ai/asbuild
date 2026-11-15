@@ -158,7 +158,7 @@ What the story pull request adds to your repository: the story in `dev-docs/stor
 ### 4. Get the verdict after each push
 
 1. Claude builds the change on a branch named `build/S<n>` and opens a pull request.
-2. After each push, Claude Code runs `/asbuild:verdict`, which waits for the check named "AsBuild" and prints its verdict. If it doesn't, ask it to. (`gh pr checks --watch` is not enough: it returns when the tests finish, a little before the verdict is posted.)
+2. After each push, Claude Code runs `/asbuild:verdict`, which waits for AsBuild's verdict and prints it. If it doesn't, ask it to. (`gh pr checks --watch` is not enough: it returns when the tests finish, a little before the verdict is posted.)
 3. Read the receipt on the pull request, and decide whether to merge.
 
 ### By hand

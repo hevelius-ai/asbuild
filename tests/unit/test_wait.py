@@ -110,13 +110,13 @@ def test_SF_C2_the_newest_real_verdict_for_this_commit_wins():
 
 
 def test_SF_C2_the_commit_inside_the_file_must_match(capsys):
-    arts = [
-        art(9, "2026-11-15T11:00:00Z"),
-        art(8, "2026-11-15T10:00:00Z"),
-        {"name": "x", "created_at": "2026-11-15T13:00:00Z"},
-    ]
+    wrong_name = art(6, "2026-11-15T13:00:00Z", name="asbuild-verdict-other")  # GitHub's filter is trusted no further
+    arts = [art(9, "2026-11-15T11:00:00Z"), art(8, "2026-11-15T10:00:00Z"), wrong_name]
     files = {9: ({"verdict": "PROVEN", "head_sha": "d" * 40}, ""), 8: ({"verdict": "NOT PROVEN", "head_sha": SHA}, "")}
-    assert go(fake([arts], {8: REAL, 9: REAL}, files)) == 1
+    files[6] = ({"verdict": "PROVEN", "head_sha": SHA}, "")
+    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 1
+    files[9] = ({"verdict": "PROVEN"}, "")  # no commit inside: not this commit's verdict
+    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 1
 
 
 def test_SF_C2_an_unreadable_real_file_is_unresolved_never_an_older_verdict(capsys):
@@ -131,6 +131,13 @@ def test_SF_C2_an_unreadable_real_file_is_unresolved_never_an_older_verdict(caps
 def test_SF_C2_it_asks_for_this_commits_file_by_name():
     calls: list = []
     go(fake([[art(9)]], {9: REAL}, {9: ({"verdict": "PROVEN", "head_sha": SHA}, "")}, calls), "--sha", SHA)
+    assert [c for c in calls if c[:3] == ("gh", "run", "download")][0][3:8] == (
+        "9",
+        "--repo",
+        "o/r",
+        "--name",
+        f"asbuild-verdict-{SHA}",
+    )
     asked = [c[2] for c in calls if c[:2] == ("gh", "api")]
     assert asked[0] == f"repos/o/r/actions/artifacts?name=asbuild-verdict-{SHA}&per_page=100"
     assert asked[1] == "repos/o/r/actions/runs/9"
