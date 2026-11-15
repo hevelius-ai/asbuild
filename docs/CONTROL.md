@@ -8,6 +8,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 - Milestones: M1 Engine (6 to 9 h), M2 Test job (6 to 9 h), M3 Story and setup (5 to 8 h), M4 Release (3 to 5 h).
 - The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu, fed by the linked Haiku keeper.
 - Branches in `hevelius-ai/asbuild`: `main`; `m1/engine`.
+- D49: M1 to M3 merge into `main`; `v0.4.0` is released when everything is ready. Until then a repository newly set up from `main` gets workflows whose engine check stops (fails closed).
 
 ## Open pull requests and merge order
 

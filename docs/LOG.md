@@ -221,3 +221,4 @@ Append-only. UTC.
 - 2026-11-15T15:10Z The owner's M0-A: all 12 findings fixed (3dd377a); a fresh clone passes the whole suite.
 - 2026-11-15T15:19Z M0 review round 2 (each model its own findings, $15.85): APPROVE from Opus, Fable and Sonnet; CI green (3 of 3).
 - 2026-11-15T15:20Z #38 merged by chrisz-glitch (324ce35); `m0/ground` deleted on both sides. 2026-11-15T15:21Z M1 begins on `m1/engine`.
+- 2026-11-15T15:56Z M1 built on `m1/engine` (3d16650): tests first (17 conformance rows and the new unit file seen failing), then the engine; local gate and a fresh clone: 386 passed, 11 skipped, coverage 100%. Review round 1 started (three lenses, extra effort). The owner chose D49: merge into `main` as planned, release `v0.4.0` when ready.
