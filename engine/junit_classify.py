@@ -13,11 +13,11 @@ Checked on pytest 9 with `-o junit_family=xunit2`: the `type` attribute of <fail
 so the rule keys on the message prefix.
 
 Vitest (`classify_js`, design §4.4; result shapes proven on Vitest 3.2, 4.1 and 5.1: JS-1, JS-9, JS-14, JS-17): the
-rules key on the `type` attribute, which Vitest fills. `AssertionError` is strong. Existence-only: `ReferenceError`; a
-`TypeError` saying "is not a function" or "is not a constructor"; the messages in JS_EXISTENCE; a file that could not
-load (Vitest records one test case named after the file). A failure with no `type` is `unreadable`: it shows that
-the test failed, never how. Every other failure is strong. Which rules apply is chosen by the language row
-(engine/langs.py), never by whether `type` is filled.
+rules key on the `type` attribute, which Vitest fills. A failure with no `type` is `unreadable`: it shows that the
+test failed, never how. A file that could not load (Vitest records one test case named after the file) is
+existence-only, whatever its error. Then `AssertionError` is strong. Existence-only: `ReferenceError`; a `TypeError`
+saying "is not a function" or "is not a constructor"; the messages in JS_EXISTENCE. Every other failure is strong.
+Which rules apply is chosen by the language row (engine/langs.py), never by whether `type` is filled.
 """
 
 from __future__ import annotations
@@ -41,6 +41,7 @@ JS_EXISTENCE = (
     "Element type is invalid",
 )
 JS_TYPE_ERROR = ("is not a function", "is not a constructor")
+NOT_FAILED = ("passed", "skipped")
 
 Key = tuple[str, str]
 
@@ -86,8 +87,9 @@ def classify_js(tc) -> tuple[str, str]:
 
 def load(path: str, rule: Callable = classify) -> dict[Key, str] | None:
     """{(classname, name): kind} by the given rules, or None if the file is missing, too large, unreadable or has no
-    test cases. Two results with one name (Vitest's `it.each` without a placeholder, or two tests with one title):
-    a pass never replaces another kind, so a pass cannot hide a failure."""
+    test cases. Two results with one name (Vitest's `it.each` without a placeholder, or two tests with one title; pytest
+    for a failure followed by a teardown error): the later one counts, as in v0.3.4, except that a pass or a skip never
+    replaces a failure, so neither can hide one."""
     if not os.path.isfile(path) or os.path.getsize(path) > MAX_BYTES:
         return None
     try:
@@ -98,6 +100,6 @@ def load(path: str, rule: Callable = classify) -> dict[Key, str] | None:
     for tc in root.iter("testcase"):
         key = (tc.get("classname") or "", tc.get("name") or "")
         kind = rule(tc)[0]
-        if cases.get(key, "passed") == "passed":
+        if not (kind in NOT_FAILED and cases.get(key, "passed") not in NOT_FAILED):
             cases[key] = kind
     return cases or None

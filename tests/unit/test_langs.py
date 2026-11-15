@@ -176,6 +176,28 @@ def test_M1_C2_a_repeated_name_never_lets_a_pass_hide_a_failure(tmp_path):
     ev = ok_evidence(pr_extra=rows)
     v = judge(js_facts(tmp_path, evidence=ev))
     assert v["verdict"] == "NOT PROVEN" and "PASS_TO_PASS_BROKEN" in codes(v)
+    # nor a skip, in either order (an `it.todo` beside a failing `it` of the same title)
+    fail = '<testcase classname="a.test.ts" name="x"><failure message="m" type="AssertionError">x</failure></testcase>'
+    skip = '<testcase classname="a.test.ts" name="x"><skipped/></testcase>'
+    for body in (fail + skip, skip + fail):
+        x.write_text(f"<testsuites><testsuite>{body}</testsuite></testsuites>", encoding="utf-8")
+        assert load(str(x), classify_js) == {("a.test.ts", "x"): "strong"}, body
+
+
+def test_M1_C1_python_keeps_v034s_result_for_a_failure_then_a_teardown_error(tmp_path):
+    """pytest writes two test cases with one name when a test fails and its teardown errors (proved with pytest 9.2):
+    v0.3.4 read the second; Python's row must still do so (the repeated-name rule only stops a pass hiding a
+    failure)."""
+    x = tmp_path / "c3.xml"
+    x.write_text(
+        '<testsuites><testsuite><testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C1_x">'
+        '<failure message="assert False">x</failure></testcase>'
+        '<testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C1_x">'
+        '<error message="failed on teardown with &quot;RuntimeError: boom&quot;">x</error></testcase>'
+        "</testsuite></testsuites>",
+        encoding="utf-8",
+    )
+    assert load(str(x)) == {("tests.acceptance.S1.test_S1_count", "test_S1_C1_x"): "existence-only"}
 
 
 def test_M1_C2_a_javascript_repository_reads_its_own_result_files(tmp_path):
