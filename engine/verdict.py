@@ -62,6 +62,9 @@ PROTECTED_NAMES = (
     "CLAUDE.md",
     "conftest.py",
     "pytest.ini",
+    ".pytest.ini",  # pytest also reads these three (proved with pytest 9.2; D50)
+    "pytest.toml",
+    ".pytest.toml",
     "pyproject.toml",
     "setup.cfg",
     "setup.py",
