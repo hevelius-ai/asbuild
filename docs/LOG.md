@@ -225,3 +225,6 @@ Append-only. UTC.
 - 2026-11-15T16:33Z M1 (hevelius-ai/asbuild#39, c8b4c03): review round 1 BLOCK x3 (4 distinct findings, $19.44), fixed (1d2f963); round 2 APPROVE x3 (Fable at its usage limit, its lens on Opus 5.5 at max), two LOW items fixed (c8b4c03), confirm-only CONFIRMED; CI green; fresh clone 388 passed. Ready for the owner's merge.
 - 2026-11-15T16:35Z AsChecked findings triaged (B5 proved by running); the owner chose X1 and then B4-A (D50). 2026-11-15T16:49Z B5 and B4-A built on `m1b/safety`.
 - 2026-11-15T16:42Z #39 merged by chrisz-glitch (defee5c); `m1/engine` deleted on both sides. 2026-11-15T16:56Z records.
+- 2026-11-15T17:22Z M1b (hevelius-ai/asbuild#40, 8712da9): review round 1 (safety lens APPROVE on Opus 5.5 at max; Opus and Sonnet BLOCK, 5 MEDIUM, one not reproducible by real runs), fixed (5ae0668, 936a53d); round 2 APPROVE x2; CI green; fresh clone 394 passed. Reviews $12.34.
+- 2026-11-15T17:40Z The owner paused v0.4.0 until the weekly usage reset; M2's plan drafted (no agents).
+- 2026-11-15T18:00Z #40 merged by chrisz-glitch (e6eda0d); `m1b/safety` deleted on both sides. 2026-11-15T18:00Z records.
