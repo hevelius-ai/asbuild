@@ -1,0 +1,7 @@
+{
+  "branch": "build/S1",
+  "changed": [
+    "src/Counter.tsx",
+    "tests/acceptance/S1/S1-C1.test.tsx"
+  ]
+}

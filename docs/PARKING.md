@@ -4,7 +4,7 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 
 - Session hardening against a cheating agent: custom guard, hashes after every tool call, test-detection scans, held-out twins, the 12-run G3 test (root cause 1 again; CI already does the job)
 - The auto-merge gate and builder account as a product; a GitHub ruleset requiring the verdict before merge
-- Browser builders, TypeScript, web apps, screenshots, the Lovable flow
+- Browser builders, web apps, screenshots, the Lovable flow (TypeScript reopened by D47 for v0.4.0)
 - Three modes; the baseline for existing apps; story slicing and build-next-story
 - The secret-key wrapper; signed releases
 - Publishing to PyPI (needs an account and a token only the owner holds)
@@ -17,7 +17,7 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Verdicts for pull requests from forks (D11 check, 9 Nov 2026: the organization requires approval before fork workflows run)
 - The local check: `asbuild check` through uvx, and the Stop hook line (D15, 9 Nov 2026: never ran in the form specified; Claude Code's own hooks and deny rules cover the session)
 - Hardening against forged test results in the job that runs the pull request's code (9 Nov 2026 check: stated as a limit in the README, D16)
-- A Vitest or Jest preset beside pytest (9 Nov 2026 check: TypeScript is the largest share of Claude Code's pull requests; the first item to look at if a stranger asks)
+- A Jest preset beside pytest (9 Nov 2026 check; Vitest reopened by D47 for v0.4.0, Jest stays parked: nearly absent in builder-made apps, P10)
 - A control write-up on AI-written changes offered to FINOS's SDLC Controls Framework, with AsBuild as the worked example (9 Nov 2026 check: writing, not building, and only after "done"; not checked whether one is already proposed there)
 - A test outside `tests/acceptance` that already fails on main is counted as "something that worked before broke": the full suite runs only on the pull request, as in step 0. Graded PARKED in S1 review round 3 (2026-11-10).
 - The story-time example check counts a negated assertion (`assert "words: 3" not in ...`) as checking the example (ported F4 behaviour). Graded PARKED in S2 review round 1 (2026-11-10).
@@ -51,3 +51,11 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Setup's update pull request that also adds pytest to `requirements.txt` is not recognised as setup's own, so its receipt says Stop while setup's message says to merge it (D46 limits recognition to the two workflow files; graded PARKED in the v0.3.4 review round 1, 14 Nov 2026)
 - Recognising setup's update pull request by the two workflow files' content (compared with a release), not only by its branch and file names (D46): a gutted workflow file on `asbuild-setup` gets setup's wording, verdict still WAITING FOR YOU (v0.3.4 review round 2, 14 Nov 2026)
 - `fetch_facts` ignores the tree listing's `truncated` flag: in a repository whose tree GitHub truncates, a changed locked test can be missed and called removed; fails closed to WAITING FOR YOU (v0.3.4 review round 2, 14 Nov 2026)
+- Jest; Playwright and other browser checks (v0.4.0 design, D47, 15 Nov 2026)
+- pnpm, Yarn and Bun installs; monorepos and workspaces; a `package.json` below the root (v0.4.0 design, D47, 15 Nov 2026)
+- Next.js apps and server components (L7 B) (v0.4.0 design, D47, 15 Nov 2026)
+- Allowing added packages in `package.json` (L4 A); reopen with the count of waits over the first 10 real builds (v0.4.0 design, D47, 15 Nov 2026)
+- Porting AsBuild's own scripts to Node (L8 A) (v0.4.0 design, D47, 15 Nov 2026)
+- A JavaScript parser in place of the story-time scanner; JavaScript on an empty repository; agreed checks in two languages in one story (a repository with a Python story and a JavaScript story is in scope: design §3.2, L5 B) (v0.4.0 design, D47, 15 Nov 2026)
+- Vue, Svelte, React Native and Expo; Vite older than 5 (v0.4.0 design, D47, 15 Nov 2026)
+- Swift, Dart, Go and Rust: each at its own gate with a fresh measurement (L9 C) (v0.4.0 design, D47, 15 Nov 2026)

@@ -1,0 +1,17 @@
+{
+  "files": {
+    "tests/acceptance/S1/test_S1_count.py": {
+      "sha256": "da50e6f03584d52b4605559e08a041198c398dde2d36e8e8301ed141127cfe37",
+      "tests": [
+        "test_S1_C1_counts_words",
+        "test_S1_C2_missing_file"
+      ]
+    },
+    "tests/acceptance/S2/test_S2_clear.py": {
+      "sha256": "91ece636d90de5b8f452488615d896e07d892fdad46de63ff1105e6418af720d",
+      "tests": [
+        "test_S2_C1_clears"
+      ]
+    }
+  }
+}

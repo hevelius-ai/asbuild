@@ -1,0 +1,647 @@
+{
+  "about": "v0.4.0's agreed conformance rows (D47, D48; docs/plans/v0.4-design.md §4.6). Locked after the owner merges M0: changing a row is an owner decision. `codes` must all appear; `no_codes` must not; `statuses` maps check ids to their line status; `receipt_has` must appear in the receipt's plain part and `receipt_lacks` must not. `milestone` is when the row must first pass.",
+  "cases": [
+    {
+      "id": "py-proven",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "PROVEN",
+        "codes": [],
+        "statuses": {
+          "S1-C1": "works",
+          "S1-C2": "works"
+        }
+      }
+    },
+    {
+      "id": "py-check-fails",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "NOT PROVEN",
+        "codes": [
+          "CHECK_FAILS"
+        ],
+        "statuses": {
+          "S1-C1": "works",
+          "S1-C2": "fails"
+        }
+      }
+    },
+    {
+      "id": "py-story",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "NEW_CHECKS"
+        ]
+      }
+    },
+    {
+      "id": "py-no-results",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "UNRESOLVED",
+        "codes": [
+          "NO_RESULTS"
+        ]
+      }
+    },
+    {
+      "id": "py-existence-only",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ]
+      }
+    },
+    {
+      "id": "py-weakened-check",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "LOCK_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "check_changed"
+        }
+      }
+    },
+    {
+      "id": "py-tampered-settings",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §4.6; v0.3.4; D41",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "file_changed"
+        }
+      }
+    },
+    {
+      "id": "py-frontend-before-js",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "design §3.2 and §4.4, L5 B: no JavaScript checks yet",
+      "expect": {
+        "verdict": "PROVEN",
+        "codes": [],
+        "no_codes": [
+          "PROTECTED_CHANGED"
+        ]
+      }
+    },
+    {
+      "id": "py-frontend-lockfile",
+      "lang": "python",
+      "level": "judge",
+      "milestone": "M0",
+      "cites": "v0.3.4 (lock files already protected everywhere)",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ]
+      }
+    },
+    {
+      "id": "js-proven",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §2 line 1, §4.6",
+      "expect": {
+        "verdict": "PROVEN",
+        "codes": [],
+        "statuses": {
+          "S1-C1": "works",
+          "S1-C2": "works"
+        }
+      }
+    },
+    {
+      "id": "js-check-fails",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.6",
+      "expect": {
+        "verdict": "NOT PROVEN",
+        "codes": [
+          "CHECK_FAILS"
+        ],
+        "statuses": {
+          "S1-C1": "works",
+          "S1-C2": "fails"
+        }
+      }
+    },
+    {
+      "id": "js-story",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 STORY_ADDS_TOOLS, §4.5 first story",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "NEW_CHECKS",
+          "STORY_ADDS_TOOLS"
+        ]
+      }
+    },
+    {
+      "id": "js-no-results-platform",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 install codes, JS-8, JS-19",
+      "expect": {
+        "verdict": "UNRESOLVED",
+        "codes": [
+          "NO_RESULTS"
+        ],
+        "receipt_has": [
+          "only work on another kind of computer"
+        ]
+      }
+    },
+    {
+      "id": "js-no-results-out-of-step",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 install codes, JS-8",
+      "expect": {
+        "verdict": "UNRESOLVED",
+        "codes": [
+          "NO_RESULTS"
+        ],
+        "receipt_has": [
+          "could not install"
+        ],
+        "receipt_lacks": [
+          "another kind of computer"
+        ]
+      }
+    },
+    {
+      "id": "js-existence-only",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 (a file that could not load), JS-1, JS-9",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ],
+        "statuses": {
+          "S1-C1": "exists_only",
+          "S1-C2": "exists_only"
+        }
+      }
+    },
+    {
+      "id": "js-not-a-function",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4, JS-1",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ],
+        "statuses": {
+          "S1-C1": "exists_only",
+          "S1-C2": "exists_only"
+        }
+      }
+    },
+    {
+      "id": "js-component-not-written",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4, JS-14",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ],
+        "statuses": {
+          "S1-C1": "exists_only",
+          "S1-C2": "exists_only"
+        }
+      }
+    },
+    {
+      "id": "js-empty-type",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 (a JavaScript failure with an empty type is unreadable)",
+      "expect": {
+        "verdict": "UNRESOLVED",
+        "codes": [
+          "NO_BEFORE_RESULT"
+        ],
+        "no_codes": [
+          "NO_RESULTS"
+        ]
+      }
+    },
+    {
+      "id": "js-weakened-check",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.6, D25",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "LOCK_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "check_changed"
+        }
+      }
+    },
+    {
+      "id": "js-tampered-settings",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 protected names, JS-3",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "file_changed"
+        }
+      }
+    },
+    {
+      "id": "js-npmrc",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 protected names",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "file_changed"
+        }
+      }
+    },
+    {
+      "id": "js-package-script",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4, L4 A",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ],
+        "statuses": {
+          "S1-C1": "file_changed"
+        }
+      }
+    },
+    {
+      "id": "js-tsconfig-cheat",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.3 (AsBuild's settings drop an alias for the test tool), §4.6, JS-12, JS-20",
+      "expect": {
+        "verdict": "NOT PROVEN",
+        "codes": [
+          "CHECK_FAILS"
+        ],
+        "no_codes": [
+          "PROTECTED_CHANGED"
+        ],
+        "statuses": {
+          "S1-C2": "fails"
+        }
+      }
+    },
+    {
+      "id": "js-setup-file-cheat",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.3 (AsBuild's own settings), JS-3, JS-6, JS-9",
+      "expect": {
+        "verdict": "NOT PROVEN",
+        "codes": [
+          "CHECK_FAILS"
+        ],
+        "statuses": {
+          "S1-C2": "fails"
+        }
+      }
+    },
+    {
+      "id": "js-earlier-story-masked",
+      "lang": "javascript",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §4.4 (round-3 HIGH: earlier stories judged by the hardened run)",
+      "expect": {
+        "verdict": "NOT PROVEN",
+        "codes": [
+          "PASS_TO_PASS_BROKEN"
+        ],
+        "statuses": {
+          "S2-C1": "works"
+        }
+      }
+    },
+    {
+      "id": "py-frontend-after-js",
+      "lang": "mixed",
+      "level": "judge",
+      "milestone": "M1",
+      "cites": "design §3.2, §4.4, L5 B: a JavaScript story (S2) exists beside the Python one (S1)",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "PROTECTED_CHANGED"
+        ]
+      }
+    },
+    {
+      "id": "live-vite5-proven",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 5 with Vitest 3.2.4), §4.6, JS-17",
+      "expect": {
+        "verdict": "PROVEN"
+      }
+    },
+    {
+      "id": "live-vite5-existence-only",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 5 with Vitest 3.2.4), §4.6, JS-17",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ]
+      }
+    },
+    {
+      "id": "live-vite6-proven",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 6 with Vitest 3.2.4), §4.6, JS-17",
+      "expect": {
+        "verdict": "PROVEN"
+      }
+    },
+    {
+      "id": "live-vite6-existence-only",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 6 with Vitest 3.2.4), §4.6, JS-17",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ]
+      }
+    },
+    {
+      "id": "live-vite7-proven",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 7 with Vitest 4.1.12), §4.6, JS-17",
+      "expect": {
+        "verdict": "PROVEN"
+      }
+    },
+    {
+      "id": "live-vite7-existence-only",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 7 with Vitest 4.1.12), §4.6, JS-17",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ]
+      }
+    },
+    {
+      "id": "live-vite8-proven",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 8 with Vitest 5.1.0), §4.6, JS-17",
+      "expect": {
+        "verdict": "PROVEN"
+      }
+    },
+    {
+      "id": "live-vite8-existence-only",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.4 (Vitest table: Vite 8 with Vitest 5.1.0), §4.6, JS-17",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "EXISTENCE_ONLY"
+        ]
+      }
+    },
+    {
+      "id": "live-js-story-repairs-lockfile",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §4.5 (the first story repairs a broken lockfile), JS-15, JS-19, JS-22",
+      "expect": {
+        "verdict": "WAITING FOR YOU",
+        "codes": [
+          "NEW_CHECKS",
+          "STORY_ADDS_TOOLS"
+        ]
+      }
+    },
+    {
+      "id": "live-js-column",
+      "lang": "javascript",
+      "level": "live",
+      "milestone": "M2",
+      "cites": "design §2 line 1, §4.6 level 2: every judge row above in a real repository with the real workflows",
+      "expect": {
+        "verdict": "as each judge row"
+      }
+    },
+    {
+      "id": "setup-py-subfolder-package",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: a `.py` file and a `package.json` in a subfolder",
+      "expect": {
+        "outcome": "Python path, as today"
+      }
+    },
+    {
+      "id": "setup-both-at-root",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: `package.json` and `requirements.txt` at the root",
+      "expect": {
+        "outcome": "Python path, as today"
+      }
+    },
+    {
+      "id": "setup-js-root",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: a root `package.json` with React and Vite 5 to 8, no Python file",
+      "expect": {
+        "outcome": "JavaScript path"
+      }
+    },
+    {
+      "id": "setup-stop-subfolder-app",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: no root `package.json`, one below the root, no Python marker",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-no-react",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: no `react`, or React Native (including a root tooling `package.json` and no Python file)",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-vite",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: no Vite, or a Vite outside 5 to 8",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-vitest-off-table",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: an installed Vitest that is not the table's for the app's Vite",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-jest-only",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: Jest without Vitest",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-playwright",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: Playwright tests",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-workspaces",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: workspaces",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-next",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: Next.js (L7 B)",
+      "expect": {
+        "outcome": "stops: not yet"
+      }
+    },
+    {
+      "id": "setup-stop-npm",
+      "lang": "setup",
+      "level": "setup",
+      "milestone": "M3",
+      "cites": "design §3.1, §3.2, §4.5: Node older than 24 or npm older than 11.19",
+      "expect": {
+        "outcome": "stops: not yet, with the install line"
+      }
+    }
+  ]
+}

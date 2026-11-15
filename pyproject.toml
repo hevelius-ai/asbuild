@@ -9,6 +9,8 @@ license = "MIT"
 testpaths = ["tests"]
 pythonpath = ["."]
 junit_family = "xunit2"
+# The conformance cases hold sample projects (their own test files are data, not AsBuild's tests).
+norecursedirs = ["cases", ".*", "build", "dist", "*.egg", "venv", "node_modules"]
 
 [tool.coverage.run]
 source = ["engine", "plugin/scripts"]
@@ -21,6 +23,7 @@ show_missing = true
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+extend-exclude = ["tests/conformance/cases"]  # sample projects, data for the conformance suite
 
 [tool.ruff.format]
 exclude = ["tests/acceptance/**"]  # locked tests are never reformatted

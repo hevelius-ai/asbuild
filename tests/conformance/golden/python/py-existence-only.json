@@ -1,0 +1,69 @@
+{
+  "receipt": {
+    "technical": "AsBuild: WAITING FOR YOU for PR #1 at cccccccccc (story S1)\n\n- EXISTENCE_ONLY {\"check\": \"S1-C1\"}\n- EXISTENCE_ONLY {\"check\": \"S1-C2\"}\n- S1-C1: exists_only\n- S1-C2: exists_only\n- other tests: 1 run, 0 broken",
+    "template": 3,
+    "top": "Note from AsBuild, which checks the AI's work against the list you agreed · Count words\n\nStop. This needs you. Don't accept it yet. One line on your list failed before only because a part of the app didn't exist, so it can't show that the AI's work does what you asked.\n\nThe list you agreed with the AI before it started:\n- ? not shown yet: it failed before only because a part of the app didn't exist: When you type some words, the page shows how many there are, like \"words: 3\".\n- ? not shown yet: it failed before only because a part of the app didn't exist: When the box is empty, the page shows \"words: 0\".\n\nDo you need to do anything?\n- Yes. Tell the AI: \"The line marked ? failed before for the wrong reason. Suggest a check that fails because the answer is wrong, and show it to me.\"\n\nGood to know: AsBuild checked only the lines on your list, nothing else, such as how fast it is or how it looks. The check ran on GitHub, separately from the AI."
+  },
+  "verdict": {
+    "branch": "build/S1",
+    "codes": [
+      {
+        "code": "EXISTENCE_ONLY",
+        "params": {
+          "check": "S1-C1"
+        }
+      },
+      {
+        "code": "EXISTENCE_ONLY",
+        "params": {
+          "check": "S1-C2"
+        }
+      }
+    ],
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "items": [
+      {
+        "id": "S1-C1",
+        "plain": "When you type some words, the page shows how many there are, like \"words: 3\".",
+        "status": "exists_only"
+      },
+      {
+        "id": "S1-C2",
+        "plain": "When the box is empty, the page shows \"words: 0\".",
+        "status": "exists_only"
+      }
+    ],
+    "pass_to_pass": {
+      "broken": 0,
+      "total": 1,
+      "unbuilt": 0
+    },
+    "pr": 1,
+    "pr_url": "https://github.com/example/app/pull/1",
+    "rows": [
+      {
+        "id": "S1-C1",
+        "with": {
+          "tests.acceptance.S1.test_S1_count::test_S1_C1_counts_words": "passed"
+        },
+        "without": [
+          "existence-only"
+        ]
+      },
+      {
+        "id": "S1-C2",
+        "with": {
+          "tests.acceptance.S1.test_S1_count::test_S1_C2_missing_file": "passed"
+        },
+        "without": [
+          "existence-only"
+        ]
+      }
+    ],
+    "run_url": "",
+    "setup_update": false,
+    "story": "S1",
+    "title": "Count words",
+    "verdict": "WAITING FOR YOU"
+  }
+}

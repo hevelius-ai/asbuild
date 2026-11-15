@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests">
+    <testsuite name="tests/acceptance/S1/S1-C1.test.tsx" tests="1">
+        <testcase classname="tests/acceptance/S1/S1-C1.test.tsx" name="S1-C1 shows the word count" time="0.001">
+            <failure message="Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined." type="Error">
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined.
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,92 @@
+{
+  "tests/acceptance/S1/test_S1_verdicts.py": {
+    "sha256": "a2d49437511c480515d2f0fda9c56582eef6d310903579ce638c364b8db577c0",
+    "tests": [
+      "test_S1_C1_proven_one_check_one_receipt",
+      "test_S1_C2_not_proven_names_unmet_check",
+      "test_S1_C3_waiting_names_changed_file",
+      "test_S1_C4_unresolved_claims_nothing",
+      "test_S1_C5_no_story_never_proven",
+      "test_S1_C6_verdict_job_runs_from_main_only",
+      "test_S1_C7_story_pr_lists_new_checks",
+      "test_S1_C8_six_templates_lint_clean"
+    ]
+  },
+  "tests/acceptance/S2/test_S2_story_checks.py": {
+    "sha256": "f40979ad798029b35d6c39a31234b02211d22c07e2bad12916432de691f79e5f",
+    "tests": [
+      "test_S1_C1_counts_the_words_in_a_file",
+      "test_S1_C2_a_missing_file_says_so",
+      "test_S2_C1_two_check_story_passes_and_locks",
+      "test_S2_C2_test_passing_on_main_fails_with_reason",
+      "test_S1_C1_counts_the_words_in_a_file",
+      "test_S2_C2_non_assertion_failure_fails_with_reason",
+      "test_S1_C1_counts_the_words_in_a_file",
+      "test_S1_C2_a_missing_file_says_so",
+      "test_S2_C2_unapproved_values_fail_with_reason",
+      "test_S1_C1_counts_the_words_in_a_file",
+      "test_S2_C3_skill_under_100_lines"
+    ]
+  },
+  "tests/acceptance/S3/test_S3_install_page.py": {
+    "sha256": "654ddd27d59e6670d84837b206b41139e12af259dd712da638911b37838ea177",
+    "tests": [
+      "test_S3_C1_install_page_matches_the_repository",
+      "test_S3_C2_story_lock_adds_the_deny_line_and_page_says_what_it_misses",
+      "test_S3_C3_verdict_after_each_push"
+    ]
+  },
+  "tests/acceptance/S4/test_S4_clean_install.py": {
+    "sha256": "4b419e7a6aaffa7c6622a90f2daa8d54f97d31f3e41e7dbf2b0fd8232e1118f1",
+    "tests": [
+      "test_S4_C4_ci_installs_from_the_marketplace_and_tests_the_installed_copy"
+    ]
+  },
+  "tests/acceptance/S4/test_S4_readme.py": {
+    "sha256": "bc5fc7fc7516573940117c9569fef295636598c098a44efeac39e71e3385cbfd",
+    "tests": [
+      "test_S4_C1_readme_says_what_asbuild_is",
+      "test_S4_C2_limits_and_g3_wording_word_for_word",
+      "test_S4_C3_receipts_security_licence_and_wording"
+    ]
+  },
+  "tests/acceptance/S5/test_S5_fixes.py": {
+    "sha256": "5d1a59842b0d8189282325b9e8e1a122117877f7860fd3451e785ac2b1bd9a92",
+    "tests": [
+      "test_S5_T1_install_says_the_folder_is_on_your_computer",
+      "test_S5_T2_example_identity_counts_as_not_set",
+      "test_S5_T2_example_identity_in_the_repository_names_the_local_fix",
+      "test_S5_T2_missing_identity_says_claude_can_set_it",
+      "test_S5_T2_skill_asks_for_the_name_and_email",
+      "test_S5_T3_step_one_says_how"
+    ]
+  },
+  "tests/acceptance/S5/test_S5_setup.py": {
+    "sha256": "e9a4337c0ca5a729bca84040c43f17363ad76f07a082a408af4f6d821f129aee",
+    "tests": [
+      "test_S5_C1_not_a_repository_no_origin_not_github",
+      "test_S5_C2_git_has_no_name_or_email",
+      "test_S5_C3_github_cli_missing_or_not_signed_in",
+      "test_S5_C4_empty_repository_gets_its_first_commit_on_main",
+      "test_S5_C4_empty_repository_uses_the_folders_own_requirements",
+      "test_S5_C4_empty_github_but_commits_in_the_folder_stops",
+      "test_S5_C5_default_branch_not_main_stops",
+      "test_S5_C5_no_main_on_github_names_the_rename",
+      "test_S5_C6_first_setup_pushes_the_two_files_and_names_the_page",
+      "test_S5_C7_already_set_up_pushes_nothing",
+      "test_S5_C8_older_files_get_an_update_that_waits_for_you",
+      "test_S5_C9_running_again_before_the_merge_pushes_nothing_new",
+      "test_S5_C9_an_older_setup_branch_is_replaced_by_one_on_main",
+      "test_S5_C9_a_setup_branch_with_someone_elses_commits_is_left_alone",
+      "test_S5_C10_push_refused_for_the_workflow_scope",
+      "test_S5_setup_runs_as_its_own_program"
+    ]
+  },
+  "tests/acceptance/S5/test_S5_skill_and_readme.py": {
+    "sha256": "a1cedb06a1104cd931cb032417acc110a13df6b0cf6459daaaf53e5464adc05a",
+    "tests": [
+      "test_S5_C11_setup_skill_runs_the_script_and_is_found_in_an_unwired_repository",
+      "test_S5_C12_install_page_leads_with_the_three_steps"
+    ]
+  }
+}

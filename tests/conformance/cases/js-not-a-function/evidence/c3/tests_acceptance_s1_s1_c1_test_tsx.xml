@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests">
+    <testsuite name="tests/acceptance/S1/S1-C1.test.tsx" tests="1">
+        <testcase classname="tests/acceptance/S1/S1-C1.test.tsx" name="S1-C1 shows the word count" time="0.001">
+            <failure message="Counter is not a function" type="TypeError">
+TypeError: Counter is not a function
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>
