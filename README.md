@@ -209,7 +209,7 @@ This test ran on an earlier in-session version with a guard that AsBuild Core do
 
 ## Security
 
-AsBuild uses no repository secrets: its two workflows use only the token GitHub gives each run. The job that runs the pull request's code has read-only rights; the job that posts the verdict runs from `main` and never runs pull-request code. A login that can push to your repository can usually also create or delete its secrets, and AsBuild does not watch them. AsBuild does not look for keys or passwords in your code either: for that, turn on GitHub's own secret scanning and push protection (https://docs.github.com/en/code-security/secret-scanning).
+AsBuild uses no repository secrets: its two workflows use only the token GitHub gives each run. The job that runs the pull request's code has read-only rights; the job that posts the verdict runs from `main` and never runs pull-request code. A pull request can add a workflow of its own that posts a check or a note named "AsBuild" with any verdict: `/asbuild:verdict` ignores those and reads only the verdict AsBuild's verdict workflow saved, and that workflow's own verdict on such a pull request waits for you, because the added workflow is a file only you may change. A login that can push to your repository can usually also create or delete its secrets, and AsBuild does not watch them. AsBuild does not look for keys or passwords in your code either: for that, turn on GitHub's own secret scanning and push protection (https://docs.github.com/en/code-security/secret-scanning).
 
 ## Licence
 

@@ -13,7 +13,7 @@ After `git push`, from the repository root, on the commit you pushed, run:
 
 `python "${CLAUDE_PLUGIN_ROOT}/scripts/asbuild_wait.py"`
 
-It can wait up to 20 minutes, so run it in the background and read its output when it ends. It prints the verdict and the check's summary.
+It can wait up to 20 minutes, so run it in the background and read its output when it ends. It prints the verdict and its summary. It reads only the verdict that AsBuild's own verdict workflow saved, from its run on `main`; a check or comment named "AsBuild" from any other workflow does not count, and you never add or change a workflow to produce one.
 
 The pull request that adds AsBuild's two workflow files gets no verdict, because the workflows are not on `main` yet: don't wait for it.
 
@@ -24,6 +24,6 @@ The pull request that adds AsBuild's two workflow files gets no verdict, because
 - **3 UNRESOLVED:** AsBuild could not run the tests or compute a verdict, so nothing was checked. Read the summary and tell the person what it says. If the cause is `requirements.txt` (for example it does not list pytest) or the workflow files, don't change them in this pull request: AsBuild protects those files, so the verdict would only wait for the person. Say what to fix; it belongs in its own pull request, which the person merges.
 - **4 WAITING FOR YOU:** the decision is the person's. Stop and tell them, in plain words, what the summary asks: new checks to approve (a story pull request), a changed check or protected file, a missing or already passing check, or a change no story covers.
 - **5 could not ask GitHub:** `gh` or `git` failed. Check `gh auth status` and the network, then run it again.
-- **7 no verdict yet:** run it again once. If there is still none, tell the person to look at the pull request's Checks tab.
+- **7 no verdict yet:** run it again once. If there is still none, tell the person to look at the pull request's Checks tab. If the repository's AsBuild workflow files are older than v0.4.0, they save no verdict for this script: tell the person to run `/asbuild:setup` to update them.
 
 Report each verdict in one plain sentence, then the next step.

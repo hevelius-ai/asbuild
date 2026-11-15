@@ -32,3 +32,16 @@ def test_SF_C1_a_build_that_adds_one_waits_for_the_person(tmp_path):
         assert v["items"][0]["status"] == "file_changed"
         top = render(v)["top"]
         assert "the settings for how your checks run" in top and lint(name, top) == []
+
+
+def test_SF_C2_the_verdict_workflow_saves_its_verdict_for_the_skill_after_posting_it():
+    from tests.unit.test_workflows import step, steps
+
+    for name in ("asbuild-verdict.yml",):
+        titles = [s.get("name") for s in steps(name)]
+        assert titles.index("Save the verdict for /asbuild:verdict") == titles.index("Post the check run") + 1
+        save = step(name, "Save the verdict for /asbuild:verdict")
+        assert save["if"] == "always() && steps.pr.outputs.skip != 'true'"
+        assert save["uses"].startswith("actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4")
+        assert save["with"]["name"] == "asbuild-verdict-${{ github.event.workflow_run.head_sha }}"
+        assert save["with"]["path"].split() == ["out/verdict.json", "out/summary.md"]

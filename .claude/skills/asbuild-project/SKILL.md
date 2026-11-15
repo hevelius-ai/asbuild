@@ -25,7 +25,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 
 ## Budget
 
-v0.4.0 (decision D48): 30 agent hours (report at 24, hard stop 37) and 5 owner hours (report at 4, hard stop 7); 10 working days (a day counts only if the agent did v0.4 work); outer limit 4 calendar weeks from the first build commit; each milestone stops at the top of its estimate for the owner's choice; kill gate if M1 and M2 together pass 18 agent hours; reviews $250 (report at $200, hard stop $300). v0.1 to v0.3.4 ran under decision D20 (18 to 30 agent hours, 5 to 8 owner hours) and are closed.
+v0.4.0 (decisions D48, D50): 33 agent hours (report at 26, hard stop 40) and 5 owner hours (report at 4, hard stop 7); 10 working days (a day counts only if the agent did v0.4 work); outer limit 4 calendar weeks from the first build commit; each milestone stops at the top of its estimate for the owner's choice; kill gate if M1 and M2 together pass 18 agent hours; reviews $250 (report at $200, hard stop $300). v0.1 to v0.3.4 ran under decision D20 (18 to 30 agent hours, 5 to 8 owner hours) and are closed.
 
 ## Gates
 
@@ -64,7 +64,7 @@ v0.4.0 (decision D48): 30 agent hours (report at 24, hard stop 37) and 5 owner h
 
 - Story and stage
 - Verdicts on open pull requests
-- Hours: agent used of 30 (stop 37), owner used of 5 (stop 7), reviews spent of $250 (stop $300); current milestone's hours against its estimate
+- Hours: agent used of 33 (stop 40), owner used of 5 (stop 7), reviews spent of $250 (stop $300); current milestone's hours against its estimate
 - Time: working day N of 10; calendar week W of 4
 - Open decisions
 - QUALITY RISK items

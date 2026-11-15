@@ -109,7 +109,7 @@ jobs:
         run: |
           mkdir -p out
           if [ ! -s out/verdict.json ]; then
-            echo '{"verdict": "UNRESOLVED"}' > out/verdict.json
+            jq -n --arg sha "$HEAD_SHA" '{verdict: "UNRESOLVED", head_sha: $sha}' > out/verdict.json
             echo "AsBuild could not compute the verdict. Nothing is claimed. Verdict run: $RUN_URL" > out/summary.md
             if [ -n "$OTHER_MAIN" ]; then
               echo "AsBuild judges pull requests into main, but this repository's default branch is $OTHER_MAIN." \
@@ -128,6 +128,19 @@ jobs:
             '{name: "AsBuild", head_sha: $sha, status: "completed", conclusion: $c, details_url: $url,
               output: {title: $title, summary: $summary}}' \
             | gh api -X POST "repos/$REPO/check-runs" --input - > /dev/null
+
+      # /asbuild:verdict reads the verdict only from this file, and only from a run of this workflow started by
+      # workflow_run, which GitHub runs from the default branch's copy alone: a check run or file posted by a
+      # workflow a pull request adds is never read (D50).
+      - name: Save the verdict for /asbuild:verdict
+        if: always() && steps.pr.outputs.skip != 'true'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: asbuild-verdict-${{ github.event.workflow_run.head_sha }}
+          path: |
+            out/verdict.json
+            out/summary.md
+          retention-days: 30
 
       - name: Post the receipt (one comment, edited in place)
         if: always() && steps.pr.outputs.number != ''
