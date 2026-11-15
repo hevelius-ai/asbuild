@@ -56,7 +56,8 @@ PLAIN_FILE = [
     (re.compile(r"(^|/)(AGENTS|CLAUDE)\.md$", re.I), "the rules the AI must follow"),
     (
         re.compile(
-            r"(^|/)(conftest\.py|pytest\.ini|tox\.ini|setup\.cfg|setup\.py|\.coveragerc|sitecustomize\.py)$|\.pth$"
+            r"(^|/)(conftest\.py|\.?pytest\.ini|\.?pytest\.toml|tox\.ini|setup\.cfg|setup\.py|\.coveragerc"
+            r"|sitecustomize\.py)$|\.pth$"
         ),
         "the settings for how your checks run",
     ),

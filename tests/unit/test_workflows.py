@@ -79,7 +79,7 @@ def test_check_run_is_always_posted_with_the_right_conclusion():
     run = post["run"]
     assert "PROVEN) c=success" in run and '"WAITING FOR YOU") c=action_required' in run and "*) c=failure" in run
     assert 'name: "AsBuild"' in run and '--arg title "AsBuild: $verdict"' in run
-    assert '{"verdict": "UNRESOLVED"}' in run
+    assert """jq -n --arg sha "$HEAD_SHA" '{verdict: "UNRESOLVED", head_sha: $sha}' > out/verdict.json""" in run
 
 
 def test_lookup_matches_same_repo_pr_whose_head_is_this_commit():

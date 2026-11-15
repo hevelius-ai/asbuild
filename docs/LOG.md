@@ -222,3 +222,6 @@ Append-only. UTC.
 - 2026-11-15T15:19Z M0 review round 2 (each model its own findings, $15.85): APPROVE from Opus, Fable and Sonnet; CI green (3 of 3).
 - 2026-11-15T15:20Z #38 merged by chrisz-glitch (324ce35); `m0/ground` deleted on both sides. 2026-11-15T15:21Z M1 begins on `m1/engine`.
 - 2026-11-15T15:56Z M1 built on `m1/engine` (3d16650): tests first (17 conformance rows and the new unit file seen failing), then the engine; local gate and a fresh clone: 386 passed, 11 skipped, coverage 100%. Review round 1 started (three lenses, extra effort). The owner chose D49: merge into `main` as planned, release `v0.4.0` when ready.
+- 2026-11-15T16:33Z M1 (hevelius-ai/asbuild#39, c8b4c03): review round 1 BLOCK x3 (4 distinct findings, $19.44), fixed (1d2f963); round 2 APPROVE x3 (Fable at its usage limit, its lens on Opus 5.5 at max), two LOW items fixed (c8b4c03), confirm-only CONFIRMED; CI green; fresh clone 388 passed. Ready for the owner's merge.
+- 2026-11-15T16:35Z AsChecked findings triaged (B5 proved by running); the owner chose X1 and then B4-A (D50). 2026-11-15T16:49Z B5 and B4-A built on `m1b/safety`.
+- 2026-11-15T16:42Z #39 merged by chrisz-glitch (defee5c); `m1/engine` deleted on both sides. 2026-11-15T16:56Z records.

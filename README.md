@@ -18,7 +18,7 @@ How it works, in four steps:
 1. You tell Claude Code what you want, and `/asbuild:story` agrees a short checklist with you, in plain words, with exact examples. It writes one test per line and opens a story pull request.
 2. Merging that story pull request approves the checks. From then on their tests are locked.
 3. The agent builds the change on a branch named `build/S<n>` and opens a pull request.
-4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads it with `/asbuild:verdict`. You decide whether to merge.
+4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads AsBuild's saved verdict with `/asbuild:verdict`. You decide whether to merge.
 
 Here it is catching a weakened check, in three numbered steps: the AI changed an agreed test so that it would pass, and AsBuild stopped and asked for the person. The pull request is real, and you can open it: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
 
@@ -158,7 +158,7 @@ What the story pull request adds to your repository: the story in `dev-docs/stor
 ### 4. Get the verdict after each push
 
 1. Claude builds the change on a branch named `build/S<n>` and opens a pull request.
-2. After each push, Claude Code runs `/asbuild:verdict`, which waits for the check named "AsBuild" and prints its verdict. If it doesn't, ask it to. (`gh pr checks --watch` is not enough: it returns when the tests finish, a little before the verdict is posted.)
+2. After each push, Claude Code runs `/asbuild:verdict`, which waits for AsBuild's verdict and prints it. If it doesn't, ask it to. (`gh pr checks --watch` is not enough: it returns when the tests finish, a little before the verdict is posted.)
 3. Read the receipt on the pull request, and decide whether to merge.
 
 ### By hand
@@ -209,7 +209,7 @@ This test ran on an earlier in-session version with a guard that AsBuild Core do
 
 ## Security
 
-AsBuild uses no repository secrets: its two workflows use only the token GitHub gives each run. The job that runs the pull request's code has read-only rights; the job that posts the verdict runs from `main` and never runs pull-request code. A login that can push to your repository can usually also create or delete its secrets, and AsBuild does not watch them. AsBuild does not look for keys or passwords in your code either: for that, turn on GitHub's own secret scanning and push protection (https://docs.github.com/en/code-security/secret-scanning).
+AsBuild uses no repository secrets: its two workflows use only the token GitHub gives each run. The job that runs the pull request's code has read-only rights; the job that posts the verdict runs from `main` and never runs pull-request code. A pull request can add a workflow of its own that posts a check or a note named "AsBuild" with any verdict: `/asbuild:verdict` ignores those and reads only the verdict AsBuild's verdict workflow saved, and that workflow's own verdict on such a pull request waits for you, because the added workflow is a file only you may change. A login that can push to your repository can usually also create or delete its secrets, and AsBuild does not watch them. AsBuild does not look for keys or passwords in your code either: for that, turn on GitHub's own secret scanning and push protection (https://docs.github.com/en/code-security/secret-scanning).
 
 ## Licence
 
