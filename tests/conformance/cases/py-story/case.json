@@ -1,0 +1,8 @@
+{
+  "branch": "story/S2",
+  "changed": [
+    "locks.json",
+    "dev-docs/stories/S2/story.md",
+    "tests/acceptance/S2/test_S2_clear.py"
+  ]
+}

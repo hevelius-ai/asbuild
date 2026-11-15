@@ -1,0 +1,44 @@
+{
+  "receipt": {
+    "technical": "AsBuild: UNRESOLVED for PR #1 at cccccccccc (story S1)\n\n- NO_RESULTS {\"acceptance_xml\": false, \"pr_xml\": false}\n- S1-C1: not_checked\n- S1-C2: not_checked\n- other tests: 0 run, 0 broken",
+    "template": 6,
+    "top": "Note from AsBuild, which checks the AI's work against the list you agreed · Count words\n\nStop. Don't accept it. The checks couldn't run, so nothing was checked.\n\nThe list you agreed with the AI before it started:\n- ? not checked this time: When you type some words, the page shows how many there are, like \"words: 3\".\n- ? not checked this time: When the box is empty, the page shows \"words: 0\".\n\nDo you need to do anything?\n- Yes. Tell the AI: \"The checks didn't run. Fix the setup so they run, without changing them.\" If it happens again, ask for help.\n\nGood to know: AsBuild runs on GitHub, separately from the AI."
+  },
+  "verdict": {
+    "branch": "build/S1",
+    "codes": [
+      {
+        "code": "NO_RESULTS",
+        "params": {
+          "acceptance_xml": false,
+          "pr_xml": false
+        }
+      }
+    ],
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "items": [
+      {
+        "id": "S1-C1",
+        "plain": "When you type some words, the page shows how many there are, like \"words: 3\".",
+        "status": "not_checked"
+      },
+      {
+        "id": "S1-C2",
+        "plain": "When the box is empty, the page shows \"words: 0\".",
+        "status": "not_checked"
+      }
+    ],
+    "pass_to_pass": {
+      "broken": 0,
+      "total": 0
+    },
+    "pr": 1,
+    "pr_url": "https://github.com/example/app/pull/1",
+    "rows": [],
+    "run_url": "",
+    "setup_update": false,
+    "story": "S1",
+    "title": "Count words",
+    "verdict": "UNRESOLVED"
+  }
+}

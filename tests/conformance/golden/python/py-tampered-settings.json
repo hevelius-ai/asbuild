@@ -1,0 +1,63 @@
+{
+  "receipt": {
+    "technical": "AsBuild: WAITING FOR YOU for PR #1 at cccccccccc (story S1)\n\n- PROTECTED_CHANGED {\"path\": \"pytest.ini\"}\n- S1-C1: file_changed\n- S1-C2: file_changed\n- other tests: 1 run, 0 broken",
+    "template": 2,
+    "top": "Note from AsBuild, which checks the AI's work against the list you agreed · Count words\n\nStop. This needs you. Don't accept it yet. The AI changed the settings for how your checks run, which only you are allowed to change, so AsBuild can't pass this without you.\n\nThe list you agreed with the AI before it started:\n- ? not judged: the AI changed a file only you may change: When you type some words, the page shows how many there are, like \"words: 3\".\n- ? not judged: the AI changed a file only you may change: When the box is empty, the page shows \"words: 0\".\n\nDo you need to do anything?\n- Yes. If you didn't ask for this, tell the AI: \"Undo your change to the settings for how your checks run.\"\n- If you did ask for it, read the change and accept it yourself.\n\nGood to know: AsBuild runs on GitHub, separately from the AI."
+  },
+  "verdict": {
+    "branch": "build/S1",
+    "codes": [
+      {
+        "code": "PROTECTED_CHANGED",
+        "params": {
+          "path": "pytest.ini"
+        }
+      }
+    ],
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "items": [
+      {
+        "id": "S1-C1",
+        "plain": "When you type some words, the page shows how many there are, like \"words: 3\".",
+        "status": "file_changed"
+      },
+      {
+        "id": "S1-C2",
+        "plain": "When the box is empty, the page shows \"words: 0\".",
+        "status": "file_changed"
+      }
+    ],
+    "pass_to_pass": {
+      "broken": 0,
+      "total": 1,
+      "unbuilt": 0
+    },
+    "pr": 1,
+    "pr_url": "https://github.com/example/app/pull/1",
+    "rows": [
+      {
+        "id": "S1-C1",
+        "with": {
+          "tests.acceptance.S1.test_S1_count::test_S1_C1_counts_words": "passed"
+        },
+        "without": [
+          "strong"
+        ]
+      },
+      {
+        "id": "S1-C2",
+        "with": {
+          "tests.acceptance.S1.test_S1_count::test_S1_C2_missing_file": "passed"
+        },
+        "without": [
+          "strong"
+        ]
+      }
+    ],
+    "run_url": "",
+    "setup_update": false,
+    "story": "S1",
+    "title": "Count words",
+    "verdict": "WAITING FOR YOU"
+  }
+}

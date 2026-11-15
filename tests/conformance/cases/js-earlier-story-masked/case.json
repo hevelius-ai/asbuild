@@ -1,0 +1,7 @@
+{
+  "branch": "build/S2",
+  "changed": [
+    "src/Clear.tsx",
+    "src/test/setup.ts"
+  ]
+}

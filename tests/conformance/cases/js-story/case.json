@@ -1,0 +1,11 @@
+{
+  "branch": "story/S1",
+  "changed": [
+    "locks.json",
+    "dev-docs/stories/S1/story.md",
+    "tests/acceptance/S1/S1-C1.test.tsx",
+    "tests/acceptance/S1/S1-C2.test.tsx",
+    "package.json",
+    "package-lock.json"
+  ]
+}

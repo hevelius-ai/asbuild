@@ -49,3 +49,5 @@ date,story,kind,hours,note
 2026-11-14,v0.3.4,agent,0.6,"Review round 2, the records fix and re-check, heartbeats, the release check (estimated)"
 2026-11-14,v0.3.4,owner,0.2,"Merges of #34 and #35, the release (estimated)"
 2026-11-14,v0.3.4,agent,0.4,"The re-check walker: set-up, run, report check, records (estimated)"
+2026-11-15,v0.4-design,agent,2.3,"Three design views, 24 proofs, three review rounds, confirm-only check, plan, scope guard (estimated)"
+2026-11-15,v0.4-design,owner,0.3,"Language list, decisions 1A and L1 to L9, the plan and the guard (estimated)"
