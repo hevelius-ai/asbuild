@@ -2,6 +2,7 @@
   "branch": "build/S1",
   "changed": [
     "src/Counter.tsx",
-    "tsconfig.app.json"
+    "config/ts-base.json",
+    "fake/vitest.ts"
   ]
 }

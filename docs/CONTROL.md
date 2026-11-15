@@ -11,7 +11,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-None yet: M0's pull request opens when its gate is green.
+hevelius-ai/asbuild#38 (`m0/ground`, fcd95ff): CI `check` failed (the cases' result files were left out by `.gitignore`); review round 1 BLOCK by all three lenses, 12 distinct blocking findings; volume stop (G4) at 2026-11-15T01:16Z: waiting for the owner's M0-A or M0-B.
 
 ## Running jobs
 
@@ -23,7 +23,9 @@ None yet: M0's pull request opens when its gate is green.
 
 ## QUALITY RISK
 
-None open. The early-merge item (#34 merged before its review finished, opened 17:43Z) closed at 21:46Z: the review fixes #35 were approved and merged before `v0.3.4` was published.
+- Open since 2026-11-15T01:16Z: M0's tests were run only in this computer's working copy, where files the repository ignores existed; CI failed on the missing result files. Closes when the fix is pushed and CI is green from the commit. Prevention written into the skills (fresh-clone check).
+
+Closed earlier: the early-merge item (#34 merged before its review finished, opened 17:43Z) closed at 21:46Z: the review fixes #35 were approved and merged before `v0.3.4` was published.
 
 ## Next steps
 

@@ -56,6 +56,6 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - Next.js apps and server components (L7 B) (v0.4.0 design, D47, 15 Nov 2026)
 - Allowing added packages in `package.json` (L4 A); reopen with the count of waits over the first 10 real builds (v0.4.0 design, D47, 15 Nov 2026)
 - Porting AsBuild's own scripts to Node (L8 A) (v0.4.0 design, D47, 15 Nov 2026)
-- A JavaScript parser in place of the story-time scanner; JavaScript on an empty repository; agreed checks in two languages in one repository (v0.4.0 design, D47, 15 Nov 2026)
+- A JavaScript parser in place of the story-time scanner; JavaScript on an empty repository; agreed checks in two languages in one story (a repository with a Python story and a JavaScript story is in scope: design §3.2, L5 B) (v0.4.0 design, D47, 15 Nov 2026)
 - Vue, Svelte, React Native and Expo; Vite older than 5 (v0.4.0 design, D47, 15 Nov 2026)
 - Swift, Dart, Go and Rust: each at its own gate with a fresh measurement (L9 C) (v0.4.0 design, D47, 15 Nov 2026)

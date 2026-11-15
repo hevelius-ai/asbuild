@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests">
+    <testsuite name="tests/acceptance/S2/S2-C1.test.tsx" tests="1">
+        <testcase classname="tests/acceptance/S2/S2-C1.test.tsx" name="S2-C1 clears the box" time="0.001"></testcase>
+    </testsuite>
+</testsuites>

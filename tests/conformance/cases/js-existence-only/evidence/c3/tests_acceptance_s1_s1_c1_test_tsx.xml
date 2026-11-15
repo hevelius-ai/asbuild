@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests">
+    <testsuite name="tests/acceptance/S1/S1-C1.test.tsx" tests="1">
+        <testcase classname="tests/acceptance/S1/S1-C1.test.tsx" name="tests/acceptance/S1/S1-C1.test.tsx" time="0.001">
+            <failure message="Cannot find module '../../../src/Counter' imported from tests/acceptance/S1/S1-C1.test.tsx" type="Error">
+Error: Cannot find module '../../../src/Counter' imported from tests/acceptance/S1/S1-C1.test.tsx
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

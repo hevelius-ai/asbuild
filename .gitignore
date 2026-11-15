@@ -5,4 +5,5 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 out/
-evidence/
+# The downloaded result folder at the root only, never the conformance cases' evidence folders.
+/evidence/

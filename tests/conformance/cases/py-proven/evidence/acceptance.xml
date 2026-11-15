@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest"><testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C1_counts_words" time="0.01"></testcase><testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C2_missing_file" time="0.01"></testcase></testsuite></testsuites>

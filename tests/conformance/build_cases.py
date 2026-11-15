@@ -61,12 +61,12 @@ def pytest_xml(cases: list[tuple[str, str, str]]) -> str:
 
 
 JS_FAIL = {
-    "assert": ("AssertionError", "expected 'words: 2' to be 'words: 3' // Object.is equality"),
+    "assert": ("AssertionError", "expected 'words: 2' to contain 'words: 3'"),
     "missing-module": (
         "Error",
-        "Cannot find module '../../../src/count' imported from tests/acceptance/S1/S1-C1.test.ts",
+        "Cannot find module '../../../src/Counter' imported from tests/acceptance/S1/S1-C1.test.tsx",
     ),
-    "not-a-function": ("TypeError", "count is not a function"),
+    "not-a-function": ("TypeError", "Counter is not a function"),
     "element-invalid": (
         "Error",
         "Element type is invalid: expected a string (for built-in components) or a"
@@ -336,6 +336,7 @@ def build_python() -> None:
 
 # ---------------------------------------------------------------- JavaScript rows (v0.4.0's target; fail today)
 JS_LOCKS = {JS1: (JS1_SRC, [JS1_TITLE]), JS2: (JS2_SRC, [JS2_TITLE])}
+EXISTS_ONLY = {"S1-C1": "exists_only", "S1-C2": "exists_only"}
 JS_MAIN = {"locks.json": locks(JS_LOCKS), "dev-docs/stories/S1/story.md": STORY_S1, JS1: JS1_SRC, JS2: JS2_SRC}
 
 
@@ -412,15 +413,6 @@ def build_js() -> None:
         head=story_head,
     )
     js(
-        "js-story-repairs-lockfile",
-        "design §4.5 (the repair rides in the first story), JS-15, JS-19, JS-22",
-        {"verdict": "WAITING FOR YOU", "codes": ["NEW_CHECKS", "STORY_ADDS_TOOLS"]},
-        branch="story/S1",
-        changed=["locks.json", "dev-docs/stories/S1/story.md", JS1, JS2, "package.json", "package-lock.json"],
-        main=dict(empty_main, **{"package-lock.json": b'{"stale": true}\n'}),
-        head=story_head,
-    )
-    js(
         "js-no-results-platform",
         "design §4.4 install codes, JS-8, JS-19",
         {"verdict": "UNRESOLVED", "codes": ["NO_RESULTS"], "receipt_has": ["only work on another kind of computer"]},
@@ -429,25 +421,30 @@ def build_js() -> None:
     js(
         "js-no-results-out-of-step",
         "design §4.4 install codes, JS-8",
-        {"verdict": "UNRESOLVED", "codes": ["NO_RESULTS"], "receipt_has": ["could not install"]},
+        {
+            "verdict": "UNRESOLVED",
+            "codes": ["NO_RESULTS"],
+            "receipt_has": ["could not install"],
+            "receipt_lacks": ["another kind of computer"],
+        },
         evidence=js_evidence(install="EUSAGE"),
     )
     js(
         "js-existence-only",
         "design §4.4 (a file that could not load), JS-1, JS-9",
-        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"]},
+        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"], "statuses": EXISTS_ONLY},
         evidence=js_evidence(c3=("missing-module", "missing-module")),
     )
     js(
         "js-not-a-function",
         "design §4.4, JS-1",
-        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"]},
+        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"], "statuses": EXISTS_ONLY},
         evidence=js_evidence(c3=("not-a-function", "not-a-function")),
     )
     js(
         "js-component-not-written",
         "design §4.4, JS-14",
-        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"]},
+        {"verdict": "WAITING FOR YOU", "codes": ["EXISTENCE_ONLY"], "statuses": EXISTS_ONLY},
         evidence=js_evidence(c3=("element-invalid", "element-invalid")),
     )
     js(
@@ -468,7 +465,6 @@ def build_js() -> None:
         ("js-tampered-settings", "vitest.config.ts", "design §4.4 protected names, JS-3"),
         ("js-npmrc", ".npmrc", "design §4.4 protected names"),
         ("js-package-script", "package.json", "design §4.4, L4 A"),
-        ("js-tsconfig-cheat", "tsconfig.app.json", "design §4.3, §4.4, JS-12, JS-20"),
     ):
         js(
             cid,
@@ -476,6 +472,30 @@ def build_js() -> None:
             {"verdict": "WAITING FOR YOU", "codes": ["PROTECTED_CHANGED"], "statuses": {"S1-C1": "file_changed"}},
             changed=["src/Counter.tsx", path],
         )
+    ts_base = b'{\n  "compilerOptions": {\n    "baseUrl": "..",\n    "paths": { "@/*": ["./src/*"] }\n  }\n}\n'
+    ts_cheat = (
+        b'{\n  "compilerOptions": {\n    "baseUrl": "..",\n'
+        b'    "paths": { "@/*": ["./src/*"], "vitest": ["./fake/vitest.ts"] }\n  }\n}\n'
+    )
+    ts_main = dict(
+        JS_MAIN,
+        **{"tsconfig.json": b'{\n  "extends": "./config/ts-base.json",\n  "include": ["src", "tests"]\n}\n'},
+        **{"config/ts-base.json": ts_base},
+    )
+    js(
+        "js-tsconfig-cheat",
+        "design §4.3 (AsBuild's settings drop an alias for the test tool), §4.6, JS-12, JS-20",
+        {
+            "verdict": "NOT PROVEN",
+            "codes": ["CHECK_FAILS"],
+            "no_codes": ["PROTECTED_CHANGED"],
+            "statuses": {"S1-C2": "fails"},
+        },
+        changed=["src/Counter.tsx", "config/ts-base.json", "fake/vitest.ts"],
+        main=ts_main,
+        head=dict(ts_main, **{"config/ts-base.json": ts_cheat}),
+        evidence=js_evidence(pr=("pass", "pass"), acc=("pass", "assert")),
+    )
     js(
         "js-setup-file-cheat",
         "design §4.3 (AsBuild's own settings), JS-3, JS-6, JS-9",
@@ -513,16 +533,22 @@ def build_js() -> None:
     )
     # A Python repository with a front end, after its first JavaScript story (L5 B: the names now apply).
     mixed_main = dict(
-        PY_MAIN, **{"locks.json": locks({PY_ACC_PATH: (PY_ACC, PY_TESTS), **JS_LOCKS}), JS1: JS1_SRC, JS2: JS2_SRC}
+        PY_MAIN,
+        **{"locks.json": locks({PY_ACC_PATH: (PY_ACC, PY_TESTS), JS_S2: (JS_S2_SRC, [JS_S2_TITLE])})},
+        **{"dev-docs/stories/S2/story.md": STORY_S2, JS_S2: JS_S2_SRC},
     )
+    mixed_ev = dict(py_evidence())
+    mixed_ev["pr-js.xml"] = vitest_xml([UNIT_JS, (JS_S2, JS_S2_TITLE, "pass")])
+    mixed_ev["acceptance-js.xml"] = vitest_xml([(JS_S2, JS_S2_TITLE, "pass")])
+    mixed_ev[f"c3/{slug(JS_S2)}.xml"] = vitest_xml([(JS_S2, JS_S2_TITLE, "pass")])
     js(
         "py-frontend-after-js",
-        "design §3.2, §4.4, L5 B: JavaScript checks exist",
+        "design §3.2, §4.4, L5 B: a JavaScript story (S2) exists beside the Python one (S1)",
         {"verdict": "WAITING FOR YOU", "codes": ["PROTECTED_CHANGED"]},
         changed=["app/count.py", "frontend/vite.config.ts"],
         main=mixed_main,
         head=mixed_main,
-        evidence=dict(py_evidence(), **js_evidence()),
+        evidence=mixed_ev,
     )
     ROWS[-1]["lang"] = "mixed"
 
@@ -536,9 +562,17 @@ def build_pending() -> None:
                 "javascript",
                 "live",
                 f"design §4.4 (Vitest table: Vite {vite} with Vitest {vitest}), §4.6, JS-17",
-                {"verdict": verdict},
+                {"verdict": verdict, "codes": ["EXISTENCE_ONLY"]} if kind == "existence-only" else {"verdict": verdict},
                 "M2",
             )
+    row(
+        "live-js-story-repairs-lockfile",
+        "javascript",
+        "live",
+        "design §4.5 (the first story repairs a broken lockfile), JS-15, JS-19, JS-22",
+        {"verdict": "WAITING FOR YOU", "codes": ["NEW_CHECKS", "STORY_ADDS_TOOLS"]},
+        "M2",
+    )
     row(
         "live-js-column",
         "javascript",
@@ -552,7 +586,11 @@ def build_pending() -> None:
         ("setup-both-at-root", "`package.json` and `requirements.txt` at the root", "Python path, as today"),
         ("setup-js-root", "a root `package.json` with React and Vite 5 to 8, no Python file", "JavaScript path"),
         ("setup-stop-subfolder-app", "no root `package.json`, one below the root, no Python marker", "stops: not yet"),
-        ("setup-stop-no-react", "no `react`, or React Native", "stops: not yet"),
+        (
+            "setup-stop-no-react",
+            "no `react`, or React Native (including a root tooling `package.json` and no Python file)",
+            "stops: not yet",
+        ),
         ("setup-stop-vite", "no Vite, or a Vite outside 5 to 8", "stops: not yet"),
         (
             "setup-stop-vitest-off-table",
@@ -577,7 +615,8 @@ def main() -> None:
     table = {
         "about": "v0.4.0's agreed conformance rows (D47, D48; docs/plans/v0.4-design.md §4.6). Locked after the owner "
         "merges M0: changing a row is an owner decision. `codes` must all appear; `no_codes` must not; "
-        "`statuses` maps check ids to their line status; `receipt_has` must appear in the receipt's plain part. "
+        "`statuses` maps check ids to their line status; `receipt_has` must appear in the receipt's plain part and "
+        "`receipt_lacks` must not. "
         "`milestone` is when the row must first pass.",
         "cases": ROWS,
     }

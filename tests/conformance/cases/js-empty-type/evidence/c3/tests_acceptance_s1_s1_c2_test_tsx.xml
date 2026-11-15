@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests">
+    <testsuite name="tests/acceptance/S1/S1-C2.test.tsx" tests="1">
+        <testcase classname="tests/acceptance/S1/S1-C2.test.tsx" name="S1-C2 shows words: 0 for an empty box" time="0.001">
+            <failure message="something failed" type="">
+: something failed
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

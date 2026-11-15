@@ -31,9 +31,10 @@ v0.4.0 (decision D48): 30 agent hours (report at 24, hard stop 37) and 5 owner h
 
 - CI decides (playbook 2.4). `hevelius-ai/asbuild` gets its own CI in S1's first pull request: one workflow running pytest with coverage, lint and types, on every pull request.
 - Local early warnings: pytest on the tests touching the changed modules, plus the lint and type tools chosen in story S1 and recorded here when chosen.
+- Fresh-clone check (before a pull request opens): clone the pushed branch into a new folder and run the tests there; `git status --ignored` on any new test folder. (v0.4 M0: `.gitignore`'s `evidence/` left out every case's result files.)
 - History check (before each commit and push): every new commit's author email is the heveliusai-dev no-reply address; `git log --format=%ae origin/main..HEAD` prints only that address. Nothing more in Core.
 - Every workflow file is parsed by the tests (`tests/unit/test_yaml_files.py`): GitHub rejects a file whose plain YAML value holds ": " without running any job.
-- Python and pytest for AsBuild's own code; v0.4.0 adds JavaScript fixtures run with Node 24 and Vitest in the conformance suite. Local Linux checks may run in Docker on the owner's computer (an image pinned by digest, pulled only with the owner's yes).
+- Python and pytest for AsBuild's own code; v0.4.0's conformance suite also holds JavaScript cases: level 1 reads their result files with the Python engine; level 2 (M2) runs them on GitHub with Node 24 and Vitest. Local Linux checks may run in Docker on the owner's computer (an image pinned by digest, pulled only with the owner's yes).
 
 ## Reviews (decisions D21, D48)
 
