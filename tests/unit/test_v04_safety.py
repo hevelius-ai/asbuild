@@ -46,6 +46,7 @@ def test_SF_C2_the_skill_and_both_readmes_say_which_verdict_counts():
     readme = (root / "README.md").read_text(encoding="utf-8")
     assert "`/asbuild:verdict` ignores those and reads only the verdict AsBuild's verdict workflow saved" in readme
     assert 'waits for the check named "AsBuild"' not in readme
+    assert "The agent reads AsBuild's saved verdict with `/asbuild:verdict`" in readme
     plugin_readme = (root / "plugin" / "README.md").read_text(encoding="utf-8")
     wait_line = next(line for line in plugin_readme.splitlines() if "scripts/asbuild_wait.py" in line)
     assert "check-runs" not in wait_line

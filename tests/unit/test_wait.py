@@ -47,7 +47,9 @@ def fake(artifact_pages, runs, files, calls=None):
             out = Path(cmd[cmd.index("--dir") + 1])
             if doc is not None:
                 (out / "verdict.json").write_text(doc if isinstance(doc, str) else json.dumps(doc), encoding="utf-8")
-            if summary is not None:
+            if isinstance(summary, bytes):
+                (out / "summary.md").write_bytes(summary)
+            elif summary is not None:
                 (out / "summary.md").write_text(summary, encoding="utf-8")
             return ""
         raise AssertionError(cmd)
@@ -114,15 +116,19 @@ def test_SF_C2_the_commit_inside_the_file_must_match(capsys):
     arts = [art(9, "2026-11-15T11:00:00Z"), art(8, "2026-11-15T10:00:00Z"), wrong_name]
     files = {9: ({"verdict": "PROVEN", "head_sha": "d" * 40}, ""), 8: ({"verdict": "NOT PROVEN", "head_sha": SHA}, "")}
     files[6] = ({"verdict": "PROVEN", "head_sha": SHA}, "")
-    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 1
-    files[9] = ({"verdict": "PROVEN"}, "")  # no commit inside: not this commit's verdict
-    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 1
+    # the newest real file names another commit: UNRESOLVED, never the older verdict (8) nor the misnamed file (6)
+    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 3
+    files[9] = ({"verdict": "PROVEN"}, "")  # no commit inside: the same
+    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 3
+    files[9] = ({"verdict": "PROVEN", "head_sha": SHA}, "")
+    assert go(fake([arts], {6: REAL, 8: REAL, 9: REAL}, files)) == 0
 
 
 def test_SF_C2_an_unreadable_real_file_is_unresolved_never_an_older_verdict(capsys):
     arts = [art(9, "2026-11-15T12:00:00Z"), art(8, "2026-11-15T11:00:00Z")]
     older = ({"verdict": "PROVEN", "head_sha": SHA}, "older")
-    for newest in (("not json", "x"), (None, None), ({"head_sha": SHA}, None), (["a list"], None)):
+    undecodable = ({"verdict": "PROVEN", "head_sha": SHA}, b"\xff\xfe bad")  # the summary cannot be read as text
+    for newest in (("not json", "x"), (None, None), ({"head_sha": SHA}, None), (["a list"], None), undecodable):
         assert go(fake([arts], {8: REAL, 9: REAL}, {9: newest, 8: older})) == 3, newest
         out = capsys.readouterr().out
         assert "verdict: UNRESOLVED" in out and "older" not in out

@@ -18,7 +18,7 @@ How it works, in four steps:
 1. You tell Claude Code what you want, and `/asbuild:story` agrees a short checklist with you, in plain words, with exact examples. It writes one test per line and opens a story pull request.
 2. Merging that story pull request approves the checks. From then on their tests are locked.
 3. The agent builds the change on a branch named `build/S<n>` and opens a pull request.
-4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads it with `/asbuild:verdict`. You decide whether to merge.
+4. On every push, GitHub Actions runs the locked tests on `main` and on the pull request, and AsBuild posts one check named "AsBuild", with a verdict and a plain receipt. The agent reads AsBuild's saved verdict with `/asbuild:verdict`. You decide whether to merge.
 
 Here it is catching a weakened check, in three numbered steps: the AI changed an agreed test so that it would pass, and AsBuild stopped and asked for the person. The pull request is real, and you can open it: [demo #5](https://github.com/hevelius-ai/asbuild-demo/pull/5).
 

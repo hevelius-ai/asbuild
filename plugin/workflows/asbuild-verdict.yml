@@ -1,7 +1,8 @@
 # AsBuild, the TRUSTED half. Copy this file to .github/workflows/ in your repository.
 # It runs from your main branch when asbuild-test finishes. It never checks out or runs pull-request code:
 # it reads the test results as data, takes the commit from the workflow_run event, fetches AsBuild's code from
-# hevelius-ai/asbuild, and posts one check run named "AsBuild" and one receipt on the pull request.
+# hevelius-ai/asbuild, posts one check run named "AsBuild" and one receipt on the pull request, and saves the
+# verdict as a file attached to this run for /asbuild:verdict.
 # AsBuild uses no repository secrets.
 
 name: asbuild-verdict

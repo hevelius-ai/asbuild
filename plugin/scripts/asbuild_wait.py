@@ -7,8 +7,9 @@ verdict. This script waits for the verdict itself.
 Since v0.4.0 it reads only the verdict that AsBuild's verdict workflow saves as a file attached to its own run
 (`asbuild-verdict-<commit>`), and only from a run of `.github/workflows/asbuild-verdict.yml` that GitHub started by
 `workflow_run`. GitHub runs a `workflow_run` workflow only from the default branch's copy, so a pull request can
-neither start such a run nor change what it does. A check run named "AsBuild", or a file of that name, posted by any
-other workflow (one a pull request adds, for example) is never read (D50, AsChecked B4).
+neither start such a run nor change what it does. The newest such file decides: if it cannot be read, or names
+another commit or none, the verdict is UNRESOLVED, never an older one. A check run named "AsBuild", or a file of that
+name, posted by any other workflow (one a pull request adds, for example) is never read (D50, AsChecked B4).
 
 Usage (from the repository root, after `git push`): python asbuild_wait.py [--timeout 1200] [--sha SHA]
 
@@ -72,13 +73,13 @@ def saved_verdict(repo: str, sha: str, run: Callable[..., str]) -> tuple[str, st
             doc_path, summary_path = Path(d, "verdict.json"), Path(d, "summary.md")
             try:
                 doc = json.loads(doc_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                doc = None
-            summary = summary_path.read_text(encoding="utf-8").strip() if summary_path.is_file() else ""
-        if not isinstance(doc, dict):  # AsBuild's newest verdict is unreadable: never fall back to an older one
+                summary = summary_path.read_text(encoding="utf-8").strip() if summary_path.is_file() else ""
+            except (OSError, ValueError):  # UnicodeDecodeError is a ValueError
+                doc, summary = None, ""
+        # AsBuild's newest verdict for this commit is unreadable, or names another commit or none: UNRESOLVED, never
+        # an older verdict.
+        if not isinstance(doc, dict) or doc.get("head_sha") != sha:
             return "UNRESOLVED", summary
-        if doc.get("head_sha") != sha:  # not this commit's verdict
-            continue
         return str(doc.get("verdict") or "UNRESOLVED"), summary
     return None
 
