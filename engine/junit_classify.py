@@ -73,10 +73,10 @@ def classify_js(tc) -> tuple[str, str]:
         return "skipped", first
     if not typ:
         return "unreadable", first
+    if (tc.get("name") or "") == (tc.get("classname") or ""):  # the file could not load, whatever the error
+        return "existence-only", f"{typ}: {first}"
     if typ == "AssertionError":
         return "strong", first
-    if (tc.get("name") or "") == (tc.get("classname") or ""):  # the file could not load
-        return "existence-only", f"{typ}: {first}"
     if typ == "ReferenceError" or (typ == "TypeError" and any(s in msg for s in JS_TYPE_ERROR)):
         return "existence-only", f"{typ}: {first}"
     if any(s in msg for s in JS_EXISTENCE):
@@ -86,12 +86,18 @@ def classify_js(tc) -> tuple[str, str]:
 
 def load(path: str, rule: Callable = classify) -> dict[Key, str] | None:
     """{(classname, name): kind} by the given rules, or None if the file is missing, too large, unreadable or has no
-    test cases."""
+    test cases. Two results with one name (Vitest's `it.each` without a placeholder, or two tests with one title):
+    a pass never replaces another kind, so a pass cannot hide a failure."""
     if not os.path.isfile(path) or os.path.getsize(path) > MAX_BYTES:
         return None
     try:
         root = ET.parse(path).getroot()
     except Exception:  # noqa: BLE001 - any parse failure means "no readable results"
         return None
-    cases = {(tc.get("classname") or "", tc.get("name") or ""): rule(tc)[0] for tc in root.iter("testcase")}
+    cases: dict[Key, str] = {}
+    for tc in root.iter("testcase"):
+        key = (tc.get("classname") or "", tc.get("name") or "")
+        kind = rule(tc)[0]
+        if cases.get(key, "passed") == "passed":
+            cases[key] = kind
     return cases or None

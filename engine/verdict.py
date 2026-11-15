@@ -130,7 +130,7 @@ def parse_story(text: str) -> tuple[str, list[dict]]:
     return title, [{"id": i, "plain": plain.get(i, NO_PLAIN)} for i in ids]
 
 
-# Python's rules, as in v0.3.4 (each language's are in engine/langs.py).
+# Python's rules, as in v0.3.4 apart from the name split (M1-C3); each language's are in engine/langs.py.
 matches = langs.PYTHON.matches
 story_of = langs.PYTHON.story_of
 before = langs.PYTHON.before

@@ -3,7 +3,8 @@ the locked acceptance files.
 
 Each row says which result files the untrusted job writes for it, how a test's name carries a check ID, how a locked
 test is found in the results, how the lock lists a file's tests, how the story is read from a result, which failure
-rules apply and which file names it adds to the protected list. Python's row is v0.3.4's code, moved. A language is in
+rules apply and which file names it adds to the protected list. Python's row is v0.3.4's code, moved, except that
+names now split on any non-letter, non-digit (M1-C3; the same result for every Python name, P-ENG-1). A language is in
 play only when main's `locks.json` holds a file it owns (`in_play`); its protected names apply when main's or the pull
 request's `locks.json` does (`owners`, L5 B).
 
@@ -20,7 +21,7 @@ from engine.junit_classify import Key, classify, classify_js
 
 NAME_SPLIT = re.compile(r"[\W_]")  # any character that is not a letter or a digit
 TEST_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(test_\w+)\s*\(", re.M)
-# A top-level `test(` or `it(` call with a literal title: no indentation, no escapes, no `${...}`.
+# A top-level `test(` or `it(` call with a literal title: no indentation, no escapes, no `$` in a backtick title.
 JS_TITLE = re.compile(r"""^(?:test|it)\s*\(\s*(?:"([^"\\\n]*)"|'([^'\\\n]*)'|`([^`\\$\n]*)`)""", re.M)
 JS_STORY = re.compile(r"^tests/acceptance/(S\d+)/")
 
@@ -71,7 +72,7 @@ class Lang:
         return self._lock_tests(text)
 
 
-# ---------------------------------------------------------------- Python (v0.3.4's code, moved)
+# ---------------------------------------------------------------- Python (v0.3.4's code, moved; the split is M1-C3's)
 def _py_matches(test_name: str, check: str) -> bool:
     return _carries(test_name.split("[", 1)[0], check)  # a pytest parameter is not part of the name
 

@@ -77,6 +77,17 @@ def js_facts(tmp_path, *, evidence: dict[str, str], branch="build/S1", changed=(
     )
 
 
+PY_EV = {
+    "pr.xml": '<testsuites><testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C1_counts_words"/>'
+    "</testsuites>",
+    "acceptance.xml": '<testsuites><testcase classname="tests.acceptance.S1.test_S1_count" '
+    'name="test_S1_C1_counts_words"/></testsuites>',
+    "c3/tests_acceptance_s1_test_s1_count_py.xml": '<testsuites><testcase classname="tests.acceptance.S1.'
+    'test_S1_count" name="test_S1_C1_counts_words"><failure message="AssertionError: x">x</failure></testcase>'
+    "</testsuites>",
+}
+
+
 def ok_evidence(acc_type=None, c3_type="AssertionError", pr_extra=(), acc_extra=()) -> dict[str, str]:
     return {
         "pr-js.xml": vitest([("src/a.test.ts", "unit", None, ""), (JS1, T1, None, ""), *pr_extra]),
@@ -113,13 +124,13 @@ def test_M1_C1_fails_before_files_are_read_by_the_row_their_name_ends_with():
 def test_M1_C1_a_build_that_adds_a_javascript_lock_entry_does_not_put_javascript_in_play(tmp_path):
     """Premortem 2: the evidence rule reads main's lock, never the pull request's."""
     main = {"locks.json": lockfile({PY: PY_SRC}), "dev-docs/stories/S1/story.md": STORY, PY: PY_SRC}
-    f = js_facts(tmp_path, evidence={}, changed=["locks.json", JS1], main=main)
+    ev = dict(PY_EV, **{"js-install.txt": "EBADPLATFORM\n"})
+    f = js_facts(tmp_path, evidence=ev, changed=["locks.json", JS1], main=main)
     f.head_files = dict(main, **{"locks.json": lockfile({PY: PY_SRC, JS1: JS1_SRC}), JS1: JS1_SRC})
     v = judge(f)
     assert v["verdict"] == "WAITING FOR YOU" and "PROTECTED_CHANGED" in codes(v)
-    nr = [c for c in v["codes"] if c["code"] == "NO_RESULTS"]
-    assert nr == [{"code": "NO_RESULTS", "params": {"pr_xml": False, "acceptance_xml": False}}]
-    assert "INSTALL_FAILED" not in codes(v)
+    assert "NO_RESULTS" not in codes(v) and "INSTALL_FAILED" not in codes(v)
+    assert v["items"][0]["status"] == "check_changed"  # judged from Python's results alone
 
 
 # ---------------------------------------------------------------- M1-C2 JavaScript results
@@ -141,6 +152,7 @@ def test_M1_C2_javascript_failure_rules_by_type_and_message():
     ):
         assert classify_js(case("failure", T1, p, "Error", msg))[0] == "existence-only", msg
     assert classify_js(case("failure", p, p, "Error", "Transform failed"))[0] == "existence-only"  # file not loaded
+    assert classify_js(case("failure", p, p, "AssertionError", "expected 1 to be 2"))[0] == "existence-only"
     assert classify_js(case("error", T1, p, "RangeError", "too deep"))[0] == "strong"
     assert classify_js(case("failure", T1, p, "", "something failed"))[0] == "unreadable"
     assert classify_js(case("failure", T1, p, None, "something failed"))[0] == "unreadable"
@@ -151,6 +163,19 @@ def test_M1_C2_load_uses_the_rule_it_is_given(tmp_path):
     x.write_text(vitest([(JS1, T1, "Error", "Cannot find module 'x'")]), encoding="utf-8")
     assert load(str(x)) == {(JS1, T1): "strong"}  # Python's rule keys on the message's first word
     assert load(str(x), classify_js) == {(JS1, T1): "existence-only"}
+
+
+def test_M1_C2_a_repeated_name_never_lets_a_pass_hide_a_failure(tmp_path):
+    """`it.each` without a placeholder, or two tests with one title, give Vitest results the same name."""
+    x = tmp_path / "a.xml"
+    rows = [("src/a.test.ts", "handles input", t, "expected 1 to be 2") for t in ("AssertionError", None)]
+    x.write_text(vitest(rows), encoding="utf-8")
+    assert load(str(x), classify_js) == {("src/a.test.ts", "handles input"): "strong"}
+    x.write_text(vitest(rows[::-1]), encoding="utf-8")
+    assert load(str(x), classify_js) == {("src/a.test.ts", "handles input"): "strong"}
+    ev = ok_evidence(pr_extra=rows)
+    v = judge(js_facts(tmp_path, evidence=ev))
+    assert v["verdict"] == "NOT PROVEN" and "PASS_TO_PASS_BROKEN" in codes(v)
 
 
 def test_M1_C2_a_javascript_repository_reads_its_own_result_files(tmp_path):
@@ -295,16 +320,7 @@ def test_M1_C5_the_new_names_apply_only_with_javascript_checks():
 
 def test_M1_C5_scope_reads_main_or_the_pull_requests_lock(tmp_path):
     py_main = {"locks.json": lockfile({PY: PY_SRC}), "dev-docs/stories/S1/story.md": STORY, PY: PY_SRC}
-    py_ev = {
-        "pr.xml": '<testsuites><testcase classname="tests.acceptance.S1.test_S1_count" name="test_S1_C1_counts_words"/>'
-        "</testsuites>",
-        "acceptance.xml": '<testsuites><testcase classname="tests.acceptance.S1.test_S1_count" '
-        'name="test_S1_C1_counts_words"/></testsuites>',
-        "c3/tests_acceptance_s1_test_s1_count_py.xml": '<testsuites><testcase classname="tests.acceptance.S1.'
-        'test_S1_count" name="test_S1_C1_counts_words"><failure message="AssertionError: x">x</failure></testcase>'
-        "</testsuites>",
-    }
-    f = js_facts(tmp_path, evidence=py_ev, changed=["app/count.py", "tsconfig.json"], main=py_main)
+    f = js_facts(tmp_path, evidence=PY_EV, changed=["app/count.py", "tsconfig.json"], main=py_main)
     assert judge(f)["verdict"] == "PROVEN"
     f.head_files = dict(py_main, **{"locks.json": lockfile({PY: PY_SRC, JS1: JS1_SRC})})
     assert {"code": "PROTECTED_CHANGED", "params": {"path": "tsconfig.json"}} in judge(f)["codes"]
