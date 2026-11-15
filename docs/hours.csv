@@ -51,3 +51,6 @@ date,story,kind,hours,note
 2026-11-14,v0.3.4,agent,0.4,"The re-check walker: set-up, run, report check, records (estimated)"
 2026-11-15,v0.4-design,agent,2.3,"Three design views, 24 proofs, three review rounds, confirm-only check, plan, scope guard (estimated)"
 2026-11-15,v0.4-design,owner,0.3,"Language list, decisions 1A and L1 to L9, the plan and the guard (estimated)"
+2026-11-15,v0.4-M0,agent,2.7,"M0: records, conformance table and harness, golden files, four proofs, two review rounds, fixes (estimated)"
+2026-11-15,v0.4-M0,owner,0.15,"Plan agreement, M0-A, the merge of #38 (estimated)"
+2026-11-15,v0.4-M0,reviews-usd,33.43,"Three lenses at extra effort: round 1 $17.58, round 2 $15.85"

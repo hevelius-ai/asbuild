@@ -3,19 +3,19 @@
 Current state only. Times in UTC. Read first in every session. Skills: `engineering-playbook`, `engineering-build-loop`, `.claude/skills/asbuild-project/`.
 
 ## Now
-- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan): M0 Ground in progress on `m0/ground` since 2026-11-15T00:53Z. Budget 30 agent hours (report 24, stop 37), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: 0 agent hours, 0 owner hours of the build (the design's 2.3 and 0.3 are counted apart). Working day 1 of 10.
-- Milestones: M0 Ground (4 to 6 h), M1 Engine (6 to 9 h), M2 Test job (6 to 9 h), M3 Story and setup (5 to 8 h), M4 Release (3 to 5 h).
+- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan): M1 Engine in progress on `m1/engine` since 2026-11-15T15:21Z. Budget 30 agent hours (report 24, stop 37), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: about 2.7 agent hours, 0.15 owner hours, reviews $33.43. Working day 2 of 10.
+- M0 Ground: hevelius-ai/asbuild#38 merged by chrisz-glitch at 2026-11-15T15:20:39Z (324ce35); the 48-row conformance table is locked (changing a row is an owner decision).
+- Milestones: M1 Engine (6 to 9 h), M2 Test job (6 to 9 h), M3 Story and setup (5 to 8 h), M4 Release (3 to 5 h).
 - The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu, fed by the linked Haiku keeper.
-- v0.3.4 and everything before it: closed; its last "Now" text is in the log.
-- Branches in `hevelius-ai/asbuild`: `main`; `m0/ground`.
+- Branches in `hevelius-ai/asbuild`: `main`; `m1/engine`.
 
 ## Open pull requests and merge order
 
-hevelius-ai/asbuild#38 (`m0/ground`, fcd95ff): CI `check` failed (the cases' result files were left out by `.gitignore`); review round 1 BLOCK by all three lenses, 12 distinct blocking findings; volume stop (G4) at 2026-11-15T01:16Z: waiting for the owner's M0-A or M0-B.
+None yet: M1's pull request opens when its gate is green and a fresh clone passes.
 
 ## Running jobs
 
-- Away protocol (owner, 15 Nov 00:5xZ): keep-awake hold on; heartbeat cron in this session.
+None.
 
 ## Open decisions
 
@@ -23,12 +23,10 @@ hevelius-ai/asbuild#38 (`m0/ground`, fcd95ff): CI `check` failed (the cases' res
 
 ## QUALITY RISK
 
-- Open since 2026-11-15T01:16Z: M0's tests were run only in this computer's working copy, where files the repository ignores existed; CI failed on the missing result files. Closes when the fix is pushed and CI is green from the commit. Prevention written into the skills (fresh-clone check).
-
-Closed earlier: the early-merge item (#34 merged before its review finished, opened 17:43Z) closed at 21:46Z: the review fixes #35 were approved and merged before `v0.3.4` was published.
+None open. The last one (M0's result files left out by `.gitignore`, opened 2026-11-15T01:4xZ) closed when CI went green on 3dd377a (about 15:15Z); its prevention, the fresh-clone check, is in the project skill.
 
 ## Next steps
 
-1. M0: the task plan `docs/plans/v0.4-M0.md`; the open proofs (P-CI-1, P-ENG-1, lock parity, P-WIN-1, P-VITE8); the conformance harness, level 1, with the Python column and v0.4.0's agreed case table; Python golden files from v0.3.4; Docker for local Linux checks (the image needs the owner's yes).
-2. Then M1 Engine, under the three-model review and the scope guard (D48).
+1. M1 Engine: `docs/plans/v0.4-M1.md`. Tests first: `CURRENT = "M1"` in the conformance suite, then the engine changes, row by row.
+2. Then M2 Test job.
 3. Known issues: 1 open, K4 (LOW, found 14 Nov).
