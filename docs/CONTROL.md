@@ -3,7 +3,7 @@
 Current state only. Times in UTC. Read first in every session. Skills: `engineering-playbook`, `engineering-build-loop`, `.claude/skills/asbuild-project/`.
 
 ## Now
-- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan, D50 budget): M1b safety fixes on `m1b/safety` since 2026-11-15T16:40Z; M1 merged. Budget 33 agent hours (D50; report 26, stop 40), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: about 4.8 agent hours, 0.3 owner hours, reviews $62.68. Working day 2 of 10.
+- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan, D50 budget): M1b safety fixes on `m1b/safety` since 2026-11-15T16:40Z; M1 merged. Budget 33 agent hours (D50; report 26, stop 40), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: about 5.3 agent hours, 0.3 owner hours, reviews $75.02. Working day 2 of 10.
 - M1 Engine: hevelius-ai/asbuild#39 merged by chrisz-glitch at 2026-11-15T16:42:25Z (defee5c); `m1/engine` deleted on both sides.
 - D50: the AsChecked safety fixes (B5 pytest settings files; B4-A the verdict skill reads only AsBuild's saved verdict); plan `docs/plans/v0.4-M1b.md`.
 - D49: M1 to M3 merge into `main`; `v0.4.0` is released when everything is ready. Until then a repository newly set up from `main` gets workflows whose engine check stops (fails closed).
