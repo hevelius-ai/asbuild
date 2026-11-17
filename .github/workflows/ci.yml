@@ -46,6 +46,17 @@ jobs:
       - name: Tests, 100% coverage of engine and plugin scripts
         run: python -m pytest -p no:cacheprovider --cov --cov-report=term-missing
 
+      # D51 (2A): AsBuild's Vitest settings file is JavaScript, so Node's own test runner holds it at 100% coverage.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Tests of AsBuild's Vitest settings, 100% coverage (Node's own test runner)
+        run: >-
+          node --test --experimental-test-coverage --test-coverage-include="engine/js/**"
+          --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 "tests/js/*.test.mjs"
+
   # The clean-install job (D29, engineering-build-loop 2.4): install the plugin as the README's install step 1 says,
   # on a clean runner, from this pull request's own commit of this repository (the only change from the README), check
   # the installed copy is that commit, start its two scripts from outside the checkout, then run the acceptance tests
