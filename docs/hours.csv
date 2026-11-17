@@ -60,3 +60,5 @@ date,story,kind,hours,note
 2026-11-15,v0.4-M1b,agent,1.2,"M1b: B5 and B4-A, the B4 proof, two review rounds, fixes (estimated)"
 2026-11-15,v0.4-M1b,owner,0.05,"X1, B4-A (estimated)"
 2026-11-15,v0.4-M1b,reviews-usd,12.34,"Round 1 $10.02 (safety lens on Opus 5.5 at max), round 2 $2.32"
+2026-11-17,v0.4-M2,agent,2.7,"M2 plan review, build, live-bases proof, live.py and the live runs (estimated)"
+2026-11-17,v0.4-M2,owner,0.05,"M2-1, M2-2 (estimated)"

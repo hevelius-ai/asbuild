@@ -228,3 +228,9 @@ Append-only. UTC.
 - 2026-11-15T17:22Z M1b (hevelius-ai/asbuild#40, 8712da9): review round 1 (safety lens APPROVE on Opus 5.5 at max; Opus and Sonnet BLOCK, 5 MEDIUM, one not reproducible by real runs), fixed (5ae0668, 936a53d); round 2 APPROVE x2; CI green; fresh clone 394 passed. Reviews $12.34.
 - 2026-11-15T17:40Z The owner paused v0.4.0 until the weekly usage reset; M2's plan drafted (no agents).
 - 2026-11-15T18:00Z #40 merged by chrisz-glitch (e6eda0d); `m1b/safety` deleted on both sides. 2026-11-15T18:00Z records.
+- 2026-11-17T19:40Z Usage reset; M2 started. Plan review at the start (aaf84b4): live trees, per-row main, settings-file coverage; owner decisions M2-1, M2-2.
+- 2026-11-17T22:05Z The owner's 1A 2A (D51); `hevelius-ai/asbuild-live` created (private).
+- 2026-11-17T22:20Z M2 built (2a33e82): JavaScript steps, AsBuild's Vitest settings, fails before for JavaScript, Node step in CI, engine pin; local gate green (413 passed, 100%; Node 9 passed, 100%).
+- 2026-11-17T22:25Z `live-bases` proof (hevelius-ai/asbuild-proofs run 44189672427): Vite 5 to 8 apps with the table's Vitest, all passing under AsBuild's settings on Linux.
+- 2026-11-17T23:10Z Live runs: first passes 15 of 22 and 7 of 9, every miss a harness defect (none in AsBuild), fixed in `live.py`.
+- 2026-11-17T23:43Z Final live run on 1e1d498: 24 of 24 rows as expected. 2026-11-17T23:44Z records.
