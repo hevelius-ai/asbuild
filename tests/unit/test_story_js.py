@@ -28,6 +28,7 @@ import asbuild_story_check as sc  # noqa: E402
 TITLE1 = "S1-C1 the page says Saved after a click"
 TITLE2 = "S1-C2 the list shows 3 items"
 C1 = f"""// @vitest-environment jsdom
+import {{ expect, test }} from "vitest";
 import {{ render, screen, fireEvent }} from "@testing-library/react";
 import {{ MemoryRouter }} from "react-router-dom";
 import Index from "../../../src/pages/Index";
@@ -39,6 +40,7 @@ test("{TITLE1}", () => {{
 }});
 """
 C2 = f"""// @vitest-environment jsdom
+import {{ expect, test }} from "vitest";
 import {{ render }} from "@testing-library/react";
 import Index from "../../../src/pages/Index";
 
@@ -605,3 +607,75 @@ def test_M3_C1_the_two_shapes_real_apps_showed_are_told_their_fix(js_repo, capsy
     code, out = run(capsys)
     line = next(x for x in out.splitlines() if x.startswith("S1-C1 "))
     assert code == 1 and message in line and hint in line and "javascript.md" in line
+
+
+# ------------------------------------------------------------------ review round 1 (B1 to B4)
+
+
+def test_M3_C1_B1_two_check_files_with_one_title_are_refused(js_repo, capsys):
+    repo, _ = js_repo
+    (repo / "tests" / "acceptance" / "S1" / "S1-C1-old.test.ts").write_text(C1, encoding="utf-8")
+    code, out = run(capsys)
+    assert code == 1
+    assert f'"{TITLE1}" is in two files' in out and "one file per check" in out
+
+
+@pytest.mark.parametrize(
+    "helper",
+    [
+        "const view = () => render(<MemoryRouter><Index /></MemoryRouter>);\n",
+        "const el = <Button size={1} />;\n",
+        "const p = <p>a/b</p>;\n",
+    ],
+)
+def test_M3_C1_B3_jsx_outside_the_test_never_hides_the_top_level_test(helper):
+    source = helper + 'test("S1-C1 x", () => {\n  expect(a).toBe("ok");\n});\n'
+    s = scan(source)
+    assert s.problems == [] and s.titles == ["S1-C1 x"] and s.literals == ["ok"]
+
+
+def test_M3_C1_B3_a_regular_expression_after_an_arrow_is_still_skipped():
+    source = 'const f = () => /it\'s "x"/;\n' + 'test("S1-C1 x", () => {\n  expect(a).toBe("ok");\n});\n'
+    assert scan(source).titles == ["S1-C1 x"]
+
+
+def test_M3_C1_B3_a_literal_after_a_jsx_closing_tag_inside_expect_counts_only_if_asserted():
+    source = 'test("S1-C1 x", () => {\n  render(<div>x</div>); expect(a).toBe("ok");\n  const later = "Saved";\n});\n'
+    s = scan(source)
+    assert "ok" in s.literals and "Saved" not in s.literals
+
+
+@pytest.mark.parametrize(
+    ("line", "counted"),
+    [
+        ('expect(document.querySelector("h1"), "My counter").not.toBeNull();', False),
+        ("expect(x, `My counter`).toBeTruthy();", False),
+        ('expect(f("My counter", 2), "a message").toBe(true);', True),
+        ('expect(a).toBe("My counter");', True),
+        ('expect.soft(a, "message").toBe("My counter");', True),
+    ],
+)
+def test_M3_C1_B4_the_message_argument_of_expect_is_never_an_asserted_example(line, counted):
+    s = scan(f'test("S1-C1 x", () => {{\n  {line}\n}});\n')
+    assert ("My counter" in s.literals) is counted
+
+
+def test_M3_C1_B2_a_later_story_without_node_modules_is_told_npm_ci(js_repo, capsys):
+    repo, _ = js_repo
+    rel = "tests/acceptance/S0/S0-C1.test.tsx"
+    (repo / "locks.json").write_text(json.dumps({"files": {rel: {"sha256": "x", "tests": []}}}), encoding="utf-8")
+    git(repo, "-c", "user.name=x", "-c", "user.email=x@example.com", "add", "locks.json")
+    git(repo, "-c", "user.name=x", "-c", "user.email=x@example.com", "commit", "-q", "-m", "an earlier story")
+    (repo / "node_modules" / "vitest" / "vitest.mjs").unlink()
+    code, out = run(capsys)
+    assert code == 2 and "npm ci --no-audit --no-fund --legacy-peer-deps" in out and "asbuild_js.py" not in out
+
+
+def test_M3_C1_B2_an_unreadable_lock_on_main_reads_as_a_first_story(js_repo, capsys):
+    repo, _ = js_repo
+    (repo / "locks.json").write_text("{ not json", encoding="utf-8")
+    git(repo, "-c", "user.name=x", "-c", "user.email=x@example.com", "add", "locks.json")
+    git(repo, "-c", "user.name=x", "-c", "user.email=x@example.com", "commit", "-q", "-m", "a broken lock")
+    (repo / "node_modules" / "vitest" / "vitest.mjs").unlink()
+    code, out = run(capsys)
+    assert code == 2 and 'asbuild_js.py" tools' in out

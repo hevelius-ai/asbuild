@@ -52,6 +52,7 @@ def test_M3_C5_the_verdict_skill_names_the_javascript_files_and_the_package_rule
     text = read("plugin/skills/verdict/SKILL.md")
     unresolved = next(line for line in text.splitlines() if line.startswith("- **3 UNRESOLVED:**"))
     assert "`package.json` or `package-lock.json`" in unresolved
+    assert "the summary then says GitHub could not install the app's list of software" in unresolved
     waiting = next(line for line in text.splitlines() if line.startswith("- **4 WAITING FOR YOU:**"))
     assert "a build that adds or changes a package waits for the person" in waiting
 

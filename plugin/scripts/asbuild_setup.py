@@ -142,8 +142,8 @@ EMPTY_NEW = (
 )
 EMPTY_JS = (
     "The repository on GitHub is empty, and this folder holds a JavaScript app. Upload the app first, as main, so"
-    " that setup sees it (its .gitignore keeps node_modules out):\n  git add -A\n"
-    '  git commit -m "First version"\n  git push -u origin HEAD:main'
+    " that setup sees it: commit the app's files (not node_modules, and no file holding a password or key), then"
+    " run:\n  git push -u origin HEAD:main"
 )
 JS_NOTE = (
     "This is a JavaScript project, so setup adds nothing else: AsBuild adds its test tools (Vitest) in your first"

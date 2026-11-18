@@ -47,7 +47,12 @@ INSTALL_NODE = (
 )
 ALREADY_TOOLS = (
     "The test tools were added by this project's first JavaScript story (main's locks.json lists its checks), so"
-    " there is nothing to repair or install: write the story's checks."
+    " there is nothing to repair. If this computer has no node_modules yet, install the app's software as GitHub"
+    " does, with npm ci --no-audit --no-fund --legacy-peer-deps; then write the story's checks."
+)
+LINKED = (
+    "node_modules here is a link to another folder, so it was left as it is and nothing was changed. Remove the link"
+    " (only the link, not the folder it points to), then run this again."
 )
 TOOLS_DONE = (
     "The test tools are installed. Commit package.json and package-lock.json with the story: the story's pull"
@@ -239,9 +244,13 @@ def drop_platform(pkg: dict) -> list[str]:
     return out
 
 
-def _writable(func, path, _exc) -> None:  # pragma: no cover - called by shutil only on a read-only file (Windows)
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
+def _writable(func, path, exc) -> None:
+    """shutil's hook for a file it could not remove: a read-only file (Windows) is made writable and removed again;
+    a link is never followed (review round 1, B5)."""
+    if func is os.path.islink:
+        raise exc
+    os.chmod(path, stat.S_IWRITE)  # pragma: no cover - a read-only file, on Windows only
+    func(path)  # pragma: no cover
 
 
 def remove_tree(path: Path) -> None:
@@ -276,6 +285,8 @@ def tools() -> list[str]:
     if not isinstance(pkg, dict):
         raise CannotRun("package.json cannot be read: fix it, then run this again")
     lines = []
+    if (root / "node_modules").is_symlink() or (root / "node_modules").is_junction():
+        raise Stop(LINKED)
     if (root / "node_modules").exists():
         remove_tree(root / "node_modules")
         lines.append("Removed node_modules (the install below rebuilds it).")

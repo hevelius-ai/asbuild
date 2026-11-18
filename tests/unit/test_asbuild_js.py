@@ -4,6 +4,7 @@ table, the one stop list, the version readers) and the first story's command (do
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -222,7 +223,7 @@ def test_M3_C3_a_version_command_that_fails_reads_as_too_old(monkeypatch):
     ("name", "dropped"),
     [
         ("@rollup/rollup-linux-x64-gnu", True),
-        ("@esbuild/darwin-arm64", False),  # no "-" before darwin: the proven rule leaves it (npm handles it)
+        ("@esbuild/darwin-arm64", False),  # no "-" before darwin: the rule proven in JS-15, JS-19 and JS-22 leaves it
         ("@swc/core-win32-x64-msvc", True),
         ("lightningcss-darwin-arm64", True),
         ("@tailwindcss/oxide-android-arm64", True),
@@ -425,3 +426,44 @@ def test_M3_C2_output_to_a_stream_without_reconfigure(monkeypatch):
     monkeypatch.setattr(sys, "stdout", stream)
     assert js.main(["x"]) == 2
     assert "usage" in stream.getvalue()
+
+
+# ------------------------------------------------------------------ review round 1 (B2, B5)
+
+
+def test_M3_C2_B2_after_the_first_story_tools_names_npm_ci(app, capsys):
+    _, _, state = app
+    state["main_lock"] = json.dumps({"files": {"tests/acceptance/S1/S1-C1.test.tsx": {"sha256": "x", "tests": []}}})
+    assert js.main(["tools"]) == 1
+    assert "npm ci --no-audit --no-fund --legacy-peer-deps" in capsys.readouterr().out
+
+
+def link_folder(link: Path, target: Path) -> None:
+    """A symbolic link, or on Windows without that right a junction, from link to target."""
+    try:
+        os.symlink(target, link, target_is_directory=True)
+    except OSError:
+        import _winapi  # type: ignore[import-not-found]
+
+        _winapi.CreateJunction(str(target), str(link))
+
+
+def test_M3_C2_B5_a_linked_node_modules_stops_and_changes_nothing(app, tmp_path, capsys):
+    folder, calls, _ = app
+    elsewhere = tmp_path / "other-project-node_modules"
+    elsewhere.mkdir()
+    (elsewhere / "keep.txt").write_text("x", encoding="utf-8")
+    js.remove_tree(folder / "node_modules")
+    link_folder(folder / "node_modules", elsewhere)
+    before = (folder / "package.json").read_bytes()
+    assert js.main(["tools"]) == 1
+    assert js.LINKED in capsys.readouterr().out
+    assert (elsewhere / "keep.txt").read_text(encoding="utf-8") == "x" and os.access(elsewhere, os.W_OK)
+    assert (folder / "package.json").read_bytes() == before
+    assert not [c for c in calls if c[0] == "npm" and c[1] == "install"]
+
+
+def test_M3_C2_B5_the_removal_hook_never_follows_a_link(tmp_path):
+    err = OSError("Cannot call rmtree on a symbolic link")
+    with pytest.raises(OSError, match="symbolic link"):
+        js._writable(os.path.islink, str(tmp_path), err)

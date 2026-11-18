@@ -17,8 +17,9 @@ must fail on the base by an assertion when run with AsBuild's own settings (`../
 `node node_modules/vitest/vitest.mjs`; each approved example must be a literal inside an `expect(...)` chain.
 --lock then adds the story's test files to locks.json, with the same entries as engine/lock_check.py, and adds
 Claude Code's deny rule for the story's test folder to .claude/settings.json (decision D26).
---keep DIR keeps pytest's JUnit file. Exit 0: every check passed. 1: a check failed (one line per problem,
-saying why). 2: the checks could not run. Standard library only; pytest is the project's own.
+--keep DIR keeps the JUnit file (pytest's, or Vitest's for a JavaScript story). Exit 0: every check passed. 1: a check
+failed (one line per problem, saying why). 2: the checks could not run. Standard library only; pytest (or Vitest)
+is the project's own.
 """
 
 from __future__ import annotations
@@ -66,6 +67,11 @@ JS_WORKTREES = ".asbuild-story"  # inside the checkout, so the project's node_mo
 JS_TIMEOUT = 120  # seconds per check file on the base
 TOOLS_CMD = 'the first story\'s command, python "${CLAUDE_PLUGIN_ROOT}/scripts/asbuild_js.py" tools (javascript.md)'
 NO_VITEST = f"Vitest is not installed in this project: run {TOOLS_CMD}, then run this again"
+NPM_CI = "npm ci --no-audit --no-fund --legacy-peer-deps"  # the test job's own install (design §4.2)
+NO_NODE_MODULES = (
+    "the app's software is not installed on this computer (an earlier story added the test tools): run"
+    f" {NPM_CI}, then run this again"
+)
 ASSERTION = ("assert", "AssertionError", "Failed:")  # pytest's messages for assert, AssertionError, pytest.raises
 MAX_CHECKS, MAX_EXAMPLES = 5, 3
 MAX_COMBOS = 50
@@ -479,7 +485,9 @@ def example_matches(example: str, asserted: list) -> bool:
 
 # ------------------------------------------------------------------ JavaScript: the scanner (M3-C1)
 
-REGEX_AFTER = set("(,=:[!&|?{};+-*%<>~^")  # after these, a "/" starts a regular expression, not a division
+# After these, a "/" starts a regular expression, not a division. Never after "<", ">" or "}": in JSX those come
+# before the "/" of a closing tag or of "/>" (review round 1, B3); after "=>" a "/" still starts one.
+REGEX_AFTER = set("(,=:[!&|?{;+-*%~^")
 REGEX_KEYWORDS = {
     "return",
     "typeof",
@@ -621,6 +629,7 @@ def js_tokens(text: str) -> list[Tok]:
             not toks
             or (toks[-1].kind == "punct" and toks[-1].value in REGEX_AFTER)
             or (toks[-1].kind == "id" and toks[-1].value in REGEX_KEYWORDS)
+            or (_is(toks, len(toks) - 1, ">") and _is(toks, len(toks) - 2, "="))
         ):
             i = _skip_regex(text, i + 1)
             toks.append(Tok("regex", "", sol, False))
@@ -650,6 +659,19 @@ def _close(toks: list[Tok], k: int) -> int:
     return len(toks) - 1
 
 
+def _later_arguments(toks: list[Tok], k: int, end: int) -> range:
+    """The token indexes of a call's arguments after its first one (from its "(" at k to its ")" at end)."""
+    depth = 0
+    for j in range(k, end):
+        if toks[j].kind == "punct" and toks[j].value in "([{":
+            depth += 1
+        elif toks[j].kind == "punct" and toks[j].value in ")]}":
+            depth -= 1
+        elif depth == 1 and _is(toks, j, ","):
+            return range(j, end)
+    return range(0)
+
+
 def _expect_literals(toks: list[Tok], a: int, b: int) -> list[str]:
     """The literal strings and numbers inside each expect(...) chain between tokens a and b."""
     out: list[str] = []
@@ -661,12 +683,15 @@ def _expect_literals(toks: list[Tok], a: int, b: int) -> list[str]:
                 m += 2
             if _is(toks, m, "("):
                 end = _close(toks, m)
+                message = _later_arguments(toks, m, end)  # expect(value, "message"): never an asserted value
                 while end + 2 <= b and _is(toks, end + 1, ".") and toks[end + 2].kind == "id":
                     end += 2
                     if _is(toks, end + 1, "("):
                         end = _close(toks, end + 1)
                 out += [
-                    t.value for t in toks[j : end + 1] if t.kind == "num" or (t.kind in ("str", "tpl") and t.literal)
+                    t.value
+                    for k, t in enumerate(toks[j : end + 1], start=j)
+                    if k not in message and (t.kind == "num" or (t.kind in ("str", "tpl") and t.literal))
                 ]
                 j = end
         j += 1
@@ -773,7 +798,8 @@ JS_HINTS = (
     ),
     (
         "may be used only in the context of a <Router>",
-        "this App holds no router: render <MemoryRouter initialEntries={[...]}><App /></MemoryRouter> (javascript.md)",
+        "what was rendered needs a router around it: render"
+        " <MemoryRouter initialEntries={[...]}><App /></MemoryRouter> (javascript.md)",
     ),
 )
 
@@ -818,10 +844,20 @@ def run_js(cmd: list[str], cwd: Path, timeout: float) -> subprocess.CompletedPro
         return subprocess.CompletedProcess(cmd, p.returncode, log.read(), "")
 
 
-def js_tool_problem(repo: Path) -> str | None:
+def tools_on_base(repo: Path, base: str) -> bool:
+    """True when the base's locks.json lists a JavaScript check: an earlier story added the test tools."""
+    shown = git(repo, "show", f"{base}:locks.json")
+    try:
+        files = json.loads(shown.stdout).get("files", {}) if shown.returncode == 0 else {}
+    except (ValueError, AttributeError):
+        return False
+    return isinstance(files, dict) and any(JS_FILE.search(p) for p in files)
+
+
+def js_tool_problem(repo: Path, base: str) -> str | None:
     """Why the installed Vite and Vitest are outside the table (design §4.4); CannotRun when Vitest is missing."""
     if not (repo / "node_modules" / "vitest" / "vitest.mjs").is_file():
-        raise CannotRun(NO_VITEST)
+        raise CannotRun(NO_NODE_MODULES if tools_on_base(repo, base) else NO_VITEST)
 
     def version(name: str) -> tuple[int, ...] | None:
         try:
@@ -894,6 +930,9 @@ def check_js(repo: Path, story: str, base: str, keep: Path | None, checks: list[
             continue
         general += [f"{rel}: {problem}" for problem in scanned.problems]
         for t in scanned.titles:
+            if t in titles:  # one would be locked without being checked (review round 1, B1)
+                general.append(f'"{t}" is in two files, {titles[t]} and {rel}: one file per check, each with its title')
+                continue
             titles[t], literals[t] = rel, scanned.literals
     for t in titles:
         carried = [c["id"] for c in checks if carries(t, c["id"])]
@@ -903,7 +942,7 @@ def check_js(repo: Path, story: str, base: str, keep: Path | None, checks: list[
             general.append(f"{t} carries more than one check ID: one test per check, named after it")
         elif not re.match(re.escape(carried[0]) + r"(\s|$)", t):
             general.append(f'{t}: the title must start with its check ID, such as "{carried[0]} ..."')
-    tool = js_tool_problem(repo) if titles else None
+    tool = js_tool_problem(repo, base) if titles else None
     if tool:
         general.append(tool)
     ran = vitest_on_base(repo, base, story, {p: t for t, p in titles.items()}, keep) if titles and not tool else {}

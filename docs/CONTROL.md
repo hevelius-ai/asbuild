@@ -17,7 +17,7 @@ None. M3's pull request opens from `m3/story-setup` when M3 is built and reviewe
 
 ## Running jobs
 
-None.
+- M3 review round 1 (since 2026-11-18T03:17Z): Fable, Opus, Sonnet, read-only, in `repos/wt-review` at 5023868; results `design-langs/m3-review/r1-*.json`; each wakes the build session when it ends; the hourly heartbeat (:17) is the watchdog.
 
 ## Open decisions
 

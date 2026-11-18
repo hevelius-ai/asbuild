@@ -78,7 +78,7 @@ Do these once. Skip any that is already done.
    - GitHub Actions switched on, and `main` as its default branch;
    - Python code whose tests run with pytest on Python 3.12;
    - a `requirements.txt` at its root that lists pytest. AsBuild's check installs your project from it. Setup adds pytest when it is missing.
-   - or, instead of Python: a TypeScript or JavaScript app made with React and Vite 5 to 8, with its `package.json` and `package-lock.json` at the root and no Python file. AsBuild adds Vitest, the tool its checks run with, in your first story. Setup says in plain words when an app is not one it works with yet (for example Next.js, an app in a subfolder, or Jest tests).
+   - or, instead of Python: a TypeScript or JavaScript app made with React and Vite 5 to 8, with its `package.json` at the root and no Python file. AsBuild adds Vitest, the tool its checks run with, in your first story. Setup says in plain words when an app is not one it works with yet (for example Next.js, an app in a subfolder, or Jest tests).
 
    A new, empty repository is fine: setup makes its first commit for you. If you fill a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. For a TypeScript or JavaScript app, push the app to `main` before setup: setup asks for it. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
 
@@ -183,6 +183,8 @@ git commit -m "Add AsBuild's workflow files"
 git push -u origin asbuild-setup
 gh pr create --base main --title "Add AsBuild" --body "Adds AsBuild's two workflow files."
 ```
+
+For a TypeScript or JavaScript app, leave `requirements.txt` out of the `git add` line.
 
 Merge this pull request yourself. Like setup's, it gets no verdict on a first setup.
 
