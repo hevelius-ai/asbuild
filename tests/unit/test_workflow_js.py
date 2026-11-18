@@ -3,7 +3,8 @@
 Gated by `hashFiles('tests/acceptance/**/*.test.*')`, placed after the Python steps and before the shared fails-before
 step, each with `continue-on-error` and its own timeout, so a JavaScript failure never skips the Python evidence.
 Tools start from `node_modules/.bin`, never through `npm run` or `npx`. A Python repository with no JavaScript checks
-runs exactly v0.3.4's steps (done line 2): the fixture is v0.3.4's file, unchanged.
+runs exactly v0.3.4's steps (done line 2): the fixture is v0.3.4's file, unchanged, compared with the release tag's
+number and the engine pin read as placeholders (M4-C1).
 """
 
 from __future__ import annotations
