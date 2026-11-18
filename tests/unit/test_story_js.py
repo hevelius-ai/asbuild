@@ -579,3 +579,29 @@ def test_M3_C1_a_check_without_vitests_import_is_told_the_import(js_repo, capsys
         f'could not load on main: {name} is not defined: start the file with import {{ expect, test }} from "vitest"'
         in out
     )
+
+
+@pytest.mark.parametrize(
+    ("typ", "message", "hint"),
+    [
+        ("TypeError", "window.matchMedia is not a function", "window.matchMedia ??="),
+        ("Error", "useRoutes() may be used only in the context of a <Router> component.", "<MemoryRouter"),
+        ("Error", "useNavigate() may be used only in the context of a <Router> component.", "<MemoryRouter"),
+    ],
+)
+def test_M3_C1_the_two_shapes_real_apps_showed_are_told_their_fix(js_repo, capsys, typ, message, hint):
+    """Evidence 1 (2026-11-18): rendering App in two Lovable apps needs window.matchMedia, which jsdom lacks; in a
+    third, App holds no router. Both are refused (no assertion ran), and the line names the fix (javascript.md)."""
+    repo, tmp = js_repo
+    (tmp / "junit.xml").write_text(
+        junit(
+            [
+                (P1, TITLE1, "failure", typ, message),
+                ("tests/acceptance/S1/S1-C2.test.tsx", TITLE2, "failure", "AssertionError", "expected 1 to be 3"),
+            ]
+        ),
+        encoding="utf-8",
+    )
+    code, out = run(capsys)
+    line = next(x for x in out.splitlines() if x.startswith("S1-C1 "))
+    assert code == 1 and message in line and hint in line and "javascript.md" in line

@@ -30,8 +30,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 
 ## 3. Check what the person sees
 
-- Render the page the person uses. A page with links goes inside a router: `render(<MemoryRouter initialEntries={["/settings"]}><Settings /></MemoryRouter>)` (from `react-router-dom`). Where `App` holds its own router, call `window.history.pushState({}, "", "/settings")`, then `render(<App />)`.
-- Import only files that exist on `main` now: the check must fail on `main` because the words are not there yet, not because a file is missing. A page the story adds is reached through one that exists, such as `App` at the page's address.
+- Render the page the person uses, from `src/pages/`, inside a router (from `react-router-dom`): `render(<MemoryRouter><Index /></MemoryRouter>)`.
+- Import only files that exist on `main` now: the check must fail on `main` because the words are not there yet, not because a file is missing. A page the story adds is reached through `App` at the page's address: `window.history.pushState({}, "", "/settings")`, then `render(<App />)`. If the story-time checks say this `App` holds no router, render `<MemoryRouter initialEntries={["/settings"]}><App /></MemoryRouter>` instead. If they say jsdom has no `window.matchMedia` (an app's pop-up messages use it), add this line before `render`:
+
+```tsx
+window.matchMedia ??= ((query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false })) as unknown as typeof window.matchMedia;
+```
 - Do what the person does, and find what they press with `queryBy...`, asserting it is there first, so that a button the story adds fails on `main` by an assertion: `const save = screen.queryByRole("button", { name: "Save" }); expect(save).not.toBeNull(); fireEvent.click(save!);`. Type with `fireEvent.change`.
 - Assert each approved example as the exact words, inside `expect(...)`: `expect(document.body.textContent).toContain("Saved")`. Never put an approved example in a variable, a regular expression or a `getByText(...)`: `getByText` stops the test before it asserts, and the check is refused.
 - Never add a setup file, a mock of the app's own code, or a change to Vite, Vitest or `tsconfig` settings: AsBuild runs the checks with its own settings and ignores the project's. No network.

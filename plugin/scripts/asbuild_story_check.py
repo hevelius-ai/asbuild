@@ -765,7 +765,26 @@ def js_results(xml: Path, files: dict[str, str]) -> dict[str, tuple[str, str]]:
     return out
 
 
+# Two shapes real apps showed (evidence 1, 2026-11-18): the fix each needs, from javascript.md.
+JS_HINTS = (
+    (
+        "matchMedia is not a function",
+        "jsdom has no window.matchMedia: add javascript.md's line window.matchMedia ??= ... before render",
+    ),
+    (
+        "may be used only in the context of a <Router>",
+        "this App holds no router: render <MemoryRouter initialEntries={[...]}><App /></MemoryRouter> (javascript.md)",
+    ),
+)
+
+
 def js_base_problem(title: str, ran: dict[str, tuple[str, str]], base: str) -> str | None:
+    problem = _js_base_problem(title, ran, base)
+    hint = next((h for s, h in JS_HINTS if problem and s in problem), None)
+    return f"{problem}; {hint}" if hint else problem
+
+
+def _js_base_problem(title: str, ran: dict[str, tuple[str, str]], base: str) -> str | None:
     kind, msg = ran.get(title, ("missing", ""))
     on = base.removeprefix("origin/")
     see = "render the page the person will see, and check its words (javascript.md)"

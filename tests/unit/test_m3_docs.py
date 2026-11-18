@@ -38,6 +38,10 @@ def test_M3_C4_javascript_md_says_how_to_write_each_check():
         "expect(save).not.toBeNull();",
         "Never add a setup file, a mock of the app's own code",
         "Import only files that exist on `main` now",
+        # evidence 1 (2026-11-18): the page inside a router worked in all four Lovable apps; App needed one of these
+        "render(<MemoryRouter><Index /></MemoryRouter>)",
+        "window.matchMedia ??= ",
+        '<MemoryRouter initialEntries={["/settings"]}><App /></MemoryRouter>',
     ):
         assert words in text, words
     for form in ("describe", "it.each", ".only", ".skip", ".todo", ".fails"):
