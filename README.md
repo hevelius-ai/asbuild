@@ -39,7 +39,7 @@ Open Claude Code in your project's folder on your computer (in the desktop app: 
 ```text
 Set up AsBuild (https://github.com/hevelius-ai/asbuild) for my project. Follow these steps in order. Do every step you can yourself. When a step needs me, stop and tell me exactly what to do, one thing at a time, and wait until I say it is done. Never ask for, type or handle a password, key or token: I sign in myself. Ask me before installing anything.
 
-1. Check that Git, the GitHub CLI and Python 3.12 or newer are installed (git --version, gh --version, and python --version, python3 --version or py --version). If any is missing, or the Python is older than 3.12, tell me how to install it: on Windows, in PowerShell, winget install --id Git.Git, winget install --id GitHub.cli or winget install --id Python.Python.3.12; on a Mac or Linux, from https://git-scm.com, https://cli.github.com or https://www.python.org; tell me to close and reopen Claude afterwards and paste this message again, and stop. If all three are there, go on.
+1. Check that Git, the GitHub CLI and Python 3.12 or newer are installed (git --version, gh --version, and python --version, python3 --version or py --version). If any is missing, or the Python is older than 3.12, tell me how to install it: on Windows, in PowerShell, winget install --id Git.Git, winget install --id GitHub.cli or winget install --id Python.Python.3.12; on a Mac or Linux, from https://git-scm.com, https://cli.github.com or https://www.python.org; tell me to close and reopen Claude afterwards and paste this message again, and stop. If this folder holds a package.json and no Python file (a TypeScript or JavaScript app), also check Node.js 24 or newer with npm 11.19 or newer (node --version, npm --version); if either is missing or older, tell me how to install it: on Windows, in PowerShell, winget install --id OpenJS.NodeJS.LTS; on a Mac or Linux, from https://nodejs.org; then the same: close and reopen Claude, paste this message again, and stop. If all of them are there, go on.
 2. Check that I am signed in to GitHub (gh auth status). If I am not, tell me to run gh auth login in a terminal myself, choose GitHub.com, then HTTPS, then Yes to signing in Git with my GitHub credentials, and sign in with my browser. Wait until I say it is done, and check again. Then run gh auth setup-git, so that Git uses the same sign-in.
 3. Only if this folder is empty (apart from Claude's own .claude folder) and is not a Git repository: ask me for my GitHub repository's address, copy it into a new folder here with git clone, tell me to open that folder in Claude Code and paste this message again, and stop. In any other folder, go on: setup checks the folder itself.
 4. Add the AsBuild plugin. If the claude command works in your shell, run claude plugin marketplace add hevelius-ai/asbuild, then claude plugin install asbuild@hevelius-ai. If it does not: in a terminal session, tell me to type /plugin marketplace add hevelius-ai/asbuild, then /plugin install asbuild@hevelius-ai and choose to install it; in the Claude desktop app, tell me to open Settings, then Customize, then Plugins, click Add, then Add marketplace, then Add from a repository, enter hevelius-ai/asbuild, then open Discover, select AsBuild and click Add.
@@ -63,6 +63,8 @@ Do these once. Skip any that is already done.
 
    On a Mac or Linux, get them from https://git-scm.com, https://cli.github.com and https://www.python.org. Then close and reopen Claude, so that it finds them.
 
+   For a TypeScript or JavaScript app, also install Node.js 24 or newer, with npm 11.19 or newer (it comes with Node.js): on Windows, `winget install --id OpenJS.NodeJS.LTS`; on a Mac or Linux, from https://nodejs.org. `node --version` and `npm --version` show what you have.
+
 2. **Give Git your name and email.** Git is needed: Claude Code adds the plugin's marketplace by cloning it with Git, and on many computers Git refuses to commit without a name and email. Set them once with `git config`, in a terminal, with your own name and email in place of the examples (or ask Claude to set them for you):
 
    ```bash
@@ -76,8 +78,9 @@ Do these once. Skip any that is already done.
    - GitHub Actions switched on, and `main` as its default branch;
    - Python code whose tests run with pytest on Python 3.12;
    - a `requirements.txt` at its root that lists pytest. AsBuild's check installs your project from it. Setup adds pytest when it is missing.
+   - or, instead of Python: a TypeScript or JavaScript app made with React and Vite 5 to 8, with its `package.json` and `package-lock.json` at the root and no Python file. AsBuild adds Vitest, the tool its checks run with, in your first story. Setup says in plain words when an app is not one it works with yet (for example Next.js, an app in a subfolder, or Jest tests).
 
-   A new, empty repository is fine: setup makes its first commit for you. If you fill a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
+   A new, empty repository is fine: setup makes its first commit for you. If you fill a new, empty repository by hand instead, push `main` first: GitHub makes the first branch pushed the default branch. For a TypeScript or JavaScript app, push the app to `main` before setup: setup asks for it. AsBuild judges pull requests into `main` from branches of the same repository, not from forks.
 
 ### 1. Add the plugin
 
@@ -172,7 +175,7 @@ curl -fsSL -o .github/workflows/asbuild-test.yml https://raw.githubusercontent.c
 curl -fsSL -o .github/workflows/asbuild-verdict.yml https://raw.githubusercontent.com/hevelius-ai/asbuild/main/workflows/asbuild-verdict.yml
 ```
 
-Make sure `requirements.txt` lists pytest, then commit both files (and `requirements.txt` if you changed it), push, and open a pull request:
+For a Python project, make sure `requirements.txt` lists pytest (a TypeScript or JavaScript app needs none), then commit both files (and `requirements.txt` if you changed it), push, and open a pull request:
 
 ```bash
 git add .github/workflows/asbuild-test.yml .github/workflows/asbuild-verdict.yml requirements.txt
@@ -202,6 +205,8 @@ A story pull request always gets WAITING FOR YOU: its receipt lists the new chec
 4. AsBuild does not check who built a change and who merged it; GitHub's history shows that.
 
 Only the tests you approved are protected. For your other tests, "nothing that worked before broke" means none of them failed: AsBuild counts another test as broken only when it ran on the pull request and failed. So a test the agent deleted or skipped is not noticed, and a test that already fails on `main` counts as broken, so get `main` passing first.
+
+In a TypeScript or JavaScript app, your other tests are the app's Vitest tests: tests run by any other tool are not counted.
 
 ## The pressure test
 
