@@ -21,13 +21,14 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1].parent
 GATE = "hashFiles('tests/acceptance/**/*.test.*') != ''"
 PIN = re.compile(r'(rev-parse HEAD:engine\)" = ")[0-9a-f]{40}"')
+TAG = re.compile(r"(--branch )v\d+\.\d+\.\d+( https://github\.com/hevelius-ai/asbuild )")  # M4-C1: the release tag
 COPIES = [ROOT / "workflows" / "asbuild-test.yml", ROOT / "plugin" / "workflows" / "asbuild-test.yml"]
 
 needs_shell = pytest.mark.skipif(shutil.which("bash") is None, reason="needs bash (CI's Linux check)")
 
 
 def doc(path: Path) -> dict:
-    return yaml.safe_load(PIN.sub(r'\1<tree>"', path.read_text(encoding="utf-8")))
+    return yaml.safe_load(TAG.sub(r"\1<tag>\2", PIN.sub(r'\1<tree>"', path.read_text(encoding="utf-8"))))
 
 
 def steps(path: Path) -> list[dict]:
