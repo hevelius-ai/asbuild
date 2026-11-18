@@ -82,16 +82,14 @@ def run_install(tmp_path, npm_lines, npm_exit):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     npm = bin_dir / "npm"
-    body = "".join(f"echo {shlex.quote(line)}\n" for line in npm_lines)
+    body = "".join(f"echo {shlex.quote(line)} >&2\n" for line in npm_lines)  # npm writes its errors to stderr
     npm.write_text(f'#!/bin/sh\necho "$@" > args.txt\n{body}exit {npm_exit}\n', newline="\n")
     npm.chmod(0o755)
     (tmp_path / "out").mkdir()
     env = dict(os.environ, PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}", RUNNER_TEMP=str(tmp_path))
-    # GitHub's bash runs a step with -e and pipefail; the bash found on the PATH (on Windows, never System32's WSL one)
+    # GitHub runs a step with no `shell:` as `bash -e`; the bash on the PATH (on Windows, never System32's WSL one)
     bash = str(shutil.which("bash"))
-    p = subprocess.run(
-        [bash, "-e", "-o", "pipefail", "-c", script], cwd=tmp_path, env=env, capture_output=True, text=True
-    )
+    p = subprocess.run([bash, "-e", "-c", script], cwd=tmp_path, env=env, capture_output=True, text=True)
     written = tmp_path / "out" / "js-install.txt"
     return p, (written.read_text() if written.exists() else None)
 
@@ -145,3 +143,12 @@ def test_M2_C2_asbuild_ci_runs_the_settings_tests_at_full_coverage():
         '"tests/js/*.test.mjs"',
     ):
         assert flag in run, flag
+
+
+@pytest.mark.parametrize("path", COPIES, ids=["workflows", "plugin"])
+def test_M2_C1_javascript_limits_leave_time_for_fails_before(path):
+    """Round 1, Opus F1: the JavaScript steps together stop at least 3 of the job's 15 minutes before its end, so a
+    JavaScript run that hangs cannot use up the time of the shared fails-before step and the upload."""
+    job = doc(path)["jobs"]["evidence"]["timeout-minutes"]
+    assert job == 15
+    assert sum(s["timeout-minutes"] for s in js_steps(path)) <= job - 3

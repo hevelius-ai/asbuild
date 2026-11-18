@@ -170,3 +170,15 @@ test("M2-C2 settings: the file's default export is the settings for the folder V
   assert.deepEqual(Object.keys(settingsDefault).sort(), ["esbuild", "oxc", "resolve", "test"]);
   assert.deepEqual(settingsDefault.test, settings(process.cwd(), quiet().log).test);
 });
+
+// Premortem 3 (round 1, Opus F2 and Sonnet F1): real file shapes, not only made-up strings. `lovable/` has the layout of
+// the four Lovable apps' files (JS-18: `@/*` in both, comments in tsconfig.app.json); `create-vite/` is create-vite's
+// own React + TypeScript pair (MIT) with the `@` alias added to tsconfig.app.json as the first story adds it.
+const FIXTURES = path.join(path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, "$1"), "fixtures");
+
+for (const shape of ["lovable", "create-vite"]) {
+  test(`M2-C2 premortem 3: the ${shape} tsconfig files give @ for src`, () => {
+    const root = path.join(FIXTURES, shape);
+    assert.deepEqual(found(root), [["/^@(?=\\/|$)/", "src"]]);
+  });
+}

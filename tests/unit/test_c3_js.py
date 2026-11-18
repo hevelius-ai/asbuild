@@ -120,3 +120,84 @@ def test_M2_C3_a_runner_that_cannot_start_leaves_no_result_and_the_rest_still_ru
     assert sorted(p.name for p in out.glob("*.xml")) == ["tests_acceptance_s1_test_s1_v_py.xml"]
     assert "could not start" in capsys.readouterr().out
     assert not (repo / ".asbuild-c3").exists()
+
+
+def test_M2_C3_a_committed_asbuild_c3_folder_never_replaces_the_run_over_main(tmp_path, monkeypatch):
+    """Round 1, Fable F1: a pull request that commits `.asbuild-c3/<slug>/` (or a file of that name) cannot make
+    fails before run its own copy of a check: the folder is cleared first, so the run is a real worktree of main."""
+    repo = repo_with_checks(tmp_path)
+    planted = repo / ".asbuild-c3" / "tests_acceptance_s1_s1_c1_test_tsx" / "tests" / "acceptance" / "S1"
+    planted.mkdir(parents=True)
+    (planted / "S1-C1.test.tsx").write_text("test('S1-C1 shows 2', () => { throw new Error('planted') })\n")
+    (planted.parents[2] / "app.ts").write_text("planted app\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "plant a folder where the worktree goes")
+    real = c3_overlay.command
+    monkeypatch.setattr(
+        c3_overlay,
+        "command",
+        lambda path, xml, root: (
+            real(path, xml, root) if path.endswith(".py") else [sys.executable, "-c", STAND_IN, xml, path]
+        ),
+    )
+    out = tmp_path / "c3"
+    assert c3_overlay.main(["--base", "main~2", "--out", str(out), "--repo", str(repo)]) == 0
+    seen = json.loads((out / "tests_acceptance_s1_s1_c1_test_tsx.xml.seen.json").read_text())
+    assert seen["app"] == "export const v = 1\n"  # main's app, never the planted one
+    assert seen["check"] == "test('S1-C1 shows 2', () => {})\n"  # the pull request's real check file
+    assert (out / "tests_acceptance_s1_test_s1_v_py.xml").is_file()
+
+
+def test_M2_C3_a_file_named_asbuild_c3_cannot_stop_the_other_checks(tmp_path, monkeypatch):
+    repo = repo_with_checks(tmp_path)
+    (repo / ".asbuild-c3").write_text("not a folder\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "a file where the worktrees go")
+    real = c3_overlay.command
+    monkeypatch.setattr(
+        c3_overlay,
+        "command",
+        lambda path, xml, root: (
+            real(path, xml, root) if path.endswith(".py") else [sys.executable, "-c", STAND_IN, xml, path]
+        ),
+    )
+    out = tmp_path / "c3"
+    assert c3_overlay.main(["--base", "main~2", "--out", str(out), "--repo", str(repo)]) == 0
+    assert sorted(p.name for p in out.glob("*.xml")) == [
+        "tests_acceptance_s1_s1_c1_test_tsx.xml",
+        "tests_acceptance_s1_test_s1_v_py.xml",
+    ]
+
+
+def test_M2_C3_a_worktree_that_cannot_be_made_gives_no_result(tmp_path, monkeypatch, capsys):
+    repo = repo_with_checks(tmp_path)
+    real_sh = c3_overlay.sh
+
+    def failing_add(cmd, cwd):
+        if cmd[:3] == ["git", "worktree", "add"] and ".asbuild-c3" in cmd[4]:
+            return subprocess.CompletedProcess(cmd, 128, "", "fatal: refused")
+        return real_sh(cmd, cwd)
+
+    monkeypatch.setattr(c3_overlay, "sh", failing_add)
+    out = tmp_path / "c3"
+    assert c3_overlay.main(["--base", "main~1", "--out", str(out), "--repo", str(repo)]) == 0
+    assert sorted(p.name for p in out.glob("*.xml")) == ["tests_acceptance_s1_test_s1_v_py.xml"]
+    assert "could not lay it over main" in capsys.readouterr().out
+
+
+def test_M2_C3_a_javascript_check_that_hangs_gives_no_result_and_the_rest_still_run(tmp_path, monkeypatch, capsys):
+    """Round 1, Opus F1: each JavaScript run over main has a time limit; a hang gives no result for that file."""
+    repo = repo_with_checks(tmp_path)
+    real = c3_overlay.command
+    monkeypatch.setattr(c3_overlay, "JS_TIMEOUT", 1)
+    monkeypatch.setattr(
+        c3_overlay,
+        "command",
+        lambda path, xml, root: (
+            real(path, xml, root) if path.endswith(".py") else [sys.executable, "-c", "import time; time.sleep(30)"]
+        ),
+    )
+    out = tmp_path / "c3"
+    assert c3_overlay.main(["--base", "main~1", "--out", str(out), "--repo", str(repo)]) == 0
+    assert sorted(p.name for p in out.glob("*.xml")) == ["tests_acceptance_s1_test_s1_v_py.xml"]
+    assert "stopped after 1 seconds" in capsys.readouterr().out

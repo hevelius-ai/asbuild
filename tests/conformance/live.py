@@ -109,6 +109,61 @@ def retry_twice(text: str) -> str:
     return text.replace('environment: "jsdom",', 'environment: "jsdom", retry: 2,')
 
 
+# Premortem 3: the `@` alias as a Lovable app has it, in both tsconfig files and in the app's own Vitest file.
+def alias_app_tsconfig(text: str) -> str:
+    return text.replace(
+        '"compilerOptions": {', '"compilerOptions": {\n    "baseUrl": ".",\n    "paths": { "@/*": ["./src/*"] },', 1
+    )
+
+
+def alias_root_tsconfig(text: str) -> str:
+    return edit_json(text, lambda d: d.update(compilerOptions={"baseUrl": ".", "paths": {"@/*": ["./src/*"]}}))
+
+
+def alias_vitest_config(text: str) -> str:
+    return text.replace(
+        "  plugins: [react()],",
+        '  plugins: [react()],\n  resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },',
+    )
+
+
+def via_alias(text: str) -> str:
+    return text.replace('"../../../src/Counter"', '"@/Counter"')
+
+
+ALIAS = {
+    "tsconfig.app.json": alias_app_tsconfig,
+    "tsconfig.json": alias_root_tsconfig,
+    "vitest.config.ts": alias_vitest_config,
+    "tests/acceptance/S1/S1-C1.test.tsx": via_alias,
+    "tests/acceptance/S1/S1-C2.test.tsx": via_alias,
+}
+
+# Premortem 1: a Python story (S1, built here) beside a JavaScript one (S2), on a main whose JavaScript install fails.
+PY_CHECK = """from app.count import count_words
+
+
+def test_S1_C1_counts_words():
+    assert count_words("a b c") == 3
+
+
+def test_S1_C2_missing_file():
+    assert count_words("") == 0
+"""
+COUNT_STUB = "def count_words(text):\n    return -1\n"
+COUNT_RIGHT = "def count_words(text):\n    return len(text.split())\n"
+MIXED_MAIN = {
+    "package.json": add_dependency,  # out of step with its lockfile: the JavaScript install fails on GitHub
+    "requirements.txt": "pytest==9.2.0\n",
+    "pytest.ini": "[pytest]\npythonpath = .\n",
+    "app/__init__.py": "",
+    "app/count.py": COUNT_STUB,
+    "tests/acceptance/S1/test_S1_count.py": PY_CHECK,
+    "tests/acceptance/S2/S2-C1.test.tsx": None,  # filled below
+    "src/Clear.tsx": None,
+}
+
+
 S1 = "src/Counter.tsx"
 
 
@@ -162,6 +217,20 @@ for major in (6, 7, 8):
     ROWS[f"live-vite{major}-proven"] = row("js-proven", base=f"vite{major}-tools")
     ROWS[f"live-vite{major}-existence-only"] = row("js-existence-only", base=f"vite{major}-tools", main={})
 SAME_RUN = {"live-vite5-proven": "js-proven", "live-vite5-existence-only": "js-existence-only"}
+MIXED_MAIN.update({"tests/acceptance/S2/S2-C1.test.tsx": S2_CHECK, "src/Clear.tsx": CLEAR_STUB})
+# Two rows of the plan's premortem, beside the cases table (their expectations are here, not in cases.json).
+ROWS["live-js-alias"] = row("js-proven", main={S1: COUNTER_STUB, **ALIAS}, relock=True)
+ROWS["live-mixed-install-fails"] = row(
+    "py-frontend-after-js", main=MIXED_MAIN, head={"app/count.py": COUNT_RIGHT}, relock=True, branch="build/S1"
+)
+EXPECT = {
+    "live-mixed-install-fails": {
+        "verdict": "UNRESOLVED",
+        "codes": ["NO_RESULTS", "INSTALL_FAILED"],
+        # the Python evidence is still there although the JavaScript install failed
+        "evidence_has": ["pr.xml", "acceptance.xml", "c3/tests_acceptance_s1_test_s1_count_py.xml", "js-install.txt"],
+    }
+}
 
 
 # ---------------------------------------------------------------- helpers
@@ -190,7 +259,8 @@ def write_files(root: Path, files: dict) -> None:
 
 
 def relock(root: Path) -> None:
-    files = sorted(p for p in (root / "tests" / "acceptance").rglob("*.test.tsx"))
+    acc = (root / "tests" / "acceptance").rglob("*")
+    files = sorted(p for p in acc if p.name.endswith(".test.tsx") or re.match(r"test_.*\.py$", p.name))
     entries = {p.relative_to(root).as_posix(): lock_check.entry(p.read_bytes(), p.name) for p in files}
     (root / "locks.json").write_text(json.dumps({"files": entries}, indent=2) + "\n", encoding="utf-8")
 
@@ -266,6 +336,29 @@ def compare(exp: dict, doc: dict, receipt: str) -> list[str]:
     return wrong
 
 
+def evidence_files(repo: str, sha: str) -> list[str]:
+    """The files the test job uploaded for this commit (its asbuild-evidence artifact)."""
+    runs = json.loads(
+        sh("gh", "run", "list", "--repo", repo, "--workflow", "asbuild-test", "--commit", sha, "--json", "databaseId")
+    )
+    if not runs:
+        return []
+    with tempfile.TemporaryDirectory() as d:
+        sh(
+            "gh",
+            "run",
+            "download",
+            str(runs[0]["databaseId"]),
+            "--repo",
+            repo,
+            "--name",
+            "asbuild-evidence",
+            "--dir",
+            d,
+        )
+        return sorted(q.relative_to(d).as_posix() for q in Path(d).rglob("*") if q.is_file())
+
+
 def receipt_top(repo: str, url: str, sha: str) -> str:
     """The plain part of AsBuild's receipt comment on the pull request for this commit (what reached the person)."""
     for _ in range(12):
@@ -312,9 +405,12 @@ def run_row(rid: str, spec: dict, a: argparse.Namespace, checkout: Path) -> dict
     if doc is None:
         result.update(ok=False, wrong=["no verdict within the time limit"])
     else:
-        exp = expectations()[rid] if rid in expectations() else expectations()[spec["case"]]
+        exp = EXPECT.get(rid) or expectations().get(rid) or expectations()[spec["case"]]
         seen = asbuild_wait.saved_verdict(a.repo, sha, asbuild_wait.sh)  # what /asbuild:verdict reads (D50)
         wrong = compare(exp, doc, receipt_top(a.repo, url, sha))
+        if exp.get("evidence_has"):
+            files = evidence_files(a.repo, sha)
+            wrong += [f"evidence lacks {f}" for f in exp["evidence_has"] if f not in files]
         if seen is None or seen[0] != doc.get("verdict"):
             wrong.append(f"/asbuild:verdict reads {seen!r}, the saved file says {doc.get('verdict')!r}")
         result.update(

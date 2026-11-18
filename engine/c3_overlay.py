@@ -27,6 +27,15 @@ PY_CHECK = re.compile(r"(^|/)(test_[^/]*\.py|[^/]*_test\.py)$")
 JS_CHECK = re.compile(r"\.test\.[cm]?[jt]sx?$")  # what AsBuild's Vitest settings include
 JS_SETTINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "vitest.acceptance.mjs")
 JS_WORKTREES = ".asbuild-c3"
+JS_TIMEOUT = 120  # seconds for one JavaScript check over main; a hang gives no result for that file
+
+
+def clear(path: str) -> None:
+    """Remove whatever the pull request's tree holds where the JavaScript worktrees go (a folder, a file, a link)."""
+    if os.path.isdir(path) and not os.path.islink(path):
+        shutil.rmtree(path)
+    elif os.path.lexists(path):
+        os.remove(path)
 
 
 def sh(cmd: list[str], cwd: str) -> subprocess.CompletedProcess:
@@ -80,18 +89,30 @@ def main(argv: list[str] | None = None) -> int:
     env = dict(os.environ, PYTEST_DISABLE_PLUGIN_AUTOLOAD="1")
     tmp = tempfile.mkdtemp(prefix="c3-")
     inside = os.path.join(repo, JS_WORKTREES)
+    clear(inside)  # a folder or file of that name in the pull request's tree is never run in place of main
     try:
         for path in files:
+            js = bool(JS_CHECK.search(path))
             slug = re.sub(r"[^a-z0-9]", "_", path.lower())
-            one = os.path.join(inside if JS_CHECK.search(path) else tmp, slug)
-            sh(["git", "worktree", "add", "--detach", one, base], repo)
+            one = os.path.join(inside if js else tmp, slug)
+            add = sh(["git", "worktree", "add", "--detach", one, base], repo)
+            if add.returncode != 0:  # no worktree of main: no result for this file, never a run somewhere else
+                print(f"== {path}: could not lay it over main: {add.stderr.strip()[:300]}")
+                continue
             sh(["git", "checkout", head, "--", path], one)
             cmd = command(path, os.path.join(out, slug + ".xml"), repo)
-            try:
-                proc = subprocess.run(cmd, cwd=one, env=env, capture_output=True, text=True)
-                print(f"== {path} over base: exit {proc.returncode}\n" + proc.stdout[-600:])
-            except OSError as e:  # the runner is not installed (the install step failed): no result for this file
-                print(f"== {path} over base: {cmd[0]} could not start: {e}")
+            # The run's output goes to a file, not a pipe, so a stopped run cannot hang on its children's pipes.
+            with open(os.path.join(tmp, slug + ".log"), "w+", encoding="utf-8", errors="replace") as log:
+                try:
+                    proc = subprocess.run(
+                        cmd, cwd=one, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=JS_TIMEOUT if js else None
+                    )
+                    log.seek(0)
+                    print(f"== {path} over base: exit {proc.returncode}\n" + log.read()[-600:])
+                except OSError as e:  # the runner is not installed (the install step failed): no result for it
+                    print(f"== {path} over base: {cmd[0]} could not start: {e}")
+                except subprocess.TimeoutExpired:
+                    print(f"== {path} over base: stopped after {JS_TIMEOUT} seconds: no result")
             sh(["git", "worktree", "remove", "--force", one], repo)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

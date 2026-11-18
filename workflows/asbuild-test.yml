@@ -39,7 +39,7 @@ jobs:
         run: |
           # Stop unless the engine folder is exactly the one this release was built from (its Git tree id).
           git clone --quiet --depth 1 --branch v0.3.4 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
-          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "2b109e0afb08182e75a4b2e56c11410e0e09dcb6"
+          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "d9e1d741f0c0cf07eb87900e063da65a9bf3bc1c"
           # Run only the checked folder, copied alone, so nothing else in the download can be imported.
           mkdir "$RUNNER_TEMP/asbuild-run"
           cp -R "$RUNNER_TEMP/asbuild/engine" "$RUNNER_TEMP/asbuild-run/engine"
@@ -68,7 +68,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: hashFiles('tests/acceptance/**/*.test.*') != ''
         continue-on-error: true
-        timeout-minutes: 3
+        timeout-minutes: 2
         with:
           node-version: "24"
           package-manager-cache: false
@@ -76,7 +76,7 @@ jobs:
       - name: Install the project's JavaScript packages (its package-lock.json fixes every version)
         if: hashFiles('tests/acceptance/**/*.test.*') != ''
         continue-on-error: true # if this fails, the checks cannot run: the verdict says UNRESOLVED
-        timeout-minutes: 6
+        timeout-minutes: 4
         run: |
           if npm ci --no-audit --no-fund --legacy-peer-deps > "$RUNNER_TEMP/npm-ci.log" 2>&1; then
             cat "$RUNNER_TEMP/npm-ci.log"
@@ -92,13 +92,13 @@ jobs:
       - name: Full suite on the pull request (JavaScript, the project's own Vitest settings)
         if: hashFiles('tests/acceptance/**/*.test.*') != ''
         continue-on-error: true # failing tests are evidence; the verdict decides
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: node_modules/.bin/vitest run --reporter=junit --outputFile=out/pr-js.xml
 
       - name: Acceptance tests, hardened (JavaScript, AsBuild's own Vitest settings, no setup files)
         if: hashFiles('tests/acceptance/**/*.test.*') != ''
         continue-on-error: true
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: >-
           node_modules/.bin/vitest run --config "$ASBUILD/engine/js/vitest.acceptance.mjs" --root .
           --reporter=junit --outputFile=out/acceptance-js.xml
