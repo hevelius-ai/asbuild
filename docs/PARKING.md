@@ -59,3 +59,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - A JavaScript parser in place of the story-time scanner; JavaScript on an empty repository; agreed checks in two languages in one story (a repository with a Python story and a JavaScript story is in scope: design §3.2, L5 B) (v0.4.0 design, D47, 15 Nov 2026)
 - Vue, Svelte, React Native and Expo; Vite older than 5 (v0.4.0 design, D47, 15 Nov 2026)
 - Swift, Dart, Go and Rust: each at its own gate with a fresh measurement (L9 C) (v0.4.0 design, D47, 15 Nov 2026)
+- Vite loading the project's `postcss.config.*` when a check imports CSS: code that runs, as D16 line 3 (M2 review round 1, safety lens, 17 Nov 2026)
+- The live run reading the posted check run's conclusion as well as the saved verdict file; tying `live.py`'s rows to `cases.json`'s live rows by a test (M2 review round 1, evidence lens, 17 Nov 2026)

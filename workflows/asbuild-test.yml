@@ -39,7 +39,7 @@ jobs:
         run: |
           # Stop unless the engine folder is exactly the one this release was built from (its Git tree id).
           git clone --quiet --depth 1 --branch v0.3.4 https://github.com/hevelius-ai/asbuild "$RUNNER_TEMP/asbuild"
-          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "bee268fbf6cb40cc9fb02310f40a8a1f9e01ba1b"
+          test "$(git -C "$RUNNER_TEMP/asbuild" rev-parse HEAD:engine)" = "d9e1d741f0c0cf07eb87900e063da65a9bf3bc1c"
           # Run only the checked folder, copied alone, so nothing else in the download can be imported.
           mkdir "$RUNNER_TEMP/asbuild-run"
           cp -R "$RUNNER_TEMP/asbuild/engine" "$RUNNER_TEMP/asbuild-run/engine"
@@ -61,6 +61,47 @@ jobs:
         run: |
           python -m pytest tests/acceptance --noconftest -p no:cacheprovider \
             --continue-on-collection-errors -o junit_family=xunit2 --junitxml=out/acceptance.xml
+
+      # JavaScript and TypeScript checks (v0.4.0): these four steps run only when the repository holds Vitest check
+      # files. Each may fail without stopping the others, so a JavaScript failure never skips the Python evidence.
+      # Tools start from node_modules/.bin, never through npm run or npx, so package.json scripts play no part.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: hashFiles('tests/acceptance/**/*.test.*') != ''
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install the project's JavaScript packages (its package-lock.json fixes every version)
+        if: hashFiles('tests/acceptance/**/*.test.*') != ''
+        continue-on-error: true # if this fails, the checks cannot run: the verdict says UNRESOLVED
+        timeout-minutes: 4
+        run: |
+          if npm ci --no-audit --no-fund --legacy-peer-deps > "$RUNNER_TEMP/npm-ci.log" 2>&1; then
+            cat "$RUNNER_TEMP/npm-ci.log"
+          else
+            cat "$RUNNER_TEMP/npm-ci.log"
+            # Only npm's error code, matched by a fixed pattern; anything else is OTHER.
+            code=$(grep -m 1 -oE '^npm (error|ERR!) code (EBADPLATFORM|ERESOLVE|EUSAGE)$' "$RUNNER_TEMP/npm-ci.log" \
+              | grep -oE '[A-Z]+$' || true)
+            echo "${code:-OTHER}" > out/js-install.txt
+            exit 1
+          fi
+
+      - name: Full suite on the pull request (JavaScript, the project's own Vitest settings)
+        if: hashFiles('tests/acceptance/**/*.test.*') != ''
+        continue-on-error: true # failing tests are evidence; the verdict decides
+        timeout-minutes: 3
+        run: node_modules/.bin/vitest run --reporter=junit --outputFile=out/pr-js.xml
+
+      - name: Acceptance tests, hardened (JavaScript, AsBuild's own Vitest settings, no setup files)
+        if: hashFiles('tests/acceptance/**/*.test.*') != ''
+        continue-on-error: true
+        timeout-minutes: 3
+        run: >-
+          node_modules/.bin/vitest run --config "$ASBUILD/engine/js/vitest.acceptance.mjs" --root .
+          --reporter=junit --outputFile=out/acceptance-js.xml
 
       - name: Fails before, each acceptance test file laid over main
         continue-on-error: true
