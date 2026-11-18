@@ -1,6 +1,6 @@
 ---
 name: setup
-description: "Wire a GitHub repository to AsBuild with one command: check Git, the GitHub sign-in and the repository, put AsBuild's two workflow files on a branch and open GitHub's pull request page for the person to create and merge. Use when someone runs /asbuild:setup, asks to set up or install AsBuild in a repository, or asks for a story or a verdict where `.github/workflows/asbuild-test.yml` is not on `origin/main` yet. Needs Python, git and the gh command."
+description: "Wire a GitHub repository to AsBuild with one command: check Git, the GitHub sign-in and the repository, put AsBuild's two workflow files on a branch and open GitHub's pull request page for the person to create and merge. Use when someone runs /asbuild:setup, asks to set up or install AsBuild in a repository, or asks for a story or a verdict where `.github/workflows/asbuild-test.yml` is not on `origin/main` yet. Needs Python, git and the gh command; for a TypeScript or JavaScript app, also Node.js 24 or newer with npm 11.19 or newer."
 ---
 
 # AsBuild: set up a repository
@@ -21,6 +21,7 @@ The script changes nothing in the person's folder: no branch is switched and uns
 
 - **0:** show the script's message word for word, in a text block, with the link. On GitHub's pull request page (open in the browser when the message says so, else from the link) the person clicks **Create pull request**, then **Merge pull request**. If the message says AsBuild is already set up, offer `/asbuild:story`.
 - **1:** the person must do one thing first, and the message names it. Show it word for word, in a text block. Never enter a password, key or token, and never run a sign-in for them: `gh auth login` and `gh auth refresh` are the person's to run, in their own terminal. When they say it is done, run the script again.
+- **1, starting "AsBuild cannot check this project yet":** show it word for word, in a text block, and stop: the project is outside what AsBuild supports, and running setup again will not change that.
 - **1, about Git's name and email:** show the message word for word, in a text block; then ask the person for the name and email to use for their commits, then run the two `git config` commands the message names, with `--global` or without it as the message says, with their answer, never with the examples "Your Name" or `you@example.com`, and run the script again.
 - **2:** setup could not run. Tell the person what the message says.
 
