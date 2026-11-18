@@ -78,10 +78,15 @@ PROTECTED_NAMES = (
     "*.pth",
 )
 PROTECTED_ROOT = ("locks.json",)
-PROTECTED_TREES = (".github/",)
+# out/ is where the test job writes the result files the verdict reads: a pull request that commits files there could
+# add results of its own (K9, the owner's option B; the test job's steps stay v0.3.4's). A tree's own path counts too: a
+# committed link named `out` could point the results at another folder (round 1, B1).
+PROTECTED_TREES = (".github/", "out/")
 # Story trees: a path that exists on main is protected; a new one only a story pull request may add.
 STORY_TREES = ("tests/acceptance/", "dev-docs/requests/", "dev-docs/stories/")
 SETUP_FILES = {".github/workflows/asbuild-test.yml", ".github/workflows/asbuild-verdict.yml"}
+# Files the story skill itself commits besides the story trees (K7): anything else in a story pull request is app code.
+STORY_OWN = {"locks.json", ".claude/settings.json"}
 
 
 @dataclass
@@ -102,7 +107,7 @@ def protected(path: str, on_main: bool, story_pr: bool, extra: tuple[str, ...] =
     name = path.rsplit("/", 1)[-1]
     if any(fnmatch.fnmatch(name, pat) for pat in PROTECTED_NAMES + extra):
         return True
-    if path.startswith(PROTECTED_TREES):
+    if (path + "/").startswith(PROTECTED_TREES):
         return True
     if path in PROTECTED_ROOT:
         return not story_pr
@@ -254,6 +259,12 @@ def judge(f: Facts) -> dict:
             and all(c["code"] == "PROTECTED_CHANGED" for c in touched)
         ):
             codes = [c for c in codes if c not in touched] + [code("STORY_ADDS_TOOLS", paths=sorted(tools))]
+        # K7: other files of the app in a story pull request are counted in the note, never named (protected files
+        # and a JavaScript story's tools already have their own line).
+        own = tools | STORY_OWN  # tools: every protected path this story pull request touched
+        app = sorted(p for p in changed if p not in own and not p.startswith(STORY_TREES))
+        if app:
+            codes.append(code("STORY_HAS_APP_FILES", paths=app))
         items = [dict(c, status="new") for c in checks]
         story_name = ", ".join(sids) or None
         return dict(
