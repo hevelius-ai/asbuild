@@ -71,3 +71,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - `out/verdict.json`, `out/receipt.md` or `evidence/c3/*.xml` already on main are read by the verdict job's fallbacks or its evidence folder; adding `evidence/` is not a protected change (old code, needs an earlier merge the person made; M4a review rounds 1 and 2, 18 Nov 2026)
 - A repository's own letters-only link prefixes (`TICKET-abc`) pass the ordinary-line rule and link to the owner's own address; ASCII control characters in story text get no word joiner beside them (M4a review rounds 1 and 2, 18 Nov 2026)
 - A renamed file counts twice in K7's number (M4a review round 1, design lens, 18 Nov 2026)
+- The "AsBuild" check shows as failed in GitHub's check list for WAITING FOR YOU (its conclusion is "action required"), while the README says AsBuild blocks nothing (v0.4.0 release walkthrough run 6b, 18 Nov 2026)
+- Setup in a repository already set up says "already set up" before it checks whether the app is supported (v0.4.0 release walkthrough run 6, 18 Nov 2026)
