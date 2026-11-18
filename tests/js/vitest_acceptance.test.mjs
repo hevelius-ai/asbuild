@@ -7,6 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import settingsDefault, {
   INCLUDE,
@@ -171,10 +172,10 @@ test("M2-C2 settings: the file's default export is the settings for the folder V
   assert.deepEqual(settingsDefault.test, settings(process.cwd(), quiet().log).test);
 });
 
-// Premortem 3 (round 1, Opus F2 and Sonnet F1): real file shapes, not only made-up strings. `lovable/` has the layout of
-// the four Lovable apps' files (JS-18: `@/*` in both, comments in tsconfig.app.json); `create-vite/` is create-vite's
+// Premortem 3 (round 1, Opus F2 and Sonnet F1): real file shapes, not only made-up strings. `lovable/` is the pair three of
+// the four Lovable apps share (JS-18: `@/*` in both, comments in tsconfig.app.json; the fourth has one tsconfig.json); `create-vite/` is create-vite's
 // own React + TypeScript pair (MIT) with the `@` alias added to tsconfig.app.json as the first story adds it.
-const FIXTURES = path.join(path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, "$1"), "fixtures");
+const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures");
 
 for (const shape of ["lovable", "create-vite"]) {
   test(`M2-C2 premortem 3: the ${shape} tsconfig files give @ for src`, () => {

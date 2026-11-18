@@ -236,3 +236,4 @@ Append-only. UTC.
 - 2026-11-17T23:43Z Final live run on 1e1d498: 24 of 24 rows as expected. 2026-11-17T23:44Z records.
 - 2026-11-18T00:00Z M2 review round 1: BLOCK x3 (4 MEDIUM, triage confirmed all); fixed in a409f53.
 - 2026-11-18T00:41Z Live run on a409f53: 26 of 26 rows as expected. 2026-11-18T00:41Z records.
+- 2026-11-18T01:00Z M2 review round 2: APPROVE x3 on c17ce40; LOW items taken. 2026-11-18T00:49Z records.

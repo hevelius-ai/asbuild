@@ -147,8 +147,9 @@ def test_M2_C2_asbuild_ci_runs_the_settings_tests_at_full_coverage():
 
 @pytest.mark.parametrize("path", COPIES, ids=["workflows", "plugin"])
 def test_M2_C1_javascript_limits_leave_time_for_fails_before(path):
-    """Round 1, Opus F1: the JavaScript steps together stop at least 3 of the job's 15 minutes before its end, so a
-    JavaScript run that hangs cannot use up the time of the shared fails-before step and the upload."""
+    """Round 1, Opus F1: the four JavaScript steps together stop at least 3 of the job's 15 minutes before its end,
+    so a JavaScript step that hangs leaves time for the shared fails-before step (whose JavaScript runs have their
+    own limit, in c3_overlay.py) and the upload."""
     job = doc(path)["jobs"]["evidence"]["timeout-minutes"]
     assert job == 15
     assert sum(s["timeout-minutes"] for s in js_steps(path)) <= job - 3

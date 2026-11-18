@@ -3,7 +3,7 @@
 Current state only. Times in UTC. Read first in every session. Skills: `engineering-playbook`, `engineering-build-loop`, `.claude/skills/asbuild-project/`.
 
 ## Now
-- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan, D50 budget): M2 Test job on `m2/test-job`, review round 1 fixed, live run 26 of 26 rows; next review round 2 and the owner's merge of hevelius-ai/asbuild#41. Budget 33 agent hours (report 26, stop 40), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: about 8.8 agent hours, 0.35 owner hours, reviews $99.07. Working day 3 of 10.
+- v0.4.0, TypeScript and JavaScript (D47 design, D48 plan, D50 budget): M2 Test job on `m2/test-job`, review round 2 APPROVE x3, live run 26 of 26 rows; next the owner's merge of hevelius-ai/asbuild#41. Budget 33 agent hours (report 26, stop 40), 5 owner hours (report 4, stop 7), 10 working days, reviews $250 (report $200, stop $300). Used: about 8.8 agent hours, 0.35 owner hours, reviews $113.13. Working day 3 of 10.
 - D51 (2026-11-17): the private live repository `hevelius-ai/asbuild-live`, where the build session sets `main` directly and merges nothing; one Node 24 step in AsBuild's CI.
 - D49: M1 to M3 merge into `main`; `v0.4.0` is released when everything is ready (repositories newly set up from `main` fail closed until then; D50 on `/asbuild:verdict`).
 - Milestones left after M2: M3 Story and setup (5 to 8 h), M4 Release (3 to 5 h).
@@ -13,7 +13,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-- hevelius-ai/asbuild#41, M2 Test job (draft; CI green on 90c4356; review round 2 on the round-1 fixes). It is the only open pull request.
+- hevelius-ai/asbuild#41, M2 Test job (review round 2 APPROVE x3; ready for the owner once CI is green). It is the only open pull request.
 
 ## Running jobs
 
