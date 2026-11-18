@@ -31,7 +31,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 ## 3. Check what the person sees
 
 - Render the page the person uses, from `src/pages/`, inside a router (from `react-router-dom`): `render(<MemoryRouter><Index /></MemoryRouter>)`.
-- Import only files that exist on `main` now: the check must fail on `main` because the words are not there yet, not because a file is missing. A page the story adds is reached through `App` at the page's address: `window.history.pushState({}, "", "/settings")`, then `render(<App />)`. If the story-time checks say this `App` holds no router, render `<MemoryRouter initialEntries={["/settings"]}><App /></MemoryRouter>` instead. If they say jsdom has no `window.matchMedia` (an app's pop-up messages use it), add this line before `render`:
+- Import only files that exist on `main` now: the check must fail on `main` because the words are not there yet, not because a file is missing. A page the story adds is reached through `App` at the page's address: `window.history.pushState({}, "", "/settings")`, then `render(<App />)`. If the story-time checks say what was rendered needs a router around it, render `<MemoryRouter initialEntries={["/settings"]}><App /></MemoryRouter>` instead. If they say jsdom has no `window.matchMedia` (an app's pop-up messages use it), add this line before `render`:
 
 ```tsx
 window.matchMedia ??= ((query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false })) as unknown as typeof window.matchMedia;

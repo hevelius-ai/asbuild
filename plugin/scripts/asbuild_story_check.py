@@ -1105,7 +1105,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("story", help="the story's ID, such as S2")
     ap.add_argument("--base", default="origin/main", help="the branch the build will start from")
     ap.add_argument("--lock", action="store_true", help="when every check passes, lock the tests, add the deny rule")
-    ap.add_argument("--keep", type=Path, help="keep pytest's JUnit file in this folder")
+    ap.add_argument("--keep", type=Path, help="keep the JUnit file (pytest's or Vitest's) in this folder")
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="replace")

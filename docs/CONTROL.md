@@ -13,11 +13,11 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-None. M3's pull request opens from `m3/story-setup` when M3 is built and reviewed.
+- hevelius-ai/asbuild#42, M3 Story and setup, a draft until review round 2 approves (round 1 BLOCK x3, five MEDIUM, fixed in baf7dcf). It is the only open pull request.
 
 ## Running jobs
 
-- M3 review round 1 (since 2026-11-18T03:17Z): Fable, Opus, Sonnet, read-only, in `repos/wt-review` at 5023868; results `design-langs/m3-review/r1-*.json`; each wakes the build session when it ends; the hourly heartbeat (:17) is the watchdog.
+- M3 review round 2 (since 2026-11-18T03:45Z): Fable, Opus, Sonnet, each re-checking its own findings, in `repos/wt-review` at baf7dcf; results `design-langs/m3-review/r2-*.json`; each wakes the build session when it ends; the hourly heartbeat (:17) is the watchdog.
 
 ## Open decisions
 

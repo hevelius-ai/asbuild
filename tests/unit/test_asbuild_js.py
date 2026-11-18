@@ -454,11 +454,12 @@ def test_M3_C2_B5_a_linked_node_modules_stops_and_changes_nothing(app, tmp_path,
     elsewhere.mkdir()
     (elsewhere / "keep.txt").write_text("x", encoding="utf-8")
     js.remove_tree(folder / "node_modules")
+    mode = elsewhere.stat().st_mode
     link_folder(folder / "node_modules", elsewhere)
     before = (folder / "package.json").read_bytes()
     assert js.main(["tools"]) == 1
     assert js.LINKED in capsys.readouterr().out
-    assert (elsewhere / "keep.txt").read_text(encoding="utf-8") == "x" and os.access(elsewhere, os.W_OK)
+    assert (elsewhere / "keep.txt").read_text(encoding="utf-8") == "x" and elsewhere.stat().st_mode == mode
     assert (folder / "package.json").read_bytes() == before
     assert not [c for c in calls if c[0] == "npm" and c[1] == "install"]
 
@@ -467,3 +468,37 @@ def test_M3_C2_B5_the_removal_hook_never_follows_a_link(tmp_path):
     err = OSError("Cannot call rmtree on a symbolic link")
     with pytest.raises(OSError, match="symbolic link"):
         js._writable(os.path.islink, str(tmp_path), err)
+
+
+# ------------------------------------------------------------------ review round 2 (LOW items taken)
+
+
+def test_M3_C2_the_removal_hook_follows_no_link_away_from_windows(tmp_path, monkeypatch):
+    monkeypatch.setattr(js.os, "name", "posix")
+    target = tmp_path / "f"
+    target.write_text("x", encoding="utf-8")
+    before = target.stat().st_mode
+    with pytest.raises(PermissionError):
+        js._writable(os.unlink, str(target), PermissionError("nested link or read-only folder"))
+    assert target.stat().st_mode == before and target.exists()
+
+
+def test_M3_C2_node_modules_that_cannot_be_removed_stops_in_plain_words(app, capsys, monkeypatch):
+    folder, calls, _ = app
+
+    def refuse(path):
+        raise PermissionError(13, "Access is denied", str(path))
+
+    monkeypatch.setattr(js, "remove_tree", refuse)
+    assert js.main(["tools"]) == 1
+    out = capsys.readouterr().out
+    assert "node_modules could not be removed" in out and "nothing else was changed" in out
+    assert not [c for c in calls if c[0] == "npm" and c[1] == "install"]
+
+
+def test_M3_C2_the_npm_ci_line_is_the_test_jobs_own_in_every_message():
+    import asbuild_story_check as sc
+
+    job = (ROOT / "workflows" / "asbuild-test.yml").read_text(encoding="utf-8")
+    assert sc.NPM_CI in js.ALREADY_TOOLS and sc.NPM_CI in sc.NO_NODE_MODULES
+    assert "npm ci " + " ".join(js.NPM_FLAGS) == sc.NPM_CI and sc.NPM_CI in job

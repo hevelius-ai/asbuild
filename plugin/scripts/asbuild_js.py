@@ -245,9 +245,10 @@ def drop_platform(pkg: dict) -> list[str]:
 
 
 def _writable(func, path, exc) -> None:
-    """shutil's hook for a file it could not remove: a read-only file (Windows) is made writable and removed again;
-    a link is never followed (review round 1, B5)."""
-    if func is os.path.islink:
+    """shutil's hook for a file it could not remove: on Windows a read-only file is made writable and removed again.
+    A link is never followed (review round 1, B5), and away from Windows nothing is made writable, since chmod there
+    follows a link nested inside node_modules (review round 2)."""
+    if func is os.path.islink or os.name != "nt":
         raise exc
     os.chmod(path, stat.S_IWRITE)  # pragma: no cover - a read-only file, on Windows only
     func(path)  # pragma: no cover
@@ -288,7 +289,13 @@ def tools() -> list[str]:
     if (root / "node_modules").is_symlink() or (root / "node_modules").is_junction():
         raise Stop(LINKED)
     if (root / "node_modules").exists():
-        remove_tree(root / "node_modules")
+        try:
+            remove_tree(root / "node_modules")
+        except OSError as e:
+            raise Stop(
+                f"node_modules could not be removed ({e}), so nothing else was changed. Close any program"
+                " using the app's files, remove node_modules yourself, then run this again."
+            ) from None
         lines.append("Removed node_modules (the install below rebuilds it).")
     dropped = drop_platform(pkg)
     if dropped:
