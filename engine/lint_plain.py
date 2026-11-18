@@ -8,7 +8,8 @@ Errors:
   CODE         a reason code (UPPER_SNAKE)
   BRACKET_DUP  the same bracketed term more than once in a receipt
   BRACKET_2    more than one bracketed term in one sentence
-A Markdown link's address, `[words](https://...)`, is not text the person reads and is left out.
+A Markdown link's address, `[words](https://...)`, is not text the person reads and is left out, and so are the
+escapes and word joiners that keep the person's own lines as written (K8, receipt.as_written).
 
 Usage: python lint_plain.py receipt.md ...   (exit 1 on any error)
 """
@@ -16,7 +17,11 @@ Usage: python lint_plain.py receipt.md ...   (exit 1 on any error)
 from __future__ import annotations
 
 import re
+import string
 import sys
+
+ESCAPED = re.compile(r"\\([" + re.escape(string.punctuation) + "])")
+WORD_JOINER = chr(0x2060)
 
 BANNED = re.compile(r"\b(merg\w*|pull[- ]requests?|PRs?|branch\w*|main|commit\w*|test\w*|CI|hash\w*|lock\w*)\b", re.I)
 ID = re.compile(r"\b([A-Z]\d+-[A-Z]\d+(-[A-Z]+\d+)?)\b")
@@ -27,8 +32,13 @@ SENTENCE = re.compile(r"(?<=[.!?])\s+|\n")
 LINK = re.compile(r"\]\((https?://[^)\s]+)\)")
 
 
+def visible(top: str) -> str:
+    """The text a person sees in a receipt: the escapes and word joiners of receipt.as_written taken out."""
+    return ESCAPED.sub(r"\1", top.replace(WORD_JOINER, ""))
+
+
 def lint(rid: str, top: str) -> list[str]:
-    top = LINK.sub("]", top)
+    top = LINK.sub("]", visible(top))
     errs = []
     outside = BRACKET.sub(" ", top)
     for rx, name in ((BANNED, "BANNED"), (ID, "ID"), (PATH, "PATH"), (CODE, "CODE")):

@@ -159,7 +159,7 @@ def test_check_run_is_unchanged_when_main_is_the_default_branch(tmp_path):
 
 
 def receipt(tmp_path, main, other_main):
-    (tmp_path / "out").mkdir()  # in the job, the check-run step always runs first and makes it
+    # No out/ folder: since K4 the receipt step runs before the check-run step and makes it itself (M4a-C1).
     run_step(tmp_path, "Post the receipt", [], main=main, outputs={"number": "7", "other_main": other_main})
     return (tmp_path / "posted_receipt.md").read_text(encoding="utf-8")
 
