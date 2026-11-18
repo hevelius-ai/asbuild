@@ -237,3 +237,4 @@ Append-only. UTC.
 - 2026-11-18T00:00Z M2 review round 1: BLOCK x3 (4 MEDIUM, triage confirmed all); fixed in a409f53.
 - 2026-11-18T00:41Z Live run on a409f53: 26 of 26 rows as expected. 2026-11-18T00:41Z records.
 - 2026-11-18T00:49Z M2 review round 2: APPROVE x3 on c17ce40; LOW items taken (51e2c56). Time corrected at 2026-11-18T00:49Z from a typed 01:00Z.
+- 2026-11-18T02:07Z #41 merged by chrisz-glitch (80667f3, tree equal to 95f6b9a); `m2/test-job` deleted on both sides; the review worktree removed. 2026-11-18T02:09Z records.
