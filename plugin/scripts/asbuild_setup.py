@@ -6,7 +6,11 @@ Usage, from the project's folder: python asbuild_setup.py [--repo DIR] [--no-ope
 It checks Git, the GitHub sign-in and the repository, then puts AsBuild's two workflow files (this plugin's own
 copy) on a branch named asbuild-setup on GitHub and opens GitHub's page for the pull request, which the person
 creates and merges. On an empty repository it first makes the first commit, a requirements.txt that lists pytest,
-and uploads it as main. Every commit is made with Git's plumbing on a temporary index, so the person's folder, its
+and uploads it as main (unless the folder holds a JavaScript app: then it asks for the app to be uploaded first).
+v0.4.0: a repository with a root package.json and no Python file, requirements.txt or pyproject.toml on main is a
+JavaScript project: it is checked against the one stop list (asbuild_js.py) and this computer's Node and npm, and
+gets the two workflow files only. A repository whose only package.json is in a subfolder stops: "not yet".
+Every commit is made with Git's plumbing on a temporary index, so the person's folder, its
 current branch and any unsaved work are left exactly as they were. Messages are printed as each step is done, so
 an upload of main on an empty repository is reported even when a later step stops.
 
@@ -29,6 +33,10 @@ from pathlib import Path
 from urllib.parse import quote
 
 HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:  # the JavaScript facts live beside this file (also when it is loaded by path)
+    sys.path.insert(0, str(HERE))
+import asbuild_js as js  # noqa: E402
+
 WORKFLOWS = HERE.parent / "workflows"
 FILES = ("asbuild-test.yml", "asbuild-verdict.yml")
 BRANCH = "asbuild-setup"
@@ -132,6 +140,16 @@ EMPTY_NEW = (
     "This repository was empty, so setup made its first commit, a new requirements.txt that lists pytest, and"
     " uploaded it to GitHub as main."
 )
+EMPTY_JS = (
+    "The repository on GitHub is empty, and this folder holds a JavaScript app. Upload the app first, as main, so"
+    " that setup sees it: commit the app's files (not node_modules, and no file holding a password or key), then"
+    " run:\n  git push -u origin HEAD:main"
+)
+JS_NOTE = (
+    "This is a JavaScript project, so setup adds nothing else: AsBuild adds its test tools (Vitest) in your first"
+    " story."
+)
+SUBFOLDER = "its app is in a subfolder ({path}), not at the top of the repository"
 SAME = "The branch asbuild-setup is already on GitHub with these files, so nothing new was uploaded."
 REPLACED = (
     "An older asbuild-setup branch was on GitHub with nothing but setup's own commits or commits already on"
@@ -158,6 +176,10 @@ NOT_OPENED = "Open the link above in your browser."
 
 class Stop(Exception):
     """The person must do one thing first (exit 1)."""
+
+
+class NotYet(Exception):
+    """The project is outside what AsBuild supports yet (exit 1, without "run setup again")."""
 
 
 class CannotRun(Exception):
@@ -266,10 +288,43 @@ def setup_made(repo: Repo, main: str, old: str) -> bool:
     return p.returncode == 0 and all(s in TITLE.values() for s in text(p.stdout).splitlines())
 
 
+def folder_files(top: Path) -> set[str]:
+    """The folder's files, as paths from its root, leaving out installed packages and hidden folders."""
+    found = set()
+    for here, dirs, names in os.walk(top):
+        dirs[:] = [d for d in dirs if d != "node_modules" and not d.startswith(".")]
+        found |= {(Path(here) / n).relative_to(top).as_posix() for n in names}
+    return found
+
+
+def tree_files(repo: Repo, sha: str) -> set[str]:
+    """main's tracked files (NUL-separated, so no name is quoted)."""
+    return {p for p in repo.out("ls-tree", "-r", "-z", "--name-only", sha).split("\0") if p}
+
+
+def javascript(repo: Repo, main: str) -> bool:
+    """True for a JavaScript repository AsBuild supports; Python's path otherwise; NotYet or Stop outside both."""
+    paths = tree_files(repo, main)
+    shape = js.kind(paths)
+    if shape == "subfolder":
+        raise NotYet(js.NOT_YET.format(why=SUBFOLDER.format(path=js.subfolder(paths))))
+    if shape == "python":
+        return False
+    why = js.stop_reason(repo.show(main, "package.json") or b"", repo.show(main, "package-lock.json"), paths)
+    if why:
+        raise NotYet(why)
+    problem = js.tool_problem()
+    if problem:
+        raise Stop(problem)
+    return True
+
+
 def first_commit(repo: Repo) -> str:
     """On an empty repository whose folder has no commits either: requirements.txt, uploaded as main (D39)."""
     if repo.run("rev-parse", "--verify", "--quiet", "HEAD").returncode == 0:
         raise Stop(LOCAL_ONLY)
+    if js.kind(folder_files(repo.top)) == "javascript":  # a requirements.txt commit would make it Python for good
+        raise Stop(EMPTY_JS)
     own_file = repo.top / "requirements.txt"
     own = own_file.read_bytes() if own_file.is_file() else None
     added = with_pytest(own, "folder")
@@ -327,7 +382,8 @@ def setup(start: Path, open_page: bool) -> None:
         say(ALREADY)
         return
     update = on_main[".github/workflows/asbuild-verdict.yml"] is not None  # only then is there a verdict
-    reqs = with_pytest(repo.show(main, "requirements.txt"))
+    is_js = javascript(repo, main)
+    reqs = None if is_js else with_pytest(repo.show(main, "requirements.txt"))
     if reqs is not None:
         files["requirements.txt"] = reqs
     link = page(owner, name, update, BODY[update] + (BODY_REQS if reqs is not None else ""))
@@ -343,6 +399,8 @@ def setup(start: Path, open_page: bool) -> None:
     say(READY.format(link=link))
     if reqs is not None:
         say(ADDS_PYTEST)
+    if is_js:
+        say(JS_NOTE)
     say(UPDATE if update else FIRST)
     say(AFTER)
     if open_page:
@@ -360,6 +418,9 @@ def main(argv: list[str] | None = None) -> int:
         setup(a.repo, not a.no_open)
     except Stop as e:
         say(f"{e}\n{AGAIN}")
+        return 1
+    except NotYet as e:
+        say(str(e))
         return 1
     except CannotRun as e:
         say(f"Setup could not run: {e}")

@@ -236,3 +236,102 @@ def test_a_changed_setup_branch_is_replaced_by_one_on_main(repo, capsys):
     assert git(hub, "rev-parse", "asbuild-setup^").strip() == git(hub, "rev-parse", "main").strip()
     assert git(hub, "rev-parse", "asbuild-setup").strip() != first
     assert git(hub, "show", "asbuild-setup:.github/workflows/asbuild-test.yml").endswith("# changed\n")
+
+
+# ------------------------------------------------------------------ v0.4.0 M3-C3: the JavaScript path
+
+APP = '{"dependencies": {"react": "^18.3.1"}, "devDependencies": {"vite": "^5.4.1"}}\n'
+
+
+def empty_hub_and_folder(tmp_path: Path) -> Path:
+    empty = tmp_path / "empty.git"
+    git(tmp_path, "init", "--quiet", "--bare", "-b", "main", str(empty))
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    git(fresh, "init", "--quiet", "-b", "main")
+    git(fresh, "config", "user.name", "Pat Example")
+    git(fresh, "config", "user.email", "pat@example.com")
+    git(fresh, "remote", "add", "origin", URL)
+    git(fresh, "config", f"url.{empty.as_posix()}.insteadOf", URL)
+    return fresh
+
+
+def test_M3_C3_an_empty_repository_holding_a_javascript_app_asks_for_the_app_first(tmp_path, capsys, repo):
+    fresh = empty_hub_and_folder(tmp_path)
+    (fresh / "package.json").write_text(APP, encoding="utf-8")
+    (fresh / "node_modules" / "x").mkdir(parents=True)
+    (fresh / "node_modules" / "x" / "setup.py").write_text("", encoding="utf-8")  # installed: never counts
+    assert asbuild_setup.main(["--repo", str(fresh), "--no-open"]) == 1
+    out = capsys.readouterr().out
+    assert out.startswith(asbuild_setup.EMPTY_JS)
+    assert "git push -u origin HEAD:main" in out
+    assert git(tmp_path / "empty.git", "branch", "--list").strip() == ""  # nothing uploaded
+
+
+def test_M3_C3_an_empty_repository_holding_python_beside_package_json_is_set_up_as_today(tmp_path, capsys, repo):
+    fresh = empty_hub_and_folder(tmp_path)
+    (fresh / "package.json").write_text(APP, encoding="utf-8")
+    (fresh / "tools").mkdir()
+    (fresh / "tools" / "build.py").write_text("print()\n", encoding="utf-8")
+    assert asbuild_setup.main(["--repo", str(fresh), "--no-open"]) == 0
+    assert capsys.readouterr().out.startswith(asbuild_setup.EMPTY_NEW)
+
+
+def test_M3_C3_the_folder_scan_skips_installed_packages_and_hidden_folders(tmp_path):
+    for rel in ("package.json", "src/App.tsx", "node_modules/x/a.py", ".venv/lib/b.py", "web/package.json"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("", encoding="utf-8")
+    assert asbuild_setup.folder_files(tmp_path) == {"package.json", "src/App.tsx", "web/package.json"}
+
+
+def test_M3_C3_a_javascript_repository_gets_the_page_without_the_pytest_line(repo, capsys, monkeypatch):
+    work, hub = repo
+    git(work, "rm", "--quiet", "requirements.txt")
+    (work / "package.json").write_text(APP, encoding="utf-8")
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "a JavaScript app")
+    git(work, "push", "--quiet", "origin", "main")
+    monkeypatch.setattr(asbuild_setup.js, "tool_problem", lambda: None)
+    assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
+    out = capsys.readouterr().out
+    assert "pytest" not in out and asbuild_setup.JS_NOTE in out
+    assert "&body=Adds%20AsBuild%27s%20two%20workflow%20files%2C" in out and "requirements" not in out
+    assert git(hub, "ls-tree", "--name-only", "asbuild-setup").split() == [".github", "package.json"]
+
+
+def test_M3_C3_a_repository_already_set_up_is_not_checked_again(repo, capsys, monkeypatch):
+    work, hub = repo
+    git(work, "rm", "--quiet", "requirements.txt")
+    (work / "package.json").write_text('{"dependencies": {"vue": "3"}}\n', encoding="utf-8")  # off the list
+    (work / ".github" / "workflows").mkdir(parents=True)
+    for path, data in asbuild_setup.wanted().items():
+        (work / path).write_bytes(data)
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "wired before v0.4.0")
+    git(work, "push", "--quiet", "origin", "main")
+    assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
+    assert capsys.readouterr().out.startswith(asbuild_setup.ALREADY)
+
+
+def test_M3_C3_a_file_name_with_a_space_or_accent_is_read_whole(repo, capsys, monkeypatch):
+    work, hub = repo
+    git(work, "rm", "--quiet", "requirements.txt")
+    (work / "package.json").write_text(APP, encoding="utf-8")
+    (work / "build \u00fc.py").write_text("", encoding="utf-8")  # git quotes such names unless -z
+    git(work, "add", "-A")
+    git(work, "commit", "--quiet", "-m", "app and a script")
+    git(work, "push", "--quiet", "origin", "main")
+    assert asbuild_setup.main(["--repo", str(work), "--no-open"]) == 0
+    assert asbuild_setup.ADDS_PYTEST in capsys.readouterr().out  # a .py file: the Python path, as today
+
+
+def test_M3_C3_setup_finds_its_javascript_facts_when_loaded_by_path(monkeypatch):
+    import importlib.util
+
+    here = str(ROOT / "plugin" / "scripts")
+    monkeypatch.setattr(sys, "path", [p for p in sys.path if p != here])
+    monkeypatch.delitem(sys.modules, "asbuild_js")
+    spec = importlib.util.spec_from_file_location("setup_by_path", ROOT / "plugin" / "scripts" / "asbuild_setup.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.js.VITEST_FOR[8] == "5.1.0" and here in sys.path

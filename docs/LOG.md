@@ -237,3 +237,7 @@ Append-only. UTC.
 - 2026-11-18T00:00Z M2 review round 1: BLOCK x3 (4 MEDIUM, triage confirmed all); fixed in a409f53.
 - 2026-11-18T00:41Z Live run on a409f53: 26 of 26 rows as expected. 2026-11-18T00:41Z records.
 - 2026-11-18T00:49Z M2 review round 2: APPROVE x3 on c17ce40; LOW items taken (51e2c56). Time corrected at 2026-11-18T00:49Z from a typed 01:00Z.
+- 2026-11-18T02:07Z #41 merged by chrisz-glitch (80667f3, tree equal to 95f6b9a); `m2/test-job` deleted on both sides; the review worktree removed. 2026-11-18T02:09Z records.
+- 2026-11-18T02:12Z M3 Story and setup started on `m3/story-setup` (plan `docs/plans/v0.4-M3.md`, night protocol; the owner's standing yes for Docker recorded as D52). Built in 6b7ed9a (setup, `asbuild_js.py`), a64cb50 (the JavaScript story-time checks), 946bd9c (skills and READMEs), 76371b4 (the two refusal hints from evidence 1); local gate green on 946bd9c (620 passed, 100%).
+- 2026-11-18T02:4xZ to 03:16Z M3 evidence: real apps in Docker (Vite 5 to 8, four Lovable apps, Node 26), GitHub's Windows runner (`hevelius-ai/asbuild-proofs` runs 44228131374, 44228232872), the Windows lockfiles installed strictly on Linux; a live story made on Windows in `hevelius-ai/asbuild-live`: #79 WAITING FOR YOU with STORY_ADDS_TOOLS, #80 PROVEN. 2026-11-18T03:16Z records.
+- 2026-11-18T03:17Z to 03:5xZ M3 review round 1 on 5023868: BLOCK x3, five MEDIUM, triage confirmed all; fixed in baf7dcf; draft hevelius-ai/asbuild#42 opened. Round 2 on baf7dcf: APPROVE x3; LOW items taken. 2026-11-18T03:51Z records.

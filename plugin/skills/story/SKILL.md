@@ -1,6 +1,6 @@
 ---
 name: story
-description: "Agree a story with a person before an AI builds it: save their words unchanged, agree 2 to 5 plain checks with exact examples, write one test per check, run AsBuild's story-time checks and open the story pull request. Use when someone asks for a new feature or change in a repository wired to AsBuild (its .github/workflows/ holds asbuild-test.yml), or runs /asbuild:story. Needs Claude Code in a GitHub repository with Python, pytest, git and the gh command."
+description: "Agree a story with a person before an AI builds it: save their words unchanged, agree 2 to 5 plain checks with exact examples, write one test per check, run AsBuild's story-time checks and open the story pull request. Use when someone asks for a new feature or change in a repository wired to AsBuild (its .github/workflows/ holds asbuild-test.yml), or runs /asbuild:story. Needs Claude Code in a GitHub repository with Python, git and the gh command, and pytest (a Python project) or Node.js 24 with npm 11.19 (a TypeScript or JavaScript app)."
 ---
 
 # AsBuild: agree a story before anything is built
@@ -63,6 +63,8 @@ Each example goes in backticks, exactly as the person will see it. Write `\|` fo
 
 ## 4. Write one test per check
 
+For a TypeScript or JavaScript app (a `package.json` at the root and no Python file), follow `javascript.md`, in this skill's folder, in place of this section.
+
 - One file, `tests/acceptance/S<n>/test_S<n>_<short_name>.py`, with one test per check, named `test_S<n>_C<m>_<what_it_checks>`.
 - Test what the person will see: run the app the way they use it, and assert each approved example as the exact literal value, such as `assert out.stdout.strip() == "words: 3"`. Don't assert it in a loop or build it from parts.
 - Use only the standard library and pytest. No conftest.py (AsBuild runs these tests without it), no skips, no network.
@@ -80,7 +82,7 @@ Run this from the repository root, with the Python that runs the project's tests
 
 ## 6. Open the story pull request
 
-1. Commit only `story.md`, the test file, `locks.json` and `.claude/settings.json`. Push the branch.
+1. Commit only `story.md`, the test files, `locks.json` and `.claude/settings.json` (and, in a JavaScript app's first story, `package.json` and `package-lock.json`). Push the branch.
 2. Run `gh pr create --base main --title "Story S<n>: <title>"`. In the body, list the checklist and add: "Merging this pull request approves these checks. AsBuild then checks every build of this story against them."
 3. Tell the person in plain words: read the list on the pull request, and merge it if it is right. Nothing is built yet. AsBuild's note on this pull request always says it is waiting for them.
 
