@@ -84,7 +84,8 @@ def test_M4a_C2_an_undescribed_story_keeps_its_stop_line_and_still_says_so(tmp_p
 
 # ---------------------------------------------------------------- M4a-C3 (K9, option B)
 def test_M4a_C3_a_change_under_out_is_protected_in_any_pull_request():
-    for path in ("out/c3/x.xml", "out/pr.xml", "out/acceptance-js.xml", "out/js-install.txt"):
+    # round 1, B1: `out` itself too, so a committed link named `out` cannot point the results at another folder
+    for path in ("out/c3/x.xml", "out/pr.xml", "out/acceptance-js.xml", "out/js-install.txt", "out"):
         for story_pr in (False, True):
             assert protected(path, on_main=False, story_pr=story_pr), path
     for path in ("src/out/x.py", "layout.py", "outputs/a.txt", "out.txt"):
@@ -93,6 +94,7 @@ def test_M4a_C3_a_change_under_out_is_protected_in_any_pull_request():
 
 def test_M4a_C3_the_note_names_the_folder_in_plain_words(tmp_path):
     assert plain_file("out/c3/x.xml") == "the folder where your checks' results are written"
+    assert plain_file("out") == "the folder where your checks' results are written"  # round 1, B1
     assert plain_file("src/out/x.py") == "a file only you may change"  # the root folder only
     f = story_facts(tmp_path, changed=STORY_OWN + [PY], new={PY: PY_SRC})
     f.branch, f.files_changed = "build/S1", ["src/app.py", "out/c3/forged.xml"]
@@ -111,6 +113,7 @@ HOSTILE = [
     "see https://example.com, www.example.com, mailto:a@example.com and someone@example.com",
     ":smile: *a* _b_ ~~c~~ `d` **e** \\ back | bar",
     "costs $5 and $10, $x^2$ and $$y$$",
+    "$x^2$",  # round 1, B2: a dollar sign at each end of the line
     "GH-1, JIRA-12, abc123 and 3rd",  # a word mixing letters and digits
     "facade decade defaced and 1234567",  # seven hex characters: a commit id
     "see example.com and WWW.example.com",
@@ -147,9 +150,29 @@ def test_M4a_C4_story_text_reads_the_same_and_no_word_stays_whole():
             assert a.isspace() or b.isspace() or WORD_JOINER in (a, b), (text, a, b)
         assert not any(c in string.punctuation for c in re.sub(r"\\.", "", q)), text  # every mark comes escaped
         for i, c in enumerate(q):
-            if c == "$":
-                assert q[i - 1] == "\\" and q[i - 2] == WORD_JOINER, (text, i)
-                assert i + 1 == len(q) or q[i + 1] == WORD_JOINER, (text, i)
+            if c == "$":  # round 1, B2: on both sides, at the line's ends too
+                assert i >= 2 and q[i - 1] == "\\" and q[i - 2] == WORD_JOINER, (text, i)
+                assert i + 1 < len(q) and q[i + 1] == WORD_JOINER, (text, i)
+
+
+def test_M4a_C4_characters_outside_ascii_stay_whole():
+    """Round 1, B3: no word joiner beside a character outside ASCII, so an accent, an emoji sequence (skin tone, a
+    joined family, a flag, a variation selector) or a vowel sign stays one character on screen."""
+    from engine.lint_plain import visible
+    from engine.receipt import WORD_JOINER, as_written
+
+    for text in (
+        "Zeigt 👍🏽 und 👩‍💻 an: GH-1",
+        "Drapeau 🇫🇷 et ❤️ et 1️⃣ : @ana",
+        "किताब दिखती है #3",
+        "Café shows www.example.com",
+        "ภาษาไทย @ana",
+    ):
+        q = as_written(text)
+        assert q != text and visible(q) == text, text  # escaped, and still reads the same
+        for i, c in enumerate(q):
+            if c == WORD_JOINER:
+                assert q[i - 1].isascii() and (i + 1 == len(q) or q[i + 1].isascii()), (text, i)
 
 
 def test_M4a_C4_the_title_and_every_plain_line_go_through_it(tmp_path):

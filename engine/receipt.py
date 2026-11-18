@@ -21,10 +21,12 @@ import string
 MARKER = "<!-- asbuild-receipt -->"
 # K8 (the owner's option A): the story's title and plain lines are text from the pull request, shown as written, never
 # as Markdown. An ordinary line (only what GitHub never acts on) is left exactly as it is, so receipts stay v0.3.4's
-# (done line 2). Any other line is escaped whole: every ASCII punctuation mark gets a backslash, and an invisible word
-# joiner sits between every two visible characters and around every dollar sign, so no word stays whole for GitHub to
-# turn into a link, mention, reference, emoji or formula. Spaces stay plain, so lines still wrap. Both checked with
-# GitHub's own renderer; the Level 2 live run checks a posted note.
+# (done line 2). Any other line is escaped whole: every ASCII punctuation mark gets a backslash, an invisible word
+# joiner sits between every two visible ASCII characters (what GitHub turns into a link, mention, reference, emoji
+# code or commit id is written in ASCII, so no such word stays whole), and one sits on both sides of every dollar sign,
+# at the line's ends too (a formula). Characters outside ASCII get none beside them, so accents, emoji and other
+# scripts stay whole (round 1, B3); spaces stay plain, so lines still wrap. Checked with GitHub's own renderer; the
+# Level 2 live run checks a posted note.
 WORD_JOINER = chr(0x2060)
 PLAIN_CHARS = re.compile(r"^(?:[^\W\d_]|\d|\s|[,.;?!'\"%()-]|:(?=\s|$))*$")
 
@@ -45,11 +47,15 @@ def as_written(text: str) -> str:
         return text
     out: list[str] = []
     for i, c in enumerate(text):
-        prev = text[i - 1] if i else " "
-        if i and ((not c.isspace() and not prev.isspace()) or "$" in (c, prev)):
+        prev = text[i - 1] if i else ""
+        if "$" in (c, prev) or (_visible_ascii(prev) and _visible_ascii(c)):
             out.append(WORD_JOINER)
         out.append("\\" + c if c in string.punctuation else c)
-    return "".join(out)
+    return "".join(out) + (WORD_JOINER if text.endswith("$") else "")
+
+
+def _visible_ascii(c: str) -> bool:
+    return c.isascii() and c.isprintable() and not c.isspace() and c != ""
 
 
 TEMPLATE_2 = (
@@ -114,7 +120,7 @@ PLAIN_FILE = [
     ),
     (re.compile(r"(^|/)pyproject\.toml$"), "the project's settings file"),
     (re.compile(r"(^|/)\.github/"), "the settings for the checks on GitHub"),
-    (re.compile(r"^out/"), "the folder where your checks' results are written"),  # K9
+    (re.compile(r"^out(/|$)"), "the folder where your checks' results are written"),  # K9
     (
         re.compile(
             r"(^|/)requirements[^/]*$|\.lock$|(^|/)(package-lock\.json|pnpm-lock\.yaml|package\.json"

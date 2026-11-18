@@ -79,7 +79,8 @@ PROTECTED_NAMES = (
 )
 PROTECTED_ROOT = ("locks.json",)
 # out/ is where the test job writes the result files the verdict reads: a pull request that commits files there could
-# add results of its own (K9, the owner's option B; the test job's steps stay v0.3.4's).
+# add results of its own (K9, the owner's option B; the test job's steps stay v0.3.4's). A tree's own path counts too: a
+# committed link named `out` could point the results at another folder (round 1, B1).
 PROTECTED_TREES = (".github/", "out/")
 # Story trees: a path that exists on main is protected; a new one only a story pull request may add.
 STORY_TREES = ("tests/acceptance/", "dev-docs/requests/", "dev-docs/stories/")
@@ -106,7 +107,7 @@ def protected(path: str, on_main: bool, story_pr: bool, extra: tuple[str, ...] =
     name = path.rsplit("/", 1)[-1]
     if any(fnmatch.fnmatch(name, pat) for pat in PROTECTED_NAMES + extra):
         return True
-    if path.startswith(PROTECTED_TREES):
+    if (path + "/").startswith(PROTECTED_TREES):
         return True
     if path in PROTECTED_ROOT:
         return not story_pr

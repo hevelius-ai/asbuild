@@ -226,14 +226,19 @@ ROWS["live-mixed-install-fails"] = row(
 )
 # M4a (D53): a story whose title and plain line hold a mention, a link, an image, a web address and references, with one
 # app file beside it (K7, K8); a build that commits a result file under out/ (K9).
+# Round 1 (Sonnet L3, B2, B3): a formula at each end, a commit id, an e-mail address and an emoji with a skin tone too.
+THUMB = chr(0x1F44D) + chr(0x1F3FD)
+PLAIN_HOSTILE = (
+    "$x^2$ When you type some words, see [this](https://example.com) ![i](https://example.com/a.png) www.example.com "
+    f'GH-1 :smile: <b>x</b> hevelius-ai/asbuild@0555bfd a@example.com {THUMB}, the page shows "words: 3". $y$'
+)
 STORY_TEXT = (
     (HERE / "cases" / "js-story" / "head" / "dev-docs" / "stories" / "S1" / "story.md")
     .read_text(encoding="utf-8")
     .replace("# S1: Count words", "# S1: Count words for @heveliusai-dev, see #1")
     .replace(
         '| S1-C1 | When you type some words, the page shows how many there are, like "words: 3". |',
-        "| S1-C1 | When you type some words, see [this](https://example.com) ![i](https://example.com/a.png) "
-        'www.example.com GH-1 :smile: <b>x</b>, the page shows how many there are, like "words: 3". |',
+        f"| S1-C1 | {PLAIN_HOSTILE} |",
     )
 )
 ROWS["live-story-text"] = row(
@@ -261,11 +266,7 @@ EXPECT = {
 # What GitHub's renderer makes of a link, an image, a mention, a reference, a commit id, an emoji or a formula; and the
 # story's own words, which the rendered note must show character for character (an emoji would replace ":smile:").
 ACTIVE_HTML = re.compile(r"<a\b|<img\b|user-mention|issue-link|commit-link|<g-emoji|math-renderer")
-STORY_SHOWN = [
-    "Count words for @heveliusai-dev, see #1",
-    "When you type some words, see [this](https://example.com) ![i](https://example.com/a.png) www.example.com GH-1 "
-    ':smile: <b>x</b>, the page shows how many there are, like "words: 3".',
-]
+STORY_SHOWN = ["Count words for @heveliusai-dev, see #1", PLAIN_HOSTILE]
 assert all(t in STORY_TEXT for t in STORY_SHOWN), "the live story text no longer holds the K8 cases"
 
 
