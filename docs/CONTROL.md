@@ -21,7 +21,7 @@ None.
 
 ## Open decisions
 
-- Docker for local Linux checks: the image (named with its exact version and digest) waits for the owner's yes; until then Linux checks run on GitHub runners (M2 did not need it: the live run is the Linux check).
+None. (Docker: the owner's standing yes, D52, 2026-11-18.)
 
 ## QUALITY RISK
 
