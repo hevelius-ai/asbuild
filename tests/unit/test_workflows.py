@@ -124,3 +124,16 @@ def test_plugin_and_every_workflow_clone_one_version():
     for f in files:
         tags = re.findall(r"--branch (\S+) https://github\.com/hevelius-ai/asbuild", f.read_text(encoding="utf-8"))
         assert tags == [f"v{version}"], (f, tags, version)
+
+
+def test_M4_C1_the_release_is_v0_4_0_everywhere():
+    """M4-C1: the four workflow files clone v0.4.0 and the plugin says 0.4.0 (D32 keeps them one number)."""
+    import json
+
+    assert json.loads((ROOT / "plugin" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"] == (
+        "0.4.0"
+    )
+    for d in ("workflows", "plugin/workflows"):
+        for n in ("asbuild-test.yml", "asbuild-verdict.yml"):
+            text = (ROOT / d / n).read_text(encoding="utf-8")
+            assert re.findall(r"--branch (\S+) https://github\.com/hevelius-ai/asbuild", text) == ["v0.4.0"], (d, n)

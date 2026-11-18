@@ -3,7 +3,8 @@
 Gated by `hashFiles('tests/acceptance/**/*.test.*')`, placed after the Python steps and before the shared fails-before
 step, each with `continue-on-error` and its own timeout, so a JavaScript failure never skips the Python evidence.
 Tools start from `node_modules/.bin`, never through `npm run` or `npx`. A Python repository with no JavaScript checks
-runs exactly v0.3.4's steps (done line 2): the fixture is v0.3.4's file, unchanged.
+runs exactly v0.3.4's steps (done line 2): the fixture is v0.3.4's file, unchanged, compared with the release tag's
+number and the engine pin read as placeholders (M4-C1).
 """
 
 from __future__ import annotations
@@ -21,13 +22,14 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1].parent
 GATE = "hashFiles('tests/acceptance/**/*.test.*') != ''"
 PIN = re.compile(r'(rev-parse HEAD:engine\)" = ")[0-9a-f]{40}"')
+TAG = re.compile(r"(--branch )v\d+\.\d+\.\d+( https://github\.com/hevelius-ai/asbuild )")  # M4-C1: the release tag
 COPIES = [ROOT / "workflows" / "asbuild-test.yml", ROOT / "plugin" / "workflows" / "asbuild-test.yml"]
 
 needs_shell = pytest.mark.skipif(shutil.which("bash") is None, reason="needs bash (CI's Linux check)")
 
 
 def doc(path: Path) -> dict:
-    return yaml.safe_load(PIN.sub(r'\1<tree>"', path.read_text(encoding="utf-8")))
+    return yaml.safe_load(TAG.sub(r"\1<tag>\2", PIN.sub(r'\1<tree>"', path.read_text(encoding="utf-8"))))
 
 
 def steps(path: Path) -> list[dict]:

@@ -67,3 +67,6 @@ date,story,kind,hours,note
 2026-11-18,v0.4-M2,reviews-usd,14.06,"Round 2 Fable $7.08, Opus $4.84, Sonnet $2.14"
 2026-11-18,v0.4-M2,agent,0.2,"Round 2 records, the pull request, CI, after-merge records (estimated)"
 2026-11-18,v0.4-M2,owner,0.05,"Merge of #41 (estimated)"
+2026-11-18,v0.4-M3,agent,2.3,"Plan, build, evidence (Docker, Windows runner, live), two review rounds, the pull request, records (estimated)"
+2026-11-18,v0.4-M3,owner,0.1,"Merge of #42 (estimated)"
+2026-11-18,v0.4-M3,reviews-usd,36.16,"Round 1 Fable $11.99, Opus $6.92, Sonnet $4.90; triage $1.16; round 2 $6.69; the confirm-only check $4.47"
