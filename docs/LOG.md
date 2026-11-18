@@ -234,3 +234,5 @@ Append-only. UTC.
 - 2026-11-17T22:25Z `live-bases` proof (hevelius-ai/asbuild-proofs run 44189672427): Vite 5 to 8 apps with the table's Vitest, all passing under AsBuild's settings on Linux.
 - 2026-11-17T23:10Z Live runs: first passes 15 of 22 and 7 of 9, every miss a harness defect (none in AsBuild), fixed in `live.py`.
 - 2026-11-17T23:43Z Final live run on 1e1d498: 24 of 24 rows as expected. 2026-11-17T23:44Z records.
+- 2026-11-18T00:00Z M2 review round 1: BLOCK x3 (4 MEDIUM, triage confirmed all); fixed in a409f53.
+- 2026-11-18T00:41Z Live run on a409f53: 26 of 26 rows as expected. 2026-11-18T00:41Z records.
