@@ -21,6 +21,7 @@ Usage, from the repository root (needs git and gh, signed in with rights to the 
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import shutil
@@ -223,14 +224,50 @@ ROWS["live-js-alias"] = row("js-proven", main={S1: COUNTER_STUB, **ALIAS}, reloc
 ROWS["live-mixed-install-fails"] = row(
     "py-frontend-after-js", main=MIXED_MAIN, head={"app/count.py": COUNT_RIGHT}, relock=True, branch="build/S1"
 )
+# M4a (D53): a story whose title and plain line hold a mention, a link, an image, a web address and references, with one
+# app file beside it (K7, K8); a build that commits a result file under out/ (K9).
+# Round 1 (Sonnet L3, B2, B3): a formula at each end, a commit id, an e-mail address and an emoji with a skin tone too.
+THUMB = chr(0x1F44D) + chr(0x1F3FD)
+PLAIN_HOSTILE = (
+    "$x^2$ When you type some words, see [this](https://example.com) ![i](https://example.com/a.png) www.example.com "
+    f'GH-1 :smile: <b>x</b> hevelius-ai/asbuild@0555bfd a@example.com {THUMB}, the page shows "words: 3". $y$'
+)
+STORY_TEXT = (
+    (HERE / "cases" / "js-story" / "head" / "dev-docs" / "stories" / "S1" / "story.md")
+    .read_text(encoding="utf-8")
+    .replace("# S1: Count words", "# S1: Count words for @heveliusai-dev, see #1")
+    .replace(
+        '| S1-C1 | When you type some words, the page shows how many there are, like "words: 3". |',
+        f"| S1-C1 | {PLAIN_HOSTILE} |",
+    )
+)
+ROWS["live-story-text"] = row(
+    "js-story",
+    base="vite5-plain",
+    head_base="vite5-tools",
+    head={"dev-docs/stories/S1/story.md": STORY_TEXT, "src/Extra.tsx": "export const extra = 1;\n"},
+)
+ROWS["live-out-folder"] = row("js-proven", head={S1: COUNTER_RIGHT, "out/c3/forged.xml": "<testsuites/>\n"})
 EXPECT = {
     "live-mixed-install-fails": {
         "verdict": "UNRESOLVED",
         "codes": ["NO_RESULTS", "INSTALL_FAILED"],
         # the Python evidence is still there although the JavaScript install failed
         "evidence_has": ["pr.xml", "acceptance.xml", "c3/tests_acceptance_s1_test_s1_count_py.xml", "js-install.txt"],
-    }
+    },
+    "live-story-text": {
+        "verdict": "WAITING FOR YOU",
+        "codes": ["NEW_CHECKS", "STORY_ADDS_TOOLS", "STORY_HAS_APP_FILES"],
+        "receipt_has": ["It also changes 1 other file of your app"],
+        "html_plain": True,  # GitHub's rendered note: no link, image, mention, reference, emoji or formula
+    },
+    "live-out-folder": {"verdict": "WAITING FOR YOU", "codes": ["PROTECTED_CHANGED"]},
 }
+# What GitHub's renderer makes of a link, an image, a mention, a reference, a commit id, an emoji or a formula; and the
+# story's own words, which the rendered note must show character for character (an emoji would replace ":smile:").
+ACTIVE_HTML = re.compile(r"<a\b|<img\b|user-mention|issue-link|commit-link|<g-emoji|math-renderer")
+STORY_SHOWN = ["Count words for @heveliusai-dev, see #1", PLAIN_HOSTILE]
+assert all(t in STORY_TEXT for t in STORY_SHOWN), "the live story text no longer holds the K8 cases"
 
 
 # ---------------------------------------------------------------- helpers
@@ -370,6 +407,37 @@ def receipt_top(repo: str, url: str, sha: str) -> str:
     return ""
 
 
+def note_against_check(repo: str, url: str, sha: str, html_plain: bool) -> list[str]:
+    """K4: the note was last written no later than the check run named "AsBuild" completed. K8: with `html_plain`,
+    GitHub's rendered note (above the technical report) holds nothing active."""
+    number = url.rstrip("/").rsplit("/", 1)[-1]
+    comments = json.loads(
+        sh(
+            "gh",
+            "api",
+            "-H",
+            "Accept: application/vnd.github.full+json",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    )
+    mine = [c for c in comments if "<!-- asbuild-receipt -->" in c["body"] and sha[:10] in c["body"]]
+    if not mine:
+        return ["no note for this commit"]
+    runs = json.loads(sh("gh", "api", f"repos/{repo}/commits/{sha}/check-runs?check_name=AsBuild"))["check_runs"]
+    done = sorted(r["completed_at"] for r in runs if r.get("completed_at"))
+    wrong = (
+        []
+        if done and mine[-1]["updated_at"] <= done[-1]
+        else [f"the note ({mine[-1]['updated_at']}) is newer than the check ({done[-1] if done else 'none'})"]
+    )
+    if html_plain:
+        top = mine[-1]["body_html"].split("<details")[0]
+        wrong += [f"the rendered note holds {m!r}" for m in sorted(set(ACTIVE_HTML.findall(top)))]
+        shown = html.unescape(re.sub(r"<[^>]+>", "", top)).replace(chr(0x2060), "")
+        wrong += [f"the rendered note does not show {t!r} as written" for t in STORY_SHOWN if t not in shown]
+    return wrong
+
+
 def run_row(rid: str, spec: dict, a: argparse.Namespace, checkout: Path) -> dict:
     branch = spec["branch"] or json.loads((HERE / "cases" / spec["case"] / "case.json").read_text())["branch"]
     with tempfile.TemporaryDirectory() as d:
@@ -408,6 +476,7 @@ def run_row(rid: str, spec: dict, a: argparse.Namespace, checkout: Path) -> dict
         exp = EXPECT.get(rid) or expectations().get(rid) or expectations()[spec["case"]]
         seen = asbuild_wait.saved_verdict(a.repo, sha, asbuild_wait.sh)  # what /asbuild:verdict reads (D50)
         wrong = compare(exp, doc, receipt_top(a.repo, url, sha))
+        wrong += note_against_check(a.repo, url, sha, bool(exp.get("html_plain")))  # M4a: K4 on every row, K8
         if exp.get("evidence_has"):
             files = evidence_files(a.repo, sha)
             wrong += [f"evidence lacks {f}" for f in exp["evidence_has"] if f not in files]

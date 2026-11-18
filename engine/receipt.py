@@ -16,8 +16,48 @@ from __future__ import annotations
 import json
 import os
 import re
+import string
 
 MARKER = "<!-- asbuild-receipt -->"
+# K8 (the owner's option A): the story's title and plain lines are text from the pull request, shown as written, never
+# as Markdown. An ordinary line (only what GitHub never acts on) is left exactly as it is, so receipts stay v0.3.4's
+# (done line 2). Any other line is escaped whole: every ASCII punctuation mark gets a backslash, an invisible word
+# joiner sits between every two visible ASCII characters (what GitHub turns into a link, mention, reference, emoji
+# code or commit id is written in ASCII, so no such word stays whole), and one sits on both sides of every dollar sign,
+# at the line's ends too (a formula). Characters outside ASCII get none beside them, so accents, emoji and other
+# scripts stay whole (round 1, B3); spaces stay plain, so lines still wrap. Checked with GitHub's own renderer; the
+# Level 2 live run checks a posted note.
+WORD_JOINER = chr(0x2060)
+PLAIN_CHARS = re.compile(r"^(?:[^\W\d_]|\d|\s|[,.;?!'\"%()-]|:(?=\s|$))*$")
+
+
+def ordinary(text: str) -> bool:
+    """Only letters, digits, spaces and the marks , . ; ? ! ' " % ( ) - and a colon before a space; no word mixing
+    letters and digits (GH-1, a repository's own link prefixes), no run of 7 hex characters (a commit id), no www."""
+    return (
+        bool(PLAIN_CHARS.match(text))
+        and "www." not in text.lower()
+        and not any(re.search(r"\d", w) and re.search(r"[^\W\d_]", w) for w in text.split())
+        and not re.search(r"[0-9a-f]{7}", text, re.I)
+    )
+
+
+def as_written(text: str) -> str:
+    if ordinary(text):
+        return text
+    out: list[str] = []
+    for i, c in enumerate(text):
+        prev = text[i - 1] if i else ""
+        if "$" in (c, prev) or (_visible_ascii(prev) and _visible_ascii(c)):
+            out.append(WORD_JOINER)
+        out.append("\\" + c if c in string.punctuation else c)
+    return "".join(out) + (WORD_JOINER if text.endswith("$") else "")
+
+
+def _visible_ascii(c: str) -> bool:
+    return c.isascii() and c.isprintable() and not c.isspace() and c != ""
+
+
 TEMPLATE_2 = (
     "NEW_CHECKS",
     "NEW_CHECKS_UNDESCRIBED",
@@ -25,10 +65,20 @@ TEMPLATE_2 = (
     "LOCK_DELETED",
     "PROTECTED_CHANGED",
     "STORY_ADDS_TOOLS",
+    "STORY_HAS_APP_FILES",
 )
 # Design §4.4: a JavaScript story that adds its test tools, and the npm error codes the test job reports.
 STORY_ADDS_TOOLS = (
     "It also changes the list of software your app installs; approving the checks approves that change too."
+)
+# K7: a story pull request that also changes the app. Only the number shows: a file's name is the pull request's text.
+STORY_HAS_APP_FILES = (
+    "It also changes {n} other {files} of your app, which AsBuild hasn't checked; approving the checks adds those "
+    "changes too."
+)
+STORY_HAS_APP_FILES_ACTION = (
+    "If you didn't ask for that, tell the AI: \"Keep only the new checks in this change, and put the other changes in "
+    'a separate one."'
 )
 INSTALL = {
     "EBADPLATFORM": "Your app's list of software includes parts that only work on another kind of computer, so GitHub "
@@ -70,6 +120,7 @@ PLAIN_FILE = [
     ),
     (re.compile(r"(^|/)pyproject\.toml$"), "the project's settings file"),
     (re.compile(r"(^|/)\.github/"), "the settings for the checks on GitHub"),
+    (re.compile(r"^out(/|$)"), "the folder where your checks' results are written"),  # K9
     (
         re.compile(
             r"(^|/)requirements[^/]*$|\.lock$|(^|/)(package-lock\.json|pnpm-lock\.yaml|package\.json"
@@ -135,6 +186,10 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
         actions[:] = ['Yes. Tell the AI: "Describe every new check in plain words in its story, then show it to me."']
     elif "STORY_ADDS_TOOLS" in names:
         head.append(STORY_ADDS_TOOLS)
+    for c in [c for c in v["codes"] if c["code"] == "STORY_HAS_APP_FILES"]:
+        count = len(c["params"]["paths"])
+        head.append(STORY_HAS_APP_FILES.format(n=count, files="file" if count == 1 else "files"))
+        actions.append(STORY_HAS_APP_FILES_ACTION)
     if any(n in ("LOCK_CHANGED", "LOCK_DELETED", "PROTECTED_CHANGED") for n in names):
         # Setup's own update (its branch, AsBuild's two workflow files only) is expected (README: read it, merge it).
         own = bool(v.get("setup_update"))
@@ -246,14 +301,14 @@ def render(v: dict) -> dict:
             'them." If it happens again, ask for help.'
         )
 
-    checklist = [f"{STATUS[i['status']]}: {i['plain']}" for i in v["items"]]
+    checklist = [f"{STATUS[i['status']]}: {as_written(i['plain'])}" for i in v["items"]]
     broken = (v.get("pass_to_pass") or {}).get("broken", 0) if n == 5 else 0
     if broken:
         besides = (
             ", besides the checks of stories not built yet" if (v.get("pass_to_pass") or {}).get("unbuilt") else ""
         )
         checklist.append(f"✗ Other checks in your app that fail now: {broken}{besides}.")
-    title = f" · {v['title']}" if v.get("title") else ""
+    title = f" · {as_written(v['title'])}" if v.get("title") else ""
     listed = (
         "The new lines for you to approve:"
         if "NEW_CHECKS" in names
