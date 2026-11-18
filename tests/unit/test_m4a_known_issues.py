@@ -173,6 +173,10 @@ def test_M4a_C4_characters_outside_ascii_stay_whole():
         for i, c in enumerate(q):
             if c == WORD_JOINER:
                 assert q[i - 1].isascii() and (i + 1 == len(q) or q[i + 1].isascii()), (text, i)
+        # round 2, Opus P2: the ASCII words in the same line (@ana, #3, GH-1, www.) still get their joiners
+        units = q.replace("\\", "")
+        for a, b in zip(units, units[1:], strict=False):
+            assert not (a.isascii() and b.isascii() and a.strip() and b.strip()), (text, a, b)
 
 
 def test_M4a_C4_the_title_and_every_plain_line_go_through_it(tmp_path):
