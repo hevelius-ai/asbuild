@@ -433,7 +433,8 @@ def test_K1_changed_protected_file_leaves_every_line_unjudged(tmp_path, path):
     assert v["verdict"] == "WAITING FOR YOU"
     assert {i["status"] for i in v["items"]} == {"file_changed"}
     assert "✓" not in r["top"] and "✗" not in r["top"]
-    assert r["top"].count("? not judged: the AI changed a file only you may change") == 2
+    unjudged = "? not judged, though this line is still as you agreed it: the AI changed a file only you may change"
+    assert r["top"].count(unjudged) == 2  # the words since v0.4.1 (D54, K10)
     assert "checked only the lines" not in r["top"]  # nothing was judged, so the footer claims nothing
     assert lint("2", r["top"]) == []
 

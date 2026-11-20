@@ -81,7 +81,7 @@ def test_M3_C6_the_readme_names_node_the_apps_and_the_vitest_limit():
 def test_M3_C6_the_plugin_says_it_works_with_react_and_vite_apps():
     meta = json.loads(read("plugin/.claude-plugin/plugin.json"))
     assert "a TypeScript or JavaScript app made with React and Vite" in meta["description"]
-    assert meta["version"] == "0.4.0"  # M4-C1
+    assert meta["version"] == "0.4.1"  # M4-C1; v0.4.1 (D54)
     text = read("plugin/README.md")
     assert "to the npm registry, through your own `npm`" in text
     assert "`.asbuild-story/`" in text and "`scripts/asbuild_js.py tools`" in text

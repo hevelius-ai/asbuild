@@ -82,3 +82,4 @@ date,story,kind,hours,note
 2026-11-20,v0.4-M4,owner,0.3,"Release step 6, the own try: a new repository, setup, story S1, build PROVEN, three merges (22:04Z to 22:19Z, plus reading)"
 2026-11-20,v0.4-M4,agent,0.3,"Merge follow-up of #45, the try walkthrough for the owner, checking the try, records (estimated)"
 2026-11-20,v0.4-M4,owner,0.1,"Merge of #46; deleting the three throwaway repositories (estimated)"
+2026-11-20,v0.4.1,agent,0.5,"K10: tests first, the fix, goldens, version and pin, records (estimated)"

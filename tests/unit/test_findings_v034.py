@@ -11,6 +11,7 @@ from tests.acceptance.S1.test_S1_verdicts import ACC_PATH, facts
 
 ROOT = Path(__file__).resolve().parents[2]
 SETUP_FILE = ".github/workflows/asbuild-verdict.yml"
+K10_BUTTON = "accept it on GitHub with the green button (Merge pull request)."
 
 
 def read(rel: str) -> str:
@@ -32,7 +33,7 @@ def test_protected_file_receipt_does_not_presume(tmp_path):
     top = render(judge(facts(tmp_path, changed=["app/count.py", "conftest.py"])))["top"]
     assert "Most likely" not in top
     assert "Yes. If you didn't ask for this, tell the AI: \"Undo your change to" in top
-    assert "If you did ask for it, read the change and accept it yourself." in top
+    assert "If you did ask for it, read the change, then " + K10_BUTTON in top  # K10 (D54)
     assert lint("protected", top) == []
 
 
@@ -42,7 +43,7 @@ def test_setup_update_receipt_says_read_and_accept(tmp_path):
     assert v["verdict"] == "WAITING FOR YOU"
     top = render(v)["top"]
     assert "This looks like AsBuild's own update from its setup." in top
-    assert "Yes. If you ran AsBuild's setup, read the change and accept it yourself." in top
+    assert "Yes. If you ran AsBuild's setup, read the change, then " + K10_BUTTON in top  # K10 (D54)
     assert "Agree a list of checks" not in top and "Most likely" not in top
     assert lint("setup-update", top) == []
 

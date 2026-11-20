@@ -135,7 +135,10 @@ STATUS = {
     "fails": "✗ doesn't work yet",
     "check_changed": "? not judged: the AI changed one of your agreed checks",
     "check_removed": "? not judged: the AI removed one of your agreed checks",
-    "file_changed": "? not judged: the AI changed a file only you may change",  # D41 (K1)
+    # D41 (K1); D54 (K10): the line itself is unchanged
+    "file_changed": (
+        "? not judged, though this line is still as you agreed it: the AI changed a file only you may change"
+    ),
     "not_checked": "? not checked this time",
     "already_passed": "? not shown yet: this was already true before the AI started",
     "exists_only": "? not shown yet: it failed before only because a part of the app didn't exist",
@@ -149,6 +152,13 @@ def plain_file(path: str) -> str:
         if rx.search(path):
             return name
     return "a file only you may change"
+
+
+def _accept(actions: list[str]) -> str:
+    """How to accept a change (D54, K10): the green button, its name in brackets only once per receipt."""
+    if any("(Merge pull request)" in a for a in actions):
+        return "accept it on GitHub with the same green button."
+    return "accept it on GitHub with the green button (Merge pull request)."
 
 
 def template(v: dict) -> int:
@@ -206,12 +216,12 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
                     f"{files}, which only you are allowed to change, so AsBuild can't pass this without you."
                 )
         if own:
-            actions.append("Yes. If you ran AsBuild's setup, read the change and accept it yourself.")
+            actions.append(f"Yes. If you ran AsBuild's setup, read the change, then {_accept(actions)}")
             actions.append(f'If you didn\'t, tell the AI: "Undo your change to {files}."')
         else:
             actions.append(f'Yes. If you didn\'t ask for this, tell the AI: "Undo your change to {files}."')
             if "NEW_CHECKS" not in names:
-                actions.append("If you did ask for it, read the change and accept it yourself.")
+                actions.append(f"If you did ask for it, read the change, then {_accept(actions)}")
     for n in [n for n in TEMPLATE_3 if n in names]:
         lead = not head
         if n == "OUT_OF_DATE":
@@ -258,7 +268,7 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
                 head.append("Stop. This needs you. No agreed check covers this change, so nothing could be checked.")
             actions.append(
                 "Yes. Agree a list of checks for this change with the AI first. If it needs none, read "
-                "the change and accept it yourself."
+                f"the change, then {_accept(actions)}"
             )
     if not actions:
         actions.append("Yes. Look at the details below and decide.")
