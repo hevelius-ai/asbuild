@@ -25,7 +25,7 @@ The general rules are in `engineering-playbook` and `engineering-build-loop`. Th
 
 ## Budget
 
-Each release's budget is in its decision and plan, and the current one in the control file's "Now" (v0.4.1: D54, `docs/plans/v0.4.1.md`). A working day counts only if the agent did that release's work.
+Each release's budget is in its plan, and the current one in the control file's "Now" (v0.4.1: D54, `docs/plans/v0.4.1.md`). A working day counts only if the agent did that release's work.
 
 ## Gates
 

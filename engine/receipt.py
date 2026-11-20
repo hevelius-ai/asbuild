@@ -154,6 +154,22 @@ def plain_file(path: str) -> str:
     return "a file only you may change"
 
 
+# D54, review round 1 F1: where the agreed lines themselves live. If one of these changed, "this line is still as
+# you agreed it" would be unchecked, so the line keeps v0.4.0's words.
+AGREED_FILES = ("locks.json", "dev-docs/stories/", "dev-docs/requests/")
+FILE_CHANGED_AGREED = "? not judged: the AI changed a file only you may change"
+
+
+def _status(v: dict, status: str) -> str:
+    if status == "file_changed" and any(
+        c["params"].get("path", "").startswith(AGREED_FILES)
+        for c in v["codes"]
+        if c["code"] in ("PROTECTED_CHANGED", "LOCK_CHANGED", "LOCK_DELETED")
+    ):
+        return FILE_CHANGED_AGREED
+    return STATUS[status]
+
+
 def _accept(actions: list[str]) -> str:
     """How to accept a change (D54, K10): the green button, its name in brackets only once per receipt."""
     if any("(Merge pull request)" in a for a in actions):
@@ -311,7 +327,7 @@ def render(v: dict) -> dict:
             'them." If it happens again, ask for help.'
         )
 
-    checklist = [f"{STATUS[i['status']]}: {as_written(i['plain'])}" for i in v["items"]]
+    checklist = [f"{_status(v, i['status'])}: {as_written(i['plain'])}" for i in v["items"]]
     broken = (v.get("pass_to_pass") or {}).get("broken", 0) if n == 5 else 0
     if broken:
         besides = (
