@@ -73,3 +73,5 @@ Not in Core. Nothing here is designed, reviewed or built until "done" is met and
 - A renamed file counts twice in K7's number (M4a review round 1, design lens, 18 Nov 2026)
 - The "AsBuild" check shows as failed in GitHub's check list for WAITING FOR YOU (its conclusion is "action required"), while the README says AsBuild blocks nothing (v0.4.0 release walkthrough run 6b, 18 Nov 2026)
 - Setup in a repository already set up says "already set up" before it checks whether the app is supported (v0.4.0 release walkthrough run 6, 18 Nov 2026)
+- A JavaScript story's test can import a helper it never uses (`fireEvent` in S1-C1), which the app's own lint warns about in a locked file; the story-time checks could run the app's lint (the owner's v0.4.0 try, 20 Nov 2026)
+- On Windows PowerShell 5.1, `npm run dev` is blocked by the default script policy (`npm.cmd` works), and the build session's "try it" line did not name the app's folder; the README or the verdict skill could say both (the owner's v0.4.0 try, 20 Nov 2026)
