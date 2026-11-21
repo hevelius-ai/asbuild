@@ -21,9 +21,7 @@ None.
 
 ## Open decisions
 
-- K11 (LOW): A fix now as v0.4.2, B fix with the next release (the build session's lean), C accept for good. Laid out in "AsBuild: parked items and future ideas" (https://claude.ai/artifact/KwJgf5GDj8gyfqHFMDsTLr).
-
-(Docker: the owner's standing yes, D52, 2026-11-18.)
+None. (Docker: the owner's standing yes, D52, 2026-11-18.)
 
 ## QUALITY RISK
 
@@ -31,6 +29,6 @@ None. (D55's accepted risk, no walkthrough for v0.4.1, closed by run 7, D56.)
 
 ## Next steps
 
-1. The owner merges `records/skills-d57` and answers K11; then nothing is planned. Building restarts only for a real user's request (playbook 1.2).
-2. Known issues: 1 open, K11 (LOW, 2026-11-21), the owner's choice pending.
+1. The owner merges `records/skills-d57`; then nothing is planned. Building restarts only for a real user's request (playbook 1.2).
+2. Known issues: 1 open, K11 (LOW, 2026-11-21): fixed inside the next release that happens for another reason (D58).
 3. The three shared skills: five edits made in the source copies in the kit folder `skills-update` (D57); the owner saves them through the design session.
