@@ -199,6 +199,8 @@ Each pull request gets one of four verdicts, with a receipt in plain words on to
 
 A story pull request always gets WAITING FOR YOU: its receipt lists the new checks for you to approve by merging.
 
+While AsBuild waits for you, GitHub and `gh pr checks` show its check as failed (its result is "action required"); that blocks nothing unless you set GitHub to require the AsBuild check.
+
 ## What AsBuild does not prove
 
 1. PROVEN means every test you approved failed before the change, passes after it and was not changed, and nothing that worked before broke. It does not mean the request is fully met; the agent wrote the tests and you approved them.

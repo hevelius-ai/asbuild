@@ -179,17 +179,29 @@ def find_tests(folder: Path) -> tuple[dict[str, tuple[Path, str]], list[str]]:
 
     for path in sorted(folder.rglob("*.py")):
         try:
-            module = ast.parse(path.read_text(encoding="utf-8"))
+            text = path.read_text(encoding="utf-8")
+            module = ast.parse(text)
         except (SyntaxError, UnicodeDecodeError, ValueError):
             bad.append(f"tests/acceptance/{folder.name}/{path.name} cannot be read as Python")
             continue
+        real: set[str] = set()
         for node in module.body:
             if isinstance(node, FUNCS) and node.name.startswith("test"):
                 add(node.name, path, node.name)
+                real.add(node.name)
             elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
                 for m in node.body:
                     if isinstance(m, FUNCS) and m.name.startswith("test"):
                         add(m.name, path, f"{node.name}.{m.name}")
+                        real.add(m.name)
+        # v0.4.2 (D60, P33): the lock reads test names line by line (TEST_DEF), so a line starting "def test_" that is
+        # not a test (inside a text, or nested) would be locked as a test that never runs: every build would wait.
+        for name in sorted(set(TEST_DEF.findall(text)) - real):
+            bad.append(
+                f'tests/acceptance/{folder.name}/{path.name}: the line "def {name}(" is not a test (it is inside a '
+                "text, or nested), but the lock would list it as one and every build would wait for it: change the "
+                'text so that no line starts with "def test_"'
+            )
     return found, bad
 
 
