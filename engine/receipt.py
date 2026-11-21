@@ -170,6 +170,36 @@ def _status(v: dict, status: str) -> str:
     return STATUS[status]
 
 
+# v0.4.2 (D60, R03): a change no story covers that also broke other checks.
+NO_STORY_BROKEN = (
+    "Stop. This needs you. Don't accept it yet. No agreed check covers this change, and {n} of your app's other "
+    "checks {verb} now."
+)
+NO_STORY_BROKEN_ACTIONS = [
+    # round 1, F1: AsBuild never ran these checks on main, so no "again" and no "your change broke them" (D45)
+    'Yes. Tell the AI: "Make my app\'s other checks pass, without changing them."',
+    "Then agree a list of checks for this change with the AI.",
+]
+# v0.4.2 (D60, P53 in P45's form): a build whose only protected change is the list of software can be split (D41).
+SOFTWARE = "the list of software your app installs"
+SOFTWARE_FIRST = (
+    'To have the lines on your list checked, tell the AI: "Put your change to the list of software your app '
+    'installs in a separate change, so I can accept that one first."'
+)
+
+
+def _software_only(v: dict, paths: list[str]) -> bool:
+    """A build with agreed lines whose every protected change is the list of software, and whose lines are unjudged
+    only because of that change (round 1, Opus F2: not when the install failed). A lock or check file never counts:
+    `plain_file` names every locked path and `locks.json` otherwise, so `paths` alone decides."""
+    return (
+        bool(v.get("items"))
+        and all(i["status"] == "file_changed" for i in v["items"])
+        and bool(paths)
+        and all(plain_file(p) == SOFTWARE for p in paths)
+    )
+
+
 def _accept(actions: list[str]) -> str:
     """How to accept a change (D54, K10): the green button, its name in brackets only once per receipt."""
     if any("(Merge pull request)" in a for a in actions):
@@ -238,6 +268,8 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             actions.append(f'Yes. If you didn\'t ask for this, tell the AI: "Undo your change to {files}."')
             if "NEW_CHECKS" not in names:
                 actions.append(f"If you did ask for it, read the change, then {_accept(actions)}")
+                if _software_only(v, paths):
+                    actions.append(SOFTWARE_FIRST)
     for n in [n for n in TEMPLATE_3 if n in names]:
         lead = not head
         if n == "OUT_OF_DATE":
@@ -279,6 +311,11 @@ def _waiting(v: dict, names: list[str], head: list[str], actions: list[str]) -> 
             )
         else:  # NO_STORY
             if v.get("setup_update") and not lead:  # setup's own update: its lines above say what to do
+                continue
+            broken = (v.get("pass_to_pass") or {}).get("broken", 0)
+            if lead and broken:  # v0.4.2 (D60, R03): AsBuild measured a broken check, so never "nothing was checked"
+                head.append(NO_STORY_BROKEN.format(n=broken, verb="fails" if broken == 1 else "fail"))
+                actions += NO_STORY_BROKEN_ACTIONS
                 continue
             if lead:
                 head.append("Stop. This needs you. No agreed check covers this change, so nothing could be checked.")
@@ -370,7 +407,13 @@ def technical(v: dict) -> str:
     lines += [
         f"- {c['code']}" + (f" {json.dumps(c['params'], sort_keys=True)}" if c["params"] else "") for c in v["codes"]
     ] or ["- no findings"]
-    lines += [f"- {i['id']}: {i['status']}" for i in v["items"]]
+    # v0.4.2 (D60, R01 = K11, D58): say why a line is not judged; the status value itself stays.
+    lines += [
+        f"- {i['id']}: not judged, a protected file changed (file_changed)"
+        if i["status"] == "file_changed"
+        else f"- {i['id']}: {i['status']}"
+        for i in v["items"]
+    ]
     p2p = v.get("pass_to_pass") or {}
     lines.append(f"- other tests: {p2p.get('total', 0)} run, {p2p.get('broken', 0)} broken")
     return "\n".join(lines)
