@@ -176,7 +176,8 @@ NO_STORY_BROKEN = (
     "checks {verb} now."
 )
 NO_STORY_BROKEN_ACTIONS = [
-    'Yes. Tell the AI: "Fix your change so my app\'s other checks pass again, without changing them."',
+    # round 1, F1: AsBuild never ran these checks on main, so no "again" and no "your change broke them" (D45)
+    'Yes. Tell the AI: "Make my app\'s other checks pass, without changing them."',
     "Then agree a list of checks for this change with the AI.",
 ]
 # v0.4.2 (D60, P53 in P45's form): a build whose only protected change is the list of software can be split (D41).
@@ -188,12 +189,13 @@ SOFTWARE_FIRST = (
 
 
 def _software_only(v: dict, paths: list[str]) -> bool:
-    """A build with agreed lines whose every protected change is the list of software (no lock or check file)."""
-    touched = [c for c in v["codes"] if c["code"] in ("PROTECTED_CHANGED", "LOCK_CHANGED", "LOCK_DELETED")]
+    """A build with agreed lines whose every protected change is the list of software, and whose lines are unjudged
+    only because of that change (round 1, Opus F2: not when the install failed). A lock or check file never counts:
+    `plain_file` names every locked path and `locks.json` otherwise, so `paths` alone decides."""
     return (
         bool(v.get("items"))
+        and all(i["status"] == "file_changed" for i in v["items"])
         and bool(paths)
-        and all(c["code"] == "PROTECTED_CHANGED" for c in touched)
         and all(plain_file(p) == SOFTWARE for p in paths)
     )
 

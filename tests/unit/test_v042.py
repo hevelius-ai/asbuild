@@ -95,7 +95,7 @@ def test_V42_C3_no_story_with_broken_checks_says_so_and_offers_no_accept(tmp_pat
     assert "nothing could be checked" not in top
     assert "then accept it on GitHub" not in top  # no action to accept ("Don't accept it yet" is the headline)
     assert "No agreed check covers this change, and 1 of your app's other checks fails now." in top
-    assert "Fix your change so my app's other checks pass again, without changing them." in top
+    assert "Make my app's other checks pass, without changing them." in top  # round 1, F1: no "again"
     assert "Then agree a list of checks for this change with the AI." in top
     assert lint("v42-c3", top) == []
 
@@ -173,3 +173,44 @@ def test_V42_C5_the_technical_report_says_why_a_line_is_not_judged():
     assert "- S1-C1: not judged, a protected file changed (file_changed)" in tech
     assert "- S1-C1: file_changed" not in tech
     assert json.loads(json.dumps(v))["items"][0]["status"] == "file_changed"
+
+
+# ------------------------------------------------------------------ round 1 (review findings)
+
+
+def facts_of(cid: str, **change) -> Facts:
+    from dataclasses import replace
+
+    from tests.conformance.test_conformance import facts_for
+
+    return replace(facts_for(cid), **change)
+
+
+def test_V42_C4_no_separate_change_line_when_the_install_failed():
+    """Round 1, Opus F2: lines unchecked because the install failed cannot be judged by splitting the change."""
+    f = facts_of("js-no-results-platform", files_changed=["src/Counter.tsx", "package.json"])
+    v = judge(f)
+    assert {"PROTECTED_CHANGED", "NO_RESULTS", "INSTALL_FAILED"} <= {c["code"] for c in v["codes"]}
+    assert SOFTWARE_FIRST not in render(v)["top"]
+
+
+@pytest.mark.parametrize(
+    "branch, changed",
+    [
+        ("build/S1", ["app/count.py", "requirements.txt", "pytest.ini"]),  # the software list and a settings file
+        ("docs/readme", ["README.md", "requirements.txt"]),  # no story, so no list to check
+    ],
+)
+def test_V42_C4_no_separate_change_line_for_a_mix_or_without_a_story(branch, changed):
+    """Round 1, Sonnet F1: the line needs agreed lines and the software list as the only protected change."""
+    v = judge(facts_of("py-proven", branch=branch, files_changed=changed))
+    assert v["verdict"] == "WAITING FOR YOU"
+    assert SOFTWARE_FIRST not in render(v)["top"]
+
+
+def test_V42_C3_the_new_words_only_where_no_story_leads(tmp_path):
+    """Round 1, Sonnet F2: the kept form is where NO_STORY leads; a protected change leads otherwise (R02 removed)."""
+    v, r = judged(tmp_path, "fix/typo", ["app/count.py", "requirements.txt"], broken=True)
+    assert [c["code"] for c in v["codes"]][:2] == ["PROTECTED_CHANGED", "NO_STORY"]
+    assert "No agreed check covers this change, and" not in r["top"]
+    assert lint("v42-c3-boundary", r["top"]) == []
