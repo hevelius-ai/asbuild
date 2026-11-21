@@ -1,77 +1,18 @@
 # Parking list: AsBuild
 
-Not in Core. Nothing here is designed, reviewed or built until "done" is met and a real user asks. Add new items as one line with the date and the reason.
+Not in Core. Nothing here is designed, reviewed or built until a real user asks (playbook 1.2). Pruned by the parked-ideas review on 21 Nov 2026 (D59): every other item was removed with its reason in `docs/plans/parked-review.md`, and comes back only with new evidence. Add new items as one line with the date and the reason.
 
-- Session hardening against a cheating agent: custom guard, hashes after every tool call, test-detection scans, held-out twins, the 12-run G3 test (root cause 1 again; CI already does the job)
-- The auto-merge gate and builder account as a product; a GitHub ruleset requiring the verdict before merge
-- Browser builders, web apps, screenshots, the Lovable flow (TypeScript reopened by D47 for v0.4.0)
-- Three modes; the baseline for existing apps; story slicing and build-next-story
-- The secret-key wrapper; signed releases
-- Publishing to PyPI (needs an account and a token only the owner holds)
-- Star-count bars
-- The regulated add-on (belongs to the compliance-review track, which is parked)
-- Entire CLI transcripts, Spec Kit and Superpowers adapters, Agent Trace, attestations
-- Checking a story pull request's `locks.json` entries against its test files (D11 check, 9 Nov 2026: a mismatch only makes later builds wait, never a false PROVEN)
-- Locking acceptance data files outside `tests/acceptance/` (D11 check, 9 Nov 2026: that folder is already protected whole)
-- Noticing an ordinary test (outside `tests/acceptance`) that a build deleted or skipped: the verdict counts only tests that ran and failed (D45, 14 Nov 2026; stated in the README; the actions themselves are pinned by commit since S1)
-- Verdicts for pull requests from forks (D11 check, 9 Nov 2026: the organization requires approval before fork workflows run)
-- The local check: `asbuild check` through uvx, and the Stop hook line (D15, 9 Nov 2026: never ran in the form specified; Claude Code's own hooks and deny rules cover the session)
-- Hardening against forged test results in the job that runs the pull request's code (9 Nov 2026 check: stated as a limit in the README, D16)
-- A Jest preset beside pytest (9 Nov 2026 check; Vitest reopened by D47 for v0.4.0, Jest stays parked: nearly absent in builder-made apps, P10)
-- A control write-up on AI-written changes offered to FINOS's SDLC Controls Framework, with AsBuild as the worked example (9 Nov 2026 check: writing, not building, and only after "done"; not checked whether one is already proposed there)
-- A test outside `tests/acceptance` that already fails on main is counted as "something that worked before broke": the full suite runs only on the pull request, as in step 0. Graded PARKED in S1 review round 3 (2026-11-10).
-- The story-time example check counts a negated assertion (`assert "words: 3" not in ...`) as checking the example (ported F4 behaviour). Graded PARKED in S2 review round 1 (2026-11-10).
-- A timeout on the story-time checks' run of the tests on the base branch. Graded PARKED in S2 review round 1 (2026-11-10).
-- The install page does not say whether a plugin installed from the shell needs a reload or a new session before `/asbuild:story`. Graded PARKED in S3 review round 1 (2026-11-10).
-- The install page's needs list does not say Python with pytest must be on the reader's own machine for the story-time checks and the wait script. Graded PARKED in S3 review round 1 (2026-11-10).
-- A `.claude/settings.json` that is gitignored, or saved with a byte-order mark, when the story-time checks add the deny line. Graded PARKED in S3 review round 1 (2026-11-10).
-- The skills' commands say `python`, not `python3`. Graded PARKED in S3 review round 1 (2026-11-10).
-- The wait script's timeout exit code 7 is a bare number. Graded PARKED in S3 review round 1 (2026-11-10).
-- An unreadable or unwritable `locks.json` ends the story-time checks in a traceback, not exit 2 (S2's code). Graded PARKED in S3 review round 2 (2026-11-10).
-- No flow for changing a check after its story is merged: only the owner changes a locked test. Graded PARKED in S3 review round 2 (2026-11-10).
-- The story-time checks' `git worktree prune` clears the record of every missing worktree, not only AsBuild's copy (S2's code). Graded PARKED in the S4 directory review, round 2 (2026-11-11).
-- The story-time checks rewrite the whole `.claude/settings.json` with two-space indents when they add the deny line, so a file laid out differently shows more than one changed line (S3's code). Graded PARKED in the S4 directory review, round 2 (2026-11-11).
-- The story skill says a checklist has 2 to 5 lines; the story-time checks accept 1 to 5. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
-- The story-time checks' `--keep` option, which the skill never uses, writes pytest's result file to a folder the caller names. Graded PARKED in the S4 directory review, round 1 (2026-11-11).
-- A story-time run stopped part-way leaves the temporary copy and git's record of it behind (S2's code). Graded PARKED in the S4 directory review, round 3 (2026-11-11).
-- The lock and the story-time checks read test names line by line (`TEST_DEF`), so a line starting `def test_` inside a text string in a locked test file is taken for a locked test that never runs; S4's planted check had to be written on one line. Reading names with `ast` would fix it. Found in auto-job-search story S4 (2026-11-12).
-- When `main` is not the default branch, the verdict job computes nothing and posts `out/verdict.json` or `out/receipt.md` if such a file is committed on the default branch, instead of UNRESOLVED; the same pattern as before, and no extra power, since whoever writes the default branch controls the workflow. Graded PARKED in PR #10's review, round 1 (2026-11-12).
-- AsBuild for a repository whose default branch is not `main` (18C): needs the test job on every pull request and a filter in the job, which touches the trust design (D16) and a locked S1 check. Parked by D36 until a real user needs it.
-- The install redesign (D38): from about 25 steps in three tools to a few, for Claude desktop app users. Options in the finding document: a step-by-step README, a setup command, a template repository (decision 20 laid out the first two). Parts checked: the one-command install (`claude plugin install asbuild --marketplace hevelius-ai/asbuild`, run in an empty settings folder); the desktop app's plugin menu names (seen on the owner's app; the install through them not followed to the end). Built next, within Core's budget (2026-11-12).
-- Setup with `--repo` naming a folder that does not exist ends in a traceback, not a message (S5 review round 1, P2). The skill never passes `--repo`.
-- The story skill's `git switch -c story/S<n> origin/main` meets Git's refusal over an untracked file left by an empty-repository setup when setup's step 3 did not switch (S5 review round 3); Git's own message names the step.
-- Setup tells its own commits by their titles alone, so a hand-made commit titled exactly "Add AsBuild" or "Update AsBuild" on the setup branch would be replaced (S5 review round 3, not verified).
-- Whether Claude counts an untracked file as unsaved work at setup's step 3 (switch only with no unsaved work), which decides whether the empty-repository case reaches the move-aside step (S5 review round 3, PARKED).
-- Setup reports an invalid `GH_TOKEN` (the CLI present, its sign-in bad) through "Git could not reach the repository", not "not signed in"; a real signed-out machine was not tried (S5 walkthrough run 3, PARKED-1).
-- Setup's example-identity check matches only the exact examples; near-copies ("your name") pass (#18 review round 1, PARKED).
-- An identity given only by environment variables (`GIT_AUTHOR_NAME`) is reported as missing by setup (#18 review round 1, PARKED; older behaviour).
-- Setup names the `--global` fix when an example identity sits in a third place (a worktree's own config, an included file), where that fix does not reach (#18 review round 2, PARKED).
-- The WAITING FOR YOU receipt does not say how to get the lines judged after a protected file changed (add it in its own pull request first) (#19 review round 1, PARKED).
-- A directory listing (D44, 4C): refused on 13 Nov because the plugin's Python scripts are accepted only from Verified organizations. Reopen if Hevelius AI Group LLC becomes Verified (resubmit `v0.3.2` or later unchanged) or a real user asks for a listing (then weigh 4A against 4B, the PyPI package).
-- Setup's update pull request that also adds pytest to `requirements.txt` is not recognised as setup's own, so its receipt says Stop while setup's message says to merge it (D46 limits recognition to the two workflow files; graded PARKED in the v0.3.4 review round 1, 14 Nov 2026)
-- Recognising setup's update pull request by the two workflow files' content (compared with a release), not only by its branch and file names (D46): a gutted workflow file on `asbuild-setup` gets setup's wording, verdict still WAITING FOR YOU (v0.3.4 review round 2, 14 Nov 2026)
-- `fetch_facts` ignores the tree listing's `truncated` flag: in a repository whose tree GitHub truncates, a changed locked test can be missed and called removed; fails closed to WAITING FOR YOU (v0.3.4 review round 2, 14 Nov 2026)
-- Jest; Playwright and other browser checks (v0.4.0 design, D47, 15 Nov 2026)
-- pnpm, Yarn and Bun installs; monorepos and workspaces; a `package.json` below the root (v0.4.0 design, D47, 15 Nov 2026)
-- Next.js apps and server components (L7 B) (v0.4.0 design, D47, 15 Nov 2026)
-- Allowing added packages in `package.json` (L4 A); reopen with the count of waits over the first 10 real builds (v0.4.0 design, D47, 15 Nov 2026)
-- Porting AsBuild's own scripts to Node (L8 A) (v0.4.0 design, D47, 15 Nov 2026)
-- A JavaScript parser in place of the story-time scanner; JavaScript on an empty repository; agreed checks in two languages in one story (a repository with a Python story and a JavaScript story is in scope: design §3.2, L5 B) (v0.4.0 design, D47, 15 Nov 2026)
-- Vue, Svelte, React Native and Expo; Vite older than 5 (v0.4.0 design, D47, 15 Nov 2026)
-- Swift, Dart, Go and Rust: each at its own gate with a fresh measurement (L9 C) (v0.4.0 design, D47, 15 Nov 2026)
-- Vite loading the project's `postcss.config.*` when a check imports CSS: code that runs, as D16 line 3 (M2 review round 1, safety lens, 17 Nov 2026)
-- The live run reading the posted check run's conclusion as well as the saved verdict file; tying `live.py`'s rows to `cases.json`'s live rows by a test (M2 review round 1, evidence lens, 17 Nov 2026)
-- Setup: a `.py` file under a tracked `node_modules/` (or a folder ending in `node_modules`) not counting as Python; an empty repository whose app is only in a subfolder still getting the `requirements.txt` first commit; Vite or Vitest found in the lockfile only, and a Vitest range like `^3`, read as they are; the stop list run again on an update, so a JavaScript repository that later adds Playwright cannot update its workflow files (M3 review round 1, design lens, 18 Nov 2026)
-- Story time: a story folder holding only `*.spec.tsx` files takes the Python path, so its refusal names pytest (M3 review round 1, evidence lens, 18 Nov 2026)
-- The scanner without a real JavaScript parser (design §9): an apostrophe in JSX text (`<p>Don't</p>`) in a helper above the test, a regular expression right after `}` or `)` (`if (x) /re/`), `a > /\(/` inside `expect(`, and a literal given to a matcher that takes none (`.not.toBeNull("x")`) are read wrongly; each fails closed or is refused by the run on main (M3 review round 2, 18 Nov 2026)
-- A Vite major upgrade in a later JavaScript story: the story check names the first story's command, which refuses after the first story; the story skill's three-attempt stop ends it (M3 review round 2, design lens, 18 Nov 2026)
-- The check run's summary shows the technical report as Markdown without a code fence, so file and test names from the pull request can show as links there (old code; M4a review round 1, safety and evidence lenses, 18 Nov 2026)
-- No size cap on the technical report's path lists (PROTECTED_CHANGED, STORY_HAS_APP_FILES): past about 1,000 files the note exceeds GitHub's 65,536 characters and fails to post (old class; M4a review round 1, 18 Nov 2026)
-- A note step that fails leaves the previous commit's note under the new check; a verdict run for an older commit that passed the lookup before a new push can still post after the newer one (old code; M4a review round 1, 18 Nov 2026)
-- `out/verdict.json`, `out/receipt.md` or `evidence/c3/*.xml` already on main are read by the verdict job's fallbacks or its evidence folder; adding `evidence/` is not a protected change (old code, needs an earlier merge the person made; M4a review rounds 1 and 2, 18 Nov 2026)
-- A repository's own letters-only link prefixes (`TICKET-abc`) pass the ordinary-line rule and link to the owner's own address; ASCII control characters in story text get no word joiner beside them (M4a review rounds 1 and 2, 18 Nov 2026)
-- A renamed file counts twice in K7's number (M4a review round 1, design lens, 18 Nov 2026)
-- The "AsBuild" check shows as failed in GitHub's check list for WAITING FOR YOU (its conclusion is "action required"), while the README says AsBuild blocks nothing (v0.4.0 release walkthrough run 6b, 18 Nov 2026)
-- Setup in a repository already set up says "already set up" before it checks whether the app is supported (v0.4.0 release walkthrough run 6, 18 Nov 2026)
-- A JavaScript story's test can import a helper it never uses (`fireEvent` in S1-C1), which the app's own lint warns about in a locked file; the story-time checks could run the app's lint (the owner's v0.4.0 try, 20 Nov 2026)
-- On Windows PowerShell 5.1, `npm run dev` is blocked by the default script policy (`npm.cmd` works), and the build session's "try it" line did not name the app's folder; the README or the verdict skill could say both (the owner's v0.4.0 try, 20 Nov 2026)
+## Worth building (D59), ranked, cheapest as one release of about 5 to 6 agent hours
+
+1. A `def test_` line inside a text string: the story-time check refuses a Python check file where the line reader finds a test name that `ast` does not, instead of a lock no build can satisfy (P33; T6).
+2. The waiting check shows as failed: the README and the verdict skill say GitHub shows AsBuild's check as failed while it waits for the person, and that AsBuild blocks nothing unless the check is made required (P70; T1).
+3. A no-story receipt with broken tests: no "nothing could be checked" and no accept line; tell the AI to fix the other checks first (R03; T4a; D45 point 2).
+4. A build that changes only the list of software: the receipt adds the third path, put that change in its own pull request first (P53 in P45's form; T4b; D41).
+5. K11, the technical report's `file_changed` wording (R01; D58; see `docs/KNOWN-ISSUES.md`).
+
+## New, not evaluated (found by the review, 21 Nov 2026)
+
+- Python apps whose packages are only in `pyproject.toml` (uv, Poetry): the test job installs only `requirements.txt`.
+- One walkthrough on macOS or Linux: every walker run and owner try so far was on one Windows computer.
+- The story and verdict skills copied into the repository's `.claude/skills/`, for cloud sessions and teammates without the plugin.
+- Any `.py` file makes setup take a TypeScript or JavaScript app as Python (`asbuild_js.py:128`): 30 of 60 sampled repositories.
