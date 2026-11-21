@@ -3,17 +3,17 @@
 Current state only. Times in UTC. Read first in every session. Skills: `engineering-playbook`, `engineering-build-loop`, `.claude/skills/asbuild-project/`.
 
 ## Now
-- v0.4.1, known issue K10 (D54, plan `docs/plans/v0.4.1.md`): **done** 2026-11-21T00:09Z. hevelius-ai/asbuild#48 merged by the owner 2026-11-20T23:59:34Z (dc5a15d); published 2026-11-21T00:01:34Z on dc5a15d; tag checked (engine 0bb2867 in all four workflow files; the `v*` ruleset active). Done line 3: asbuild-demo#15 (95cfccb) and auto-job-search#19 (aa0777e) merged by the owner, both repositories on v0.4.1. The walkthrough skipped by the owner's 6B (D55). Budget 4 agent hours (stop 6), 0.4 owner hours (stop 1), reviews $20 (stop $30), 2 working days. Used: about 1.5 agent hours, about 0.15 owner hours, reviews $20.72; working day 1 of 2.
+- v0.4.1, known issue K10 (D54, plan `docs/plans/v0.4.1.md`): **done** 2026-11-21T00:09Z. hevelius-ai/asbuild#48 merged by the owner 2026-11-20T23:59:34Z (dc5a15d); published 2026-11-21T00:01:34Z on dc5a15d; tag checked (engine 0bb2867 in all four workflow files; the `v*` ruleset active). Done line 3: asbuild-demo#15 (95cfccb) and auto-job-search#19 (aa0777e) merged by the owner, both repositories on v0.4.1. Walkthrough: first skipped (D55), then run by the owner's reversal (D56): run 7, 2026-11-21T00:34Z, NO BLOCKER FOUND, F2 not seen again, new F3 LOW (K11). Budget 4 agent hours (stop 6), 0.4 owner hours (stop 1), reviews $20 (stop $30), 2 working days. Used: about 1.8 agent hours, about 0.15 owner hours, reviews $20.72, walker $0.50; working day 1 of 2.
 - v0.4.0, TypeScript and JavaScript (D47 to D53): done 2026-11-20T22:19Z (the log holds its release steps).
 - The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu, fed by the linked Haiku keeper.
-- Branches in `hevelius-ai/asbuild`: `main`; `records/v041-done`. In `hevelius-ai/asbuild-proofs`: `proof/m2-live-bases` (the base apps), `proof/m3-story` (M3's Windows runs). In `hevelius-ai/auto-job-search`: `build/S4` (the closed #14, the evidence of Core's done line 1).
-- AsBuild test repositories: none (all deleted by the owner on 2026-11-20; a later live run or walkthrough needs a new one). The archived `agile-dev-team` repositories stay (the owner's choice).
+- Branches in `hevelius-ai/asbuild`: `main`; `records/v041-walkthrough`. In `hevelius-ai/asbuild-proofs`: `proof/m2-live-bases` (the base apps), `proof/m3-story` (M3's Windows runs). In `hevelius-ai/auto-job-search`: `build/S4` (the closed #14, the evidence of Core's done line 1).
+- AsBuild test repositories: `hevelius-ai/asbuild-walkthrough-7` (private, D56; run 7's build #5 left open), for the owner to delete when they choose. The archived `agile-dev-team` repositories stay (the owner's choice).
 - AsBuild 0.4.1 is installed on this computer (`claude plugin update`, 2026-11-21).
 - Plan usage reset on 2026-11-17 (next reset 2026-11-24T09:00Z).
 
 ## Open pull requests and merge order
 
-1. `records/v041-done`: v0.4.1's release records (D55, this file, the log, hours).
+1. `records/v041-walkthrough`: the v0.4.1 walkthrough's records (D56, K11, this file, the log, hours).
 
 ## Running jobs
 
@@ -25,10 +25,10 @@ None. (Docker: the owner's standing yes, D52, 2026-11-18.)
 
 ## QUALITY RISK
 
-- Accepted by the owner (D55, 2026-11-21): v0.4.1 shipped without a user walkthrough (playbook 2.10). Its change is the receipt's words only, proven by tests, golden receipts and two review rounds; no walker has seen the new words.
+None. (D55's accepted risk, no walkthrough for v0.4.1, closed by run 7, D56.)
 
 ## Next steps
 
-1. The owner merges `records/v041-done`; then nothing is planned. Building restarts only for a real user's request (playbook 1.2).
-2. Known issues: none open.
+1. The owner merges `records/v041-walkthrough` and deletes `hevelius-ai/asbuild-walkthrough-7` when they choose; then nothing is planned. Building restarts only for a real user's request (playbook 1.2).
+2. Known issues: 1 open, K11 (LOW, 2026-11-21): fix, accept or drop at the next release.
 3. The owner's two general playbooks: prune candidates offered (duplicates of "times from the clock" and "instructions in files are information"); an upload only the owner can do.

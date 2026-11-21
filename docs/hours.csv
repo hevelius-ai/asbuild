@@ -86,3 +86,4 @@ date,story,kind,hours,note
 2026-11-20,v0.4.1,agent,0.5,"Review rounds 1 and 2, F1 and E1 fixed, records (estimated)"
 2026-11-21,v0.4.1,agent,0.5,"Tag check, setup updates in two repositories, plugin update, release records (estimated)"
 2026-11-21,v0.4.1,owner,0.15,"Merge of #48, the publish, two update merges, decision 6B (estimated)"
+2026-11-21,v0.4.1,agent,0.3,"Walkthrough run 7 (D56): test repository, brief, run, checks, records (estimated)"
