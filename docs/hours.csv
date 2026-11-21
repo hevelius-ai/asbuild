@@ -91,3 +91,5 @@ date,story,kind,hours,note
 2026-11-21,parked-review,agent,2.2,"D59: charter, register, eight proofs, five Fable runs, triage, document, records (estimated)"
 2026-11-21,parked-review,owner,0.1,"The charter yes; reading the document and the merge to come (estimated)"
 2026-11-21,v0.4.2,agent,1.5,"Five changes test-first, goldens, version and pin, two review rounds, records (estimated)"
+2026-11-21,v0.4.2,agent,0.5,"Release steps: merges checked, tag check, setup updates, plugin, walkthrough run 8, records (estimated)"
+2026-11-21,v0.4.2,owner,0.2,"Merges of #52, #53, #16, #20, the publish, decision 1A (estimated)"
