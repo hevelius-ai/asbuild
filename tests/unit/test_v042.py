@@ -1,5 +1,5 @@
 """v0.4.2 (D60): the five ideas the parked-ideas review kept (D59), each by its own criterion (plan
-`docs/plans/v0.4.2.md`). Every receipt a test renders is also linted (the plain-words rules)."""
+`docs/plans/v0.4.2.md`). Every receipt that shows a new line is also linted (the plain-words rules)."""
 
 from __future__ import annotations
 
