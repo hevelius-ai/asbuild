@@ -13,7 +13,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Open pull requests and merge order
 
-None after `records/cleanup-2` (this file, the project skill, the log).
+None after `records/skill-saved` (this file and the log).
 
 ## Running jobs
 
@@ -29,6 +29,6 @@ None open.
 
 ## Next steps
 
-1. The owner saves the playbook's new 1.12 bullet, "Clean up at every close" (drafted 2026-11-22 in the source copy, `skills-update/engineering-playbook`), as with D57.
-2. Then nothing is planned: building restarts only for a real user's request.
-3. Known issues: none open.
+1. Nothing is planned: building restarts only for a real user's request.
+2. Known issues: none open.
+3. The playbook holds 1.12's "Clean up at every close" (saved by the owner, checked 2026-11-22).
