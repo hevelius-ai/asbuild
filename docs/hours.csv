@@ -93,3 +93,5 @@ date,story,kind,hours,note
 2026-11-21,v0.4.2,agent,1.5,"Five changes test-first, goldens, version and pin, two review rounds, records (estimated)"
 2026-11-21,v0.4.2,agent,0.5,"Release steps: merges checked, tag check, setup updates, plugin, walkthrough run 8, records (estimated)"
 2026-11-21,v0.4.2,owner,0.2,"Merges of #52, #53, #16, #20, the publish, decision 1A (estimated)"
+2026-11-22,D61,agent,1.5,"Product description PDF and its corrections, TypeScript demo (setup, story, four verdicts, README), README wording, records (estimated)"
+2026-11-22,D61,owner,0.2,"Merges of asbuild-demo-ts #1 and #2, decision 1B (estimated)"
