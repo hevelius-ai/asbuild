@@ -4,17 +4,16 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 - AsBuild v0.4.2 is the final product (D60, done 2026-11-21T14:59Z): nothing more is built unless a real user asks (playbook 1.2). The parking list holds only four new ideas, not evaluated.
-- D61, the public TypeScript demo `hevelius-ai/asbuild-demo-ts`: set up (#1) and story S1 (#2) merged by the owner; #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU, #6 UNRESOLVED, left open as the demo; README #7 open. The product description PDF (two sections) is in the kit folder, outside the repository.
+- D61 done: the public TypeScript demo `hevelius-ai/asbuild-demo-ts`, its README listing #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU and #6 UNRESOLVED. The README's receipts section links both demos. The product description PDF (two sections) is in the kit folder, outside the repository.
 - v0.4.2, v0.4.1, the parked-ideas review (D59) and v0.4.0: done; the log holds their steps.
-- The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu. Its Haiku keeper is archived (the owner, 2026-11-21); the board was not updated for D61.
-- Branches in `hevelius-ai/asbuild`: `main`; `records/demo-ts`. In `hevelius-ai/asbuild-demo-ts`: `main`, the four demo branches (`build/S1`, `build/S1-wrong-message`, `build/S1-weakened-check`, `build/S1-no-results`) and `docs/readme`. In `hevelius-ai/asbuild-proofs` (private, the v0.4.0 test lab): `proof/m2-live-bases`, `proof/m3-story`, `proof/walkthrough-app` (b5d6308, the app both the walkthroughs and the TypeScript demo use) and the other proof branches. In `hevelius-ai/auto-job-search`: `build/S4` (the closed #14, the evidence of Core's done line 1).
+- The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu. Its Haiku keeper is archived (the owner, 2026-11-21); the board was not updated after v0.4.2.
+- Branches in `hevelius-ai/asbuild`: `main` only. In `hevelius-ai/asbuild-demo` and `hevelius-ai/asbuild-demo-ts`: `main` and one branch per open demo pull request (the demo pull requests stay open on purpose). In `hevelius-ai/asbuild-proofs` (private, the v0.4.0 test lab): `main` and twelve proof branches, among them `proof/walkthrough-app` (b5d6308, the app the walkthroughs and the TypeScript demo use). In `hevelius-ai/auto-job-search`: `build/S4` (the closed #14, the evidence of Core's done line 1).
 - AsBuild 0.4.2 is installed on this computer.
 - Plan usage reset on 2026-11-17 (next reset 2026-11-24T09:00Z).
 
 ## Open pull requests and merge order
 
-1. hevelius-ai/asbuild-demo-ts#7 `docs/readme`: the demo's README with the four verdict pull requests. WAITING FOR YOU (no story covers a README change); the owner reads it and merges it.
-2. `records/demo-ts` in `hevelius-ai/asbuild`: D61's records and the README's receipts section.
+None after `records/cleanup` (this file, the project skill, the log).
 
 ## Running jobs
 
@@ -30,6 +29,6 @@ None open.
 
 ## Next steps
 
-1. The owner merges asbuild-demo-ts#7, then `records/demo-ts`.
+1. The owner saves the playbook's new 1.12 bullet, "Clean up at every close" (drafted 2026-11-22 in the source copy, `skills-update/engineering-playbook`), as with D57.
 2. Then nothing is planned: building restarts only for a real user's request.
 3. Known issues: none open.
