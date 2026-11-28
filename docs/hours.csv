@@ -97,3 +97,5 @@ date,story,kind,hours,note
 2026-11-22,D61,owner,0.2,"Merges of asbuild-demo-ts #1 and #2, decision 1B (estimated)"
 2026-11-28,D62,agent,6.5,"Build-or-prompt comparison: prompts v1 and v2, 38 scenarios in five rounds, 854 prompt runs, scoring, independent checks, the comparison doc and its manual, records (estimated)"
 2026-11-28,D62,owner,0.3,"Decisions S1-A and H-A, the test repositories public twice, the request and the away protocol (estimated)"
+2026-11-28,D62,agent,3.0,"Round 6: 33 new scenarios and 2 real pull requests, judges, AsBuild and prompt runs on three models, scoring, the doc section, records (estimated)"
+2026-11-28,D62,owner,0.1,"Questions on combining and models, decision 2A, the away protocol (estimated)"
