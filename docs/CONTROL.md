@@ -4,7 +4,7 @@ Current state only. Times in UTC. Read first in every session. Skills: `engineer
 
 ## Now
 - AsBuild v0.4.2 is the final product (D60, done 2026-11-21T14:59Z): nothing more is built unless a real user asks (playbook 1.2). The parking list holds only four new ideas, not evaluated.
-- D62 done: the build-or-prompt comparison. The doc (findings, which to use when, limits, the recommended model and effort, a short manual with prompt v2): https://claude.ai/artifact/13QdGB7nrnZF8yd3NZ9Nqz. Round 6 (the two checkers together, and the models on equal terms) is the doc's section "Round 6: together or apart". The kit folder `prompt-test` (not committed) holds the prompts, scenario designs, scripts and every run's answer.
+- D62 done: the build-or-prompt comparison. The doc (findings, which to use when, limits, the recommended model and effort, a short manual with prompt v2): https://claude.ai/artifact/13QdGB7nrnZF8yd3NZ9Nqz. Round 6 (the two checkers together, and the models on equal terms) is the doc's section "Round 6: together or apart". Fable 5.2 was not run on round 6: the owner's 3B, 2026-11-28 (it was already lowest on the blind set at almost five times Sonnet's cost). The kit folder `prompt-test` (not committed) holds the prompts, scenario designs, scripts and every run's answer.
 - D61 done: the public TypeScript demo `hevelius-ai/asbuild-demo-ts`, its README listing #3 PROVEN, #4 NOT PROVEN, #5 WAITING FOR YOU and #6 UNRESOLVED. The README's receipts section links both demos. The product description PDF (two sections) is in the kit folder, outside the repository.
 - v0.4.2, v0.4.1, the parked-ideas review (D59) and v0.4.0: done; the log holds their steps.
 - The board: https://claude.ai/artifact/5b6CiKgT3pouct5UKN1TUu. Its Haiku keeper is archived (the owner, 2026-11-21); the board was not updated after v0.4.2.
@@ -23,7 +23,6 @@ None.
 ## Open decisions
 
 - 1A or 1B: keep AsBuild as is, or add the re-run of `main`'s copy of the other tests (a deleted, skipped or rewritten test that now fails gets WAITING FOR YOU). Round 6 adds evidence both ways: it would have caught R08, and it would have flagged the correct real build #8 for the owner's decision.
-- Fable 5.2 on round 6 (99 runs, about $57 at its reported prices, about 13% of Fable's weekly limit): run after the 2026-12-01 reset, or skip (Fable was already lowest on the blind set at almost five times Sonnet's cost).
 
 (Docker: the owner's standing yes, D52, 2026-11-18.)
 
